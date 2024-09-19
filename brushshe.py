@@ -11,6 +11,7 @@ class Brushshe(CTk):
         super().__init__()
         self.title("Brushshe")
         self.geometry("650x580")
+        self.minsize(650, 580)
         self.iconphoto(True, PhotoImage(file="icons/icon.png"))
         set_default_color_theme("brushshe_theme.json")
         set_appearance_mode("system")
@@ -273,7 +274,7 @@ class Brushshe(CTk):
             self.font_size = int(size)
             self.tx_size_label.configure(text=self.font_size)
 
-        def optionmenu_callback(value):
+        def combobox_callback(value):
             self.tk_font = CTkFont(family=value, size=self.font_size)
             
         text_settings = CTkToplevel(app)
@@ -287,9 +288,9 @@ class Brushshe(CTk):
         fonts_label = CTkLabel(text_settings, text="Шрифти з системи:")
         fonts_label.pack()
         fonts = list(font.families())
-        fonts_optionmenu = CTkOptionMenu(text_settings, values=fonts, command=optionmenu_callback)
-        fonts_optionmenu.set(self.tk_font['family'])
-        fonts_optionmenu.pack()
+        fonts_combobox = CTkComboBox(text_settings, values=fonts, command=combobox_callback)
+        fonts_combobox.set(self.tk_font['family'])
+        fonts_combobox.pack()
 
     def show_frame_choice(self):
         def on_frames_click(index):
@@ -363,7 +364,7 @@ class Brushshe(CTk):
         
     def about_program(self):
         about_msg = CTkMessagebox(title="Про програму",
-                                  message="Brushshe (Брашше) - програма для малювання, в якій можна створювати те, що Вам подобається.\n\nОрел на ім'я Brucklin (Браклін) - її талісман.\n\nhttps://github.com/l1mafresh/Brushshe\n\nv0.1",
+                                  message="Brushshe (Брашше) - програма для малювання, в якій можна створювати те, що Вам подобається.\n\nОрел на ім'я Brucklin (Браклін) - її талісман.\n\nhttps://github.com/l1mafresh/Brushshe\n\nv0.1.1",
                                   icon="icons/brucklin.png", icon_size=(150,191), option_1="ОК", height=400)
 
     def clean_all(self):
