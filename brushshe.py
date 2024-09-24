@@ -364,7 +364,7 @@ class Brushshe(CTk):
         
     def about_program(self):
         about_msg = CTkMessagebox(title="Про програму",
-                                  message="Brushshe (Брашше) - програма для малювання, в якій можна створювати те, що Вам подобається.\n\nОрел на ім'я Brucklin (Браклін) - її талісман.\n\nhttps://github.com/l1mafresh/Brushshe\n\nv0.1.1",
+                                  message="Brushshe (Брашше) - програма для малювання, в якій можна створювати те, що Вам подобається.\n\nОрел на ім'я Brucklin (Браклін) - її талісман.\n\nhttps://github.com/l1mafresh/Brushshe\n\nv0.1.2",
                                   icon="icons/brucklin.png", icon_size=(150,191), option_1="ОК", height=400)
 
     def clean_all(self):
@@ -414,7 +414,7 @@ class Brushshe(CTk):
                 self.color = self.getcolor
                 self.other_color_btn.pack(side=RIGHT, padx=1)
                 self.other_color_btn.configure(fg_color=self.getcolor)
-                self.brush_size_label.configure(text="Пензль:")
+                self.tool_label.configure(text="Пензль:")
         except:
             pass
         
