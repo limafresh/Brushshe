@@ -322,10 +322,7 @@ class Brushshe(CTk):
         my_gallery.title("Галерея Brushshe")
         my_gallery.geometry("650x580")
 
-        title_label = CTkLabel(my_gallery, text="Моя галерея")
-        title_label.pack()
-
-        gallery_frame = CTkScrollableFrame(my_gallery, width=650, height=560)
+        gallery_frame = CTkScrollableFrame(my_gallery, label_text="Моя галерея", width=650, height=560)
         gallery_frame.pack()
 
         row = 0
@@ -347,9 +344,12 @@ class Brushshe(CTk):
                 self.canvas.configure(bg="white")
                 self.photo = ImageTk.PhotoImage(self.image)
                 self.canvas.create_image(0, 0, anchor=NW, image=self.photo)
+
+        is_image_found = False
             
         for filename in os.listdir("gallery"):
             if filename.endswith(".png"):
+                is_image_found = True
                 img_path = os.path.join("gallery", filename)
                 img = Image.open(img_path)
 
@@ -361,10 +361,21 @@ class Brushshe(CTk):
                 if column == 2:
                     column = 0
                     row +=1
+
+            if not is_image_found:
+                gallery_frame.configure(label_text="Моя галерея (пусто)")
         
     def about_program(self):
-        about_msg = CTkMessagebox(title="Про програму",
-                                  message="Brushshe (Брашше) - програма для малювання, в якій можна створювати те, що Вам подобається.\n\nОрел на ім'я Brucklin (Браклін) - її талісман.\n\nhttps://github.com/l1mafresh/Brushshe\n\nv0.1.2",
+        about_text = '''
+Brushshe (Брашше) - програма для малювання, в якій можна створювати те, що Вам подобається.
+
+Орел на ім'я Brucklin (Браклін) - її талісман.
+
+https://github.com/l1mafresh/Brushshe
+
+v0.1.3
+        '''
+        about_msg = CTkMessagebox(title="Про програму", message=about_text,
                                   icon="icons/brucklin.png", icon_size=(150,191), option_1="ОК", height=400)
 
     def clean_all(self):
