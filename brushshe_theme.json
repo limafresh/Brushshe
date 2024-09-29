@@ -128,7 +128,7 @@
     "scrollbar_button_hover_color": ["gray40", "gray53"]
   },
   "CTkScrollableFrame": {
-    "label_fg_color": ["gray80", "gray21"]
+    "label_fg_color": ["white", "gray21"]
   },
   "DropdownMenu": {
     "fg_color": ["gray90", "gray20"],

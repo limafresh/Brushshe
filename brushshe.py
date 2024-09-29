@@ -69,7 +69,7 @@ class Brushshe(CTk):
 
         other_menu = menu.add_cascade("Інше")
         dropdown6 = CustomDropdownMenu(widget=other_menu)
-        dropdown6.add_option(option="Інфо", command=self.about_program)
+        dropdown6.add_option(option="Про програму", command=self.about_program)
         
         tools_frame = CTkFrame(self)   # Панель інструментів
         tools_frame.pack(side=TOP, fill=X)
@@ -218,25 +218,25 @@ class Brushshe(CTk):
                     row +=1
                     
         sticker_choose = CTkToplevel(app)
-        sticker_choose.geometry("320x420")
+        sticker_choose.geometry("350x420")
         sticker_choose.title("Оберіть наліпку")
                 
         tabview = CTkTabview(sticker_choose, command=update_btn)
         tabview.add("Обрати наліпку")
         tabview.add("Розмір наліпок")
         tabview.set("Обрати наліпку")
-        tabview.pack()
+        tabview.pack(fill=BOTH, expand=True)
 
-        stickers_frame = CTkScrollableFrame(tabview.tab("Обрати наліпку"), width=300, height=400)
-        stickers_frame.pack()
+        stickers_frame = CTkScrollableFrame(tabview.tab("Обрати наліпку"))
+        stickers_frame.pack(fill=BOTH, expand=True)
 
         self.st_size_label = CTkLabel(tabview.tab("Розмір наліпок"), text=self.size_a)
-        self.st_size_label.pack()
+        self.st_size_label.pack(padx=10, pady=10)
         self.st_slider = CTkSlider(tabview.tab("Розмір наліпок"), from_=10, to=175, command=self.change_sticker_size)
         self.st_slider.set(self.size_a)
-        self.st_slider.pack()
+        self.st_slider.pack(padx=10, pady=10)
         set_default = CTkButton(tabview.tab("Розмір наліпок"), text="Повернути як було", command=self.set_default_stickers_size)
-        set_default.pack()
+        set_default.pack(padx=10, pady=10)
 
         update_btn()
 
@@ -279,18 +279,19 @@ class Brushshe(CTk):
             
         text_settings = CTkToplevel(app)
         text_settings.title("Налаштувати текст")
+        
         self.tx_size_label = CTkLabel(text_settings, text=self.font_size)
-        self.tx_size_label.pack()
+        self.tx_size_label.pack(padx=10, pady=10)
         tx_size_slider = CTkSlider(text_settings, from_=11, to=96, command=change_text_size)
         tx_size_slider.set(self.font_size)
-        tx_size_slider.pack()
+        tx_size_slider.pack(padx=10, pady=10)
 
         fonts_label = CTkLabel(text_settings, text="Шрифти з системи:")
-        fonts_label.pack()
+        fonts_label.pack(padx=10, pady=10)
         fonts = list(font.families())
         fonts_combobox = CTkComboBox(text_settings, values=fonts, command=combobox_callback)
         fonts_combobox.set(self.tk_font['family'])
-        fonts_combobox.pack()
+        fonts_combobox.pack(padx=10, pady=10)
 
     def show_frame_choice(self):
         def on_frames_click(index):
@@ -304,7 +305,7 @@ class Brushshe(CTk):
 
         frames_names = ["frame1", "frame2", "frame3", "frame4", "frame5", "frame6", "frame7"]
         frames_thumbnails = [
-            CTkImage(light_image=Image.open(f"frames_preview/{name}.png"), size=(70, 70))
+            CTkImage(light_image=Image.open(f"frames_preview/{name}.png"), size=(100, 100))
             for name in frames_names
         ]
 
@@ -312,18 +313,26 @@ class Brushshe(CTk):
             Image.open(f"frames/{name}.png")
             for name in frames_names
         ]
+
+        row = 0
+        column = 0
         
         for i, image in enumerate(frames_thumbnails):
             frames_btn = CTkButton(frames_win, text=None, image=image, command=lambda i=i: on_frames_click(i))
-            frames_btn.pack()
+            frames_btn.grid(column=column, row=row, padx=10, pady=10)
+            
+            column += 1
+            if column == 2:
+                column = 0
+                row +=1
         
     def show_gallery(self):
         my_gallery = CTkToplevel(app)
         my_gallery.title("Галерея Brushshe")
         my_gallery.geometry("650x580")
 
-        gallery_frame = CTkScrollableFrame(my_gallery, label_text="Моя галерея", width=650, height=560)
-        gallery_frame.pack()
+        gallery_frame = CTkScrollableFrame(my_gallery, label_text="Моя галерея")
+        gallery_frame.pack(fill=BOTH, expand=True)
 
         row = 0
         column = 0
@@ -373,7 +382,7 @@ Brushshe (Брашше) - програма для малювання, в які�
 
 https://github.com/l1mafresh/Brushshe
 
-v0.1.3
+v0.2
         '''
         about_msg = CTkMessagebox(title="Про програму", message=about_text,
                                   icon="icons/brucklin.png", icon_size=(150,191), option_1="ОК", height=400)
