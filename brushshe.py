@@ -87,18 +87,18 @@ class Brushshe(CTk):
         size_slider = CTkSlider(tools_frame, from_=1, to=50, command=self.change_brush_size)
         self.brush_size = 2
         size_slider.set(self.brush_size)
-        size_slider.pack(side=LEFT, padx=5)
+        size_slider.pack(side=LEFT, padx=1)
 
         self.brush_size_label = CTkLabel(tools_frame, text="2")
         self.brush_size_label.pack(side=LEFT, padx=1)
 
+        save_button = CTkButton(tools_frame, text="Зберегти в галерею", width=70, command=self.save_image)
+        save_button.pack(side=RIGHT, padx=1)
+
         self.theme_switch_var = StringVar(value="off")
         theme_switch = CTkSwitch(tools_frame, text="Темний", width=50, command=self.change_theme,
                                  variable=self.theme_switch_var, onvalue="on", offvalue="off")
-        theme_switch.pack(side=RIGHT, padx=5)
-
-        save_button = CTkButton(tools_frame, text="Зберегти в галерею", width=70, command=self.save_image)
-        save_button.pack(side=RIGHT, padx=5)
+        theme_switch.pack(side=RIGHT, padx=1)
 
         self.canvas = CTkCanvas(self, bg="white")   # Канва
         self.canvas.pack(fill=BOTH, expand=True)
@@ -382,7 +382,7 @@ Brushshe (Брашше) - програма для малювання, в які�
 
 https://github.com/l1mafresh/Brushshe
 
-v0.2
+v0.3
         '''
         about_msg = CTkMessagebox(title="Про програму", message=about_text,
                                   icon="icons/brucklin.png", icon_size=(150,191), option_1="ОК", height=400)
