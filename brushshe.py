@@ -140,6 +140,8 @@ class Brushshe(CTk):
         self.canvas.bind("<B1-Motion>", self.paint)
         self.canvas.bind("<ButtonRelease-1>", self.stop_paint)
 
+        self.canvas.configure(cursor="pencil")
+
     ''' Функціонал '''
     def when_closing(self):
         closing_msg = CTkMessagebox(title = "Ви покидаєте Brushshe", message = "Зберегти малюнок?",
@@ -244,10 +246,12 @@ class Brushshe(CTk):
         self.current_sticker = image
         if self.current_sticker:
             self.canvas.bind("<Button-1>", self.add_sticker)
+            self.canvas.configure(cursor="")
 
     def add_sticker(self, event): # Додати наліпку
         self.canvas.create_image(event.x, event.y, anchor='center', image=self.current_sticker)
         self.canvas.unbind("<Button-1>")
+        self.canvas.configure(cursor="pencil")
 
     def change_sticker_size(self, value):
         self.size_a = int(self.st_slider.get())
@@ -263,11 +267,13 @@ class Brushshe(CTk):
         text = dialog.get_input()
         if text:
             self.canvas.bind("<Button-1>", lambda event, t=text: self.add_text(event, text))
+            self.canvas.configure(cursor="")
 
     def add_text(self, event, text): # Додати текст
         self.tk_font = CTkFont(family=self.tk_font['family'], size=self.font_size)
         self.canvas.create_text(event.x, event.y, text=text, fill=self.color, font=self.tk_font)
         self.canvas.unbind("<Button-1>")
+        self.canvas.configure(cursor="pencil")
 
     def text_settings(self):
         def change_text_size(size):
@@ -385,7 +391,7 @@ Brushshe (Брашше) - програма для малювання, в які�
 
 https://github.com/l1mafresh/Brushshe
 
-v0.4
+v0.4.1
         '''
         about_msg = CTkMessagebox(title="Про програму", message=about_text,
                                   icon="icons/brucklin.png", icon_size=(150,191), option_1="ОК", height=400)
@@ -400,6 +406,7 @@ v0.4
     def eraser(self):
         self.color = self.canvas.cget('bg')
         self.tool_label.configure(text="Ластик:")
+        self.canvas.configure(cursor="crosshair")
         
     def save_image(self):
         # позиції канви
@@ -428,6 +435,7 @@ v0.4
     def change_color(self, new_color):
         self.color = new_color
         self.tool_label.configure(text="Пензль:")
+        self.canvas.configure(cursor="pencil")
 
     def other_color_choise(self):
         try:
@@ -438,12 +446,14 @@ v0.4
                 self.other_color_btn.pack(side=RIGHT, padx=1)
                 self.other_color_btn.configure(fg_color=self.getcolor)
                 self.tool_label.configure(text="Пензль:")
+                self.canvas.configure(cursor="pencil")
         except:
             pass
         
     def select_other_color_btn(self):
         self.color = self.getcolor
         self.tool_label.configure(text="Пензль:")
+        self.canvas.configure(cursor="pencil")
         
 app = Brushshe()
 app.mainloop()
