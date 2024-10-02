@@ -21,12 +21,12 @@ class Brushshe(CTk):
         menu = CTkMenuBar(self)   # Меню
         
         file_menu = menu.add_cascade("Файл")
-        dropdown1 = CustomDropdownMenu(widget=file_menu)
-        dropdown1.add_option(option="Відкрити з файлу", command=self.open_image)
-        dropdown1.add_option(option="Експортувати на ПК", command=self.export)
+        file_dropdown = CustomDropdownMenu(widget=file_menu)
+        file_dropdown.add_option(option="Відкрити з файлу", command=self.open_image)
+        file_dropdown.add_option(option="Експортувати на ПК", command=self.export)
 
         bg_menu = menu.add_cascade("Колір тла")
-        dropdown3 = CustomDropdownMenu(widget=bg_menu)
+        bg_dropdown = CustomDropdownMenu(widget=bg_menu)
         ukr_colors = {
             "Білий": "white",
             "Червоний": "red",
@@ -42,9 +42,9 @@ class Brushshe(CTk):
             "Чорний": "black"
         }
         for ukr_name, color in ukr_colors.items():
-            dropdown3.add_option(option=ukr_name, command=lambda c=color: self.change_bg(c))
-        dropdown3.add_separator()
-        dropdown3.add_option(option="Інший колір", command=self.other_bg_color)
+            bg_dropdown.add_option(option=ukr_name, command=lambda c=color: self.change_bg(c))
+        bg_dropdown.add_separator()
+        bg_dropdown.add_option(option="Інший колір", command=self.other_bg_color)
 
         # ширина і висота всіх зображень стікерів - 88 px
         stickers_names = [
@@ -55,21 +55,25 @@ class Brushshe(CTk):
         self.stickers = [Image.open(f"stickers/{name}.png") for name in stickers_names]
         
         add_menu = menu.add_cascade("Додати")
-        dropdown4 = CustomDropdownMenu(widget=add_menu)
+        add_dropdown = CustomDropdownMenu(widget=add_menu)
         smile_icon = CTkImage(light_image=Image.open("icons/smile.png"), size=(50, 50))
-        dropdown4.add_option(option="Наліпки", image=smile_icon, command=self.show_stickers_choice)
+        add_dropdown.add_option(option="Наліпки", image=smile_icon, command=self.show_stickers_choice)
         text_icon = CTkImage(light_image=Image.open("icons/text.png"), size=(50, 50))
-        text_submenu = dropdown4.add_submenu("Текст", image=text_icon)
+        text_submenu = add_dropdown.add_submenu("Текст", image=text_icon)
         text_submenu.add_option(option="Додати текст на малюнок", command=self.add_text_window_show)
         text_submenu.add_option(option="Налаштувати текст для вставлення", command=self.text_settings)
         frame_icon = CTkImage(light_image=Image.open("icons/frame.png"), size=(50, 50))
-        dropdown4.add_option(option="Рамки", image=frame_icon, command=self.show_frame_choice)
+        add_dropdown.add_option(option="Рамки", image=frame_icon, command=self.show_frame_choice)
 
         gallery_menu = menu.add_cascade("Моя галерея", command=self.show_gallery)
 
+        rectangle_menu = menu.add_cascade("Прямокутник", command=lambda: self.create_shape("rectangle"))
+        oval_menu = menu.add_cascade("Овал", command=lambda: self.create_shape("oval"))
+        line_menu = menu.add_cascade("Лінія", command=lambda: self.create_shape("line"))
+
         other_menu = menu.add_cascade("Інше")
-        dropdown6 = CustomDropdownMenu(widget=other_menu)
-        dropdown6.add_option(option="Про програму", command=self.about_program)
+        other_dropdown = CustomDropdownMenu(widget=other_menu)
+        other_dropdown.add_option(option="Про програму", command=self.about_program)
         
         tools_frame = CTkFrame(self)   # Панель інструментів
         tools_frame.pack(side=TOP, fill=X)
@@ -99,6 +103,10 @@ class Brushshe(CTk):
         theme_switch = CTkSwitch(tools_frame, text="Темний", width=50, command=self.change_theme,
                                  variable=self.theme_switch_var, onvalue="on", offvalue="off")
         theme_switch.pack(side=RIGHT, padx=1)
+
+        current_theme = get_appearance_mode()
+        if current_theme == "Dark":
+            theme_switch.select(1)
 
         self.canvas = CTkCanvas(self, bg="white")   # Канва
         self.canvas.pack(fill=BOTH, expand=True)
@@ -270,7 +278,7 @@ class Brushshe(CTk):
             self.canvas.configure(cursor="")
 
     def add_text(self, event, text): # Додати текст
-        self.tk_font = CTkFont(family=self.tk_font['family'], size=self.font_size)
+        self.tk_font = CTkFont(family=self.tk_font["family"], size=self.font_size)
         self.canvas.create_text(event.x, event.y, text=text, fill=self.color, font=self.tk_font)
         self.canvas.unbind("<Button-1>")
         self.canvas.configure(cursor="pencil")
@@ -334,8 +342,43 @@ class Brushshe(CTk):
             if column == 2:
                 column = 0
                 row +=1
+
+    # Функції створення фігур
+    def create_shape(self, shape):
+        def start_shape(event):
+            self.shape_start_x = event.x
+            self.shape_start_y = event.y
+            if self.shape == "rectangle":
+                self.shape_id = self.canvas.create_rectangle(self.shape_start_x, self.shape_start_y, self.shape_start_x,
+                                                             self.shape_start_y, width=self.brush_size, outline=self.color)
+            elif self.shape == "oval":
+                self.shape_id = self.canvas.create_oval(self.shape_start_x, self.shape_start_y, self.shape_start_x,
+                                                        self.shape_start_y, width=self.brush_size, outline=self.color)
+            elif self.shape == "line":
+                self.shape_id = self.canvas.create_line(self.shape_start_x, self.shape_start_y, self.shape_start_x,
+                                                        self.shape_start_y, width=self.brush_size, fill=self.color)
+
+        def draw_shape(event):
+            self.canvas.coords(self.shape_id, self.shape_start_x, self.shape_start_y, event.x, event.y)
+
+        def end_shape(event):
+            self.canvas.unbind("<ButtonPress-1>")
+            self.canvas.unbind("<B1-Motion>")
+            self.canvas.unbind("<ButtonRelease-1>")
+
+            self.canvas.bind("<B1-Motion>", self.paint)
+            self.canvas.bind("<ButtonRelease-1>", self.stop_paint)
+
+            self.canvas.configure(cursor="pencil")
         
-    def show_gallery(self):
+        self.shape = shape
+        self.canvas.bind("<ButtonPress-1>", start_shape)
+        self.canvas.bind("<B1-Motion>", draw_shape)
+        self.canvas.bind("<ButtonRelease-1>", end_shape)
+
+        self.canvas.configure(cursor="crosshair")
+        
+    def show_gallery(self): # Галерея
         my_gallery = CTkToplevel(app)
         my_gallery.title("Галерея Brushshe")
         my_gallery.geometry("650x580")
@@ -391,7 +434,7 @@ Brushshe (Брашше) - програма для малювання, в які�
 
 https://github.com/l1mafresh/Brushshe
 
-v0.4.1
+v0.5
         '''
         about_msg = CTkMessagebox(title="Про програму", message=about_text,
                                   icon="icons/brucklin.png", icon_size=(150,191), option_1="ОК", height=400)
