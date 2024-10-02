@@ -3,7 +3,7 @@ from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkColorPicker import AskColor
 from CTkMessagebox import CTkMessagebox
 from PIL import Image, ImageDraw, ImageTk, ImageGrab
-from tkinter import PhotoImage, font
+from tkinter import PhotoImage, font, Listbox
 import gc, os, uuid
 
 class Brushshe(CTk):
@@ -274,8 +274,9 @@ class Brushshe(CTk):
             self.font_size = int(size)
             self.tx_size_label.configure(text=self.font_size)
 
-        def combobox_callback(value):
-            self.tk_font = CTkFont(family=value, size=self.font_size)
+        def listbox_callback(event):
+            selected_font = fonts_listbox.get(fonts_listbox.curselection())
+            self.tk_font = CTkFont(family=selected_font, size=self.font_size)
             
         text_settings = CTkToplevel(app)
         text_settings.title("Налаштувати текст")
@@ -289,9 +290,11 @@ class Brushshe(CTk):
         fonts_label = CTkLabel(text_settings, text="Шрифти з системи:")
         fonts_label.pack(padx=10, pady=10)
         fonts = list(font.families())
-        fonts_combobox = CTkComboBox(text_settings, values=fonts, command=combobox_callback)
-        fonts_combobox.set(self.tk_font['family'])
-        fonts_combobox.pack(padx=10, pady=10)
+        fonts_listbox = Listbox(text_settings)
+        fonts_listbox.pack(padx=10, pady=10)
+        for f in fonts:
+            fonts_listbox.insert(END, f)
+        fonts_listbox.bind("<<ListboxSelect>>", listbox_callback)
 
     def show_frame_choice(self):
         def on_frames_click(index):
@@ -382,7 +385,7 @@ Brushshe (Брашше) - програма для малювання, в які�
 
 https://github.com/l1mafresh/Brushshe
 
-v0.3
+v0.4
         '''
         about_msg = CTkMessagebox(title="Про програму", message=about_text,
                                   icon="icons/brucklin.png", icon_size=(150,191), option_1="ОК", height=400)
