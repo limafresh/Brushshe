@@ -4,7 +4,9 @@ from CTkColorPicker import AskColor
 from CTkMessagebox import CTkMessagebox
 from PIL import Image, ImageDraw, ImageTk, ImageGrab
 from tkinter import PhotoImage, font, Listbox
-import gc, os, uuid
+from os import listdir
+from uuid import uuid4
+from gc import disable as garbage_collector_disable
 
 class Brushshe(CTk):
     def __init__(self):
@@ -143,12 +145,13 @@ class Brushshe(CTk):
         self.tk_font = CTkFont(size=self.font_size)
         self.size_a = 100
 
-        gc.disable() # бо ввімкнений gc думає що додані наліпки і текст - це сміття
+        garbage_collector_disable() # бо ввімкнений gc думає що додані наліпки і текст - це сміття
 
         self.canvas.bind("<B1-Motion>", self.paint)
         self.canvas.bind("<ButtonRelease-1>", self.stop_paint)
 
         self.canvas.configure(cursor="pencil")
+        self.current_tool = None
 
     ''' Функціонал '''
     def when_closing(self):
@@ -423,8 +426,8 @@ class Brushshe(CTk):
                     column = 0
                     row +=1
 
-            if not is_image_found:
-                gallery_frame.configure(label_text="Моя галерея (пусто)")
+        if is_image_found == False:
+            gallery_frame.configure(label_text="Моя галерея (пусто)")
         
     def about_program(self):
         about_text = '''
@@ -434,7 +437,7 @@ Brushshe (Брашше) - програма для малювання, в які�
 
 https://github.com/l1mafresh/Brushshe
 
-v0.5
+v0.5.1
         '''
         about_msg = CTkMessagebox(title="Про програму", message=about_text,
                                   icon="icons/brucklin.png", icon_size=(150,191), option_1="ОК", height=400)
@@ -450,6 +453,7 @@ v0.5
         self.color = self.canvas.cget('bg')
         self.tool_label.configure(text="Ластик:")
         self.canvas.configure(cursor="crosshair")
+        self.current_tool = "eraser"
         
     def save_image(self):
         # позиції канви
@@ -461,7 +465,7 @@ v0.5
         # вміст канви
         canvas_img = ImageGrab.grab(bbox=(x0, y0, x1, y1))
 
-        image_name = f"gallery/{uuid.uuid4()}.png"
+        image_name = f"gallery/{uuid4()}.png"
 
         saved = CTkMessagebox(title="Збережено",
                               message='Малюнок успішно збережено в галерею ("Моя галерея" в меню вгорі)!',
@@ -478,7 +482,9 @@ v0.5
     def change_color(self, new_color):
         self.color = new_color
         self.tool_label.configure(text="Пензль:")
-        self.canvas.configure(cursor="pencil")
+        if self.current_tool == "eraser":
+            self.canvas.configure(cursor="pencil")
+            self.current_tool = None
 
     def other_color_choise(self):
         try:
@@ -489,14 +495,18 @@ v0.5
                 self.other_color_btn.pack(side=RIGHT, padx=1)
                 self.other_color_btn.configure(fg_color=self.getcolor)
                 self.tool_label.configure(text="Пензль:")
-                self.canvas.configure(cursor="pencil")
+                if self.current_tool == "eraser":
+                    self.canvas.configure(cursor="pencil")
+                    self.current_tool = None
         except:
             pass
         
     def select_other_color_btn(self):
         self.color = self.getcolor
         self.tool_label.configure(text="Пензль:")
-        self.canvas.configure(cursor="pencil")
+        if self.current_tool == "eraser":
+            self.canvas.configure(cursor="pencil")
+            self.current_tool = None
         
 app = Brushshe()
 app.mainloop()
