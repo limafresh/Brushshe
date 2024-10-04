@@ -66,12 +66,16 @@ class Brushshe(CTk):
         text_submenu.add_option(option="Налаштувати текст для вставлення", command=self.text_settings)
         frame_icon = CTkImage(light_image=Image.open("icons/frame.png"), size=(50, 50))
         add_dropdown.add_option(option="Рамки", image=frame_icon, command=self.show_frame_choice)
-
+        
+        shapes_menu = menu.add_cascade("Фігури")
+        shapes_dropdown = CustomDropdownMenu(widget=shapes_menu)
+        shapes_dropdown.add_option(option="Прямокутник", command=lambda: self.create_shape("rectangle"))
+        shapes_dropdown.add_option(option="Овал", command=lambda: self.create_shape("oval"))
+        shapes_dropdown.add_option(option="Лінія", command=lambda: self.create_shape("line"))
+        shapes_dropdown.add_option(option="Заповнений прямокутник", command=lambda: self.create_shape("fill rectangle"))
+        shapes_dropdown.add_option(option="Заповнений овал", command=lambda: self.create_shape("fill oval"))
+        
         gallery_menu = menu.add_cascade("Моя галерея", command=self.show_gallery)
-
-        rectangle_menu = menu.add_cascade("Прямокутник", command=lambda: self.create_shape("rectangle"))
-        oval_menu = menu.add_cascade("Овал", command=lambda: self.create_shape("oval"))
-        line_menu = menu.add_cascade("Лінія", command=lambda: self.create_shape("line"))
 
         other_menu = menu.add_cascade("Інше")
         other_dropdown = CustomDropdownMenu(widget=other_menu)
@@ -360,6 +364,12 @@ class Brushshe(CTk):
             elif self.shape == "line":
                 self.shape_id = self.canvas.create_line(self.shape_start_x, self.shape_start_y, self.shape_start_x,
                                                         self.shape_start_y, width=self.brush_size, fill=self.color)
+            elif self.shape == "fill rectangle":
+                self.shape_id = self.canvas.create_rectangle(self.shape_start_x, self.shape_start_y, self.shape_start_x,
+                                                        self.shape_start_y, width=self.brush_size, outline=self.color, fill=self.color)
+            elif self.shape == "fill oval":
+                self.shape_id = self.canvas.create_oval(self.shape_start_x, self.shape_start_y, self.shape_start_x,
+                                                        self.shape_start_y, width=self.brush_size, outline=self.color, fill=self.color)
 
         def draw_shape(event):
             self.canvas.coords(self.shape_id, self.shape_start_x, self.shape_start_y, event.x, event.y)
@@ -380,6 +390,8 @@ class Brushshe(CTk):
         self.canvas.bind("<ButtonRelease-1>", end_shape)
 
         self.canvas.configure(cursor="crosshair")
+        
+        self.after(100) # Невелика затримка, бо інакше не працює
         
     def show_gallery(self): # Галерея
         my_gallery = CTkToplevel(app)
@@ -437,7 +449,7 @@ Brushshe (Брашше) - програма для малювання, в які�
 
 https://github.com/l1mafresh/Brushshe
 
-v0.5.1
+v0.6
         '''
         about_msg = CTkMessagebox(title="Про програму", message=about_text,
                                   icon="icons/brucklin.png", icon_size=(150,191), option_1="ОК", height=400)
