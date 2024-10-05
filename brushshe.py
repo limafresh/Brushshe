@@ -79,6 +79,10 @@ class Brushshe(CTk):
 
         other_menu = menu.add_cascade("Інше")
         other_dropdown = CustomDropdownMenu(widget=other_menu)
+        theme_submenu = other_dropdown.add_submenu("Тема")
+        theme_submenu.add_option(option="Системна", command=lambda: self.change_theme("system"))
+        theme_submenu.add_option(option="Світла", command=lambda: self.change_theme("light"))
+        theme_submenu.add_option(option="Темна", command=lambda: self.change_theme("dark"))
         other_dropdown.add_option(option="Про програму", command=self.about_program)
         
         tools_frame = CTkFrame(self)   # Панель інструментів
@@ -104,15 +108,6 @@ class Brushshe(CTk):
 
         save_button = CTkButton(tools_frame, text="Зберегти в галерею", width=70, command=self.save_image)
         save_button.pack(side=RIGHT, padx=1)
-
-        self.theme_switch_var = StringVar(value="off")
-        theme_switch = CTkSwitch(tools_frame, text="Темний", width=50, command=self.change_theme,
-                                 variable=self.theme_switch_var, onvalue="on", offvalue="off")
-        theme_switch.pack(side=RIGHT, padx=1)
-
-        current_theme = get_appearance_mode()
-        if current_theme == "Dark":
-            theme_switch.select(1)
 
         self.canvas = CTkCanvas(self, bg="white")   # Канва
         self.canvas.pack(fill=BOTH, expand=True)
@@ -363,7 +358,7 @@ class Brushshe(CTk):
                                                         self.shape_start_y, width=self.brush_size, outline=self.color)
             elif self.shape == "line":
                 self.shape_id = self.canvas.create_line(self.shape_start_x, self.shape_start_y, self.shape_start_x,
-                                                        self.shape_start_y, width=self.brush_size, fill=self.color)
+                                                        self.shape_start_y, width=self.brush_size, fill=self.color, capstyle=ROUND)
             elif self.shape == "fill rectangle":
                 self.shape_id = self.canvas.create_rectangle(self.shape_start_x, self.shape_start_y, self.shape_start_x,
                                                         self.shape_start_y, width=self.brush_size, outline=self.color, fill=self.color)
@@ -440,6 +435,9 @@ class Brushshe(CTk):
 
         if is_image_found == False:
             gallery_frame.configure(label_text="Моя галерея (пусто)")
+            
+    def change_theme(self, theme):
+        set_appearance_mode(theme)
         
     def about_program(self):
         about_text = '''
@@ -449,7 +447,7 @@ Brushshe (Брашше) - програма для малювання, в які�
 
 https://github.com/l1mafresh/Brushshe
 
-v0.6
+v0.7
         '''
         about_msg = CTkMessagebox(title="Про програму", message=about_text,
                                   icon="icons/brucklin.png", icon_size=(150,191), option_1="ОК", height=400)
@@ -484,12 +482,6 @@ v0.6
                               icon="icons/saved.png", icon_size=(100,100))
 
         canvas_img.save(image_name)
-
-    def change_theme(self):
-        if self.theme_switch_var.get() == "on":
-            set_appearance_mode("dark")
-        else:
-            set_appearance_mode("light")
 
     def change_color(self, new_color):
         self.color = new_color
