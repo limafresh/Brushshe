@@ -1,12 +1,14 @@
-import customtkinter as ctk
-from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
-from CTkColorPicker import AskColor
-from CTkMessagebox import CTkMessagebox
-from PIL import Image, ImageDraw, ImageTk, ImageGrab
-from tkinter import PhotoImage, font, Listbox
-from os import listdir, path
-from uuid import uuid4
 from gc import disable as garbage_collector_disable
+from os import listdir, path
+from tkinter import font, Listbox, PhotoImage
+from uuid import uuid4
+from webbrowser import open_new
+
+import customtkinter as ctk
+from CTkColorPicker import AskColor
+from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
+from CTkMessagebox import CTkMessagebox
+from PIL import Image, ImageDraw, ImageGrab, ImageTk
 
 
 class Brushshe(ctk.CTk):
@@ -20,7 +22,7 @@ class Brushshe(ctk.CTk):
         ctk.set_appearance_mode("system")
         self.protocol("WM_DELETE_WINDOW", self.when_closing)
 
-        ''' Інтерфейс '''
+        """ Інтерфейс """
         menu = CTkMenuBar(self)   # Меню
 
         file_menu = menu.add_cascade("Файл")
@@ -131,7 +133,7 @@ class Brushshe(ctk.CTk):
         self.other_color_btn = ctk.CTkButton(self.palette, text=None, width=35,
                                              border_width=2, command=self.select_other_color_btn)
 
-        ''' Ініціалізація '''
+        """ Ініціалізація """
         self.color = "black"
 
         self.image = Image.new("RGB", (800, 600), "white")
@@ -153,7 +155,7 @@ class Brushshe(ctk.CTk):
         self.canvas.configure(cursor="pencil")
         self.current_tool = None
 
-    ''' Функціонал '''
+    """ Функціонал """
     def when_closing(self):
         closing_msg = CTkMessagebox(title="Ви покидаєте Brushshe", message="Зберегти малюнок?",
                                     option_1="Ні", option_2="Повернутися щоб зберегти",
@@ -207,7 +209,7 @@ class Brushshe(ctk.CTk):
 
     def change_bg(self, new_color):
         self.canvas.configure(bg=new_color)
-        if self.tool_label.cget('text') == "Ластик:":
+        if self.tool_label.cget("text") == "Ластик:":
             self.eraser()
 
     def other_bg_color(self):
@@ -265,7 +267,7 @@ class Brushshe(ctk.CTk):
             self.canvas.configure(cursor="")
 
     def add_sticker(self, event):  # Додати наліпку
-        self.canvas.create_image(event.x, event.y, anchor='center', image=self.current_sticker)
+        self.canvas.create_image(event.x, event.y, anchor="center", image=self.current_sticker)
         self.canvas.unbind("<Button-1>")
         self.canvas.configure(cursor="pencil")
 
@@ -410,10 +412,10 @@ class Brushshe(ctk.CTk):
         column = 0
 
         def open_from_gallery(img_path):
-            open_msg_message = '''
+            open_msg_message = """
 Малюнок, що Ви малюєте зараз, буде втрачено, якщо він не збережений і замінено на малюнок з галереї.
 Продовжити?
-            '''
+            """
             open_msg = CTkMessagebox(title="Відкриття малюнку",
                                      message=open_msg_message,
                                      option_1="Так", option_2="Повернутися",
@@ -455,17 +457,19 @@ class Brushshe(ctk.CTk):
         ctk.set_appearance_mode(theme)
 
     def about_program(self):
-        about_text = '''
+        about_text = """
 Brushshe (Брашше) - програма для малювання, в якій можна створювати те, що Вам подобається.
 
 Орел на ім'я Brucklin (Браклін) - її талісман.
 
-https://github.com/l1mafresh/Brushshe
-
-v0.7.1
-        '''
-        CTkMessagebox(title="Про програму", message=about_text,
-                      icon="icons/brucklin.png", icon_size=(150, 191), option_1="ОК", height=400)
+v0.7.2
+        """
+        about_msg = CTkMessagebox(title="Про програму", message=about_text,
+                                  icon="icons/brucklin.png", icon_size=(150, 191),
+                                  option_1="ОК", option_2="GitHub", height=400)
+        response = about_msg.get()
+        if response == "GitHub":
+            open_new(r"https://github.com/limafresh/Brushshe")
 
     def clean_all(self):
         self.canvas.delete("all")
@@ -475,7 +479,7 @@ v0.7.1
         self.brush_size_label.configure(text=self.brush_size)
 
     def eraser(self):
-        self.color = self.canvas.cget('bg')
+        self.color = self.canvas.cget("bg")
         self.tool_label.configure(text="Ластик:")
         self.canvas.configure(cursor="crosshair")
         self.current_tool = "eraser"
