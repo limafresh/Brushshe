@@ -10,9 +10,9 @@
 2. Завантажте код та розпакуйте завантажений архів:
 
 [![Download the code](https://img.shields.io/badge/Завантажити_код-ZIP-orange?style=for-the-badge&logo=Python&logoColor=white)](https://github.com/limafresh/Brushshe/archive/refs/heads/main.zip)  
-3. Встановіть потрібні бібліотеки, якщо не встановлені - відкрийте термінал чи командну строку та введіть команду:
+3. Встановіть CustomTkinter, якщо не встановлений - відкрийте термінал чи командну строку та введіть:
 ```
-pip install customtkinter CTkMenuBar CTkColorPicker CTkMessagebox
+pip install customtkinter
 ```
 4. Запустіть Python IDLE, відкрийте файл `brushshe.py` та запустіть його.
 ### Можливі помилки
@@ -46,9 +46,12 @@ pip install Pillow
 ## Версії залежностей, використовувані під час розробки
 + Python 3.11.2
 + customtkinter 5.2.2
-+ CTkMenuBar 0.8
-+ CTkMessagebox 2.7
-+ CTkColorPicker 0.9.0
+
+## Подяки
+Дякую [Akascape](https://github.com/Akascape) за бібліотеки [CTkColorPicker](https://github.com/Akascape/CTkColorPicker), [CTkMenuBar](https://github.com/Akascape/CTkMenuBar) та [CTkMessagebox](https://github.com/Akascape/CTkMessagebox).
+
+## Ліцензія
+Ліцензія проекту - GNU GPL v3, ліцензія CTkColorPicker, CTkMenuBar та CTkMessagebox - CC0.
 
 ## Для розробників
 ### Лінтер
@@ -57,4 +60,4 @@ pip install Pillow
 pip install flake8 flake8-quotes flake8-import-order flake8-builtins
 ```
 
-## 🎨
+## 🎨🦅💪

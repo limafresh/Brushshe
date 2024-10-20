@@ -1,4 +1,8 @@
 [flake8]
 max-line-length = 120
+exclude = CTkColorPicker, CTkMenuBar, CTkMessagebox
+
 inline-quotes = "
-import-order-style = smarkets
+
+application-import-names = CTkColorPicker, CTkMenuBar, CTkMessagebox
+import-order-style = google

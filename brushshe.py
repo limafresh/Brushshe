@@ -5,10 +5,11 @@ from uuid import uuid4
 from webbrowser import open_new
 
 import customtkinter as ctk
+from PIL import Image, ImageDraw, ImageGrab, ImageTk
+
 from CTkColorPicker import AskColor
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
-from PIL import Image, ImageDraw, ImageGrab, ImageTk
 
 
 class Brushshe(ctk.CTk):
@@ -462,7 +463,7 @@ Brushshe (Брашше) - програма для малювання, в які�
 
 Орел на ім'я Brucklin (Браклін) - її талісман.
 
-v0.7.2
+v0.7.3
         """
         about_msg = CTkMessagebox(title="Про програму", message=about_text,
                                   icon="icons/brucklin.png", icon_size=(150, 191),
