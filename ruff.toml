@@ -1,0 +1,8 @@
+line-length = 120
+exclude = ["CTkMenuBar/*.py", "CTkMessagebox/*.py", "CTkColorPicker/*.py"]
+
+[lint]
+extend-select = ["F", "E", "W", "I", "N"]
+
+[format]
+quote-style = "double"
