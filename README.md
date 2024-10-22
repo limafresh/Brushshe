@@ -51,13 +51,10 @@ pip install Pillow
 Дякую [Akascape](https://github.com/Akascape) за бібліотеки [CTkColorPicker](https://github.com/Akascape/CTkColorPicker), [CTkMenuBar](https://github.com/Akascape/CTkMenuBar) та [CTkMessagebox](https://github.com/Akascape/CTkMessagebox).
 
 ## Ліцензія
-Ліцензія проекту - GNU GPL v3, ліцензія CTkColorPicker, CTkMenuBar та CTkMessagebox - CC0.
+Ліцензія проекту - *GNU GPL v3*, ліцензія CTkColorPicker, CTkMenuBar та CTkMessagebox - *CC0*.
 
 ## Для розробників
 ### Лінтер
-Для підтримки чистоти коду використовується лінтер [flake8](https://github.com/pycqa/flake8) та його плагіни:
-```
-pip install flake8 flake8-quotes flake8-import-order flake8-builtins
-```
+Для підтримки чистоти коду використовується [Ruff](https://github.com/astral-sh/ruff).
 
 ## 🎨🦅💪
