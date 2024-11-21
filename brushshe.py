@@ -1,6 +1,7 @@
 import webbrowser
 from gc import disable as garbage_collector_disable
-from os import listdir, path
+from os import environ, listdir, name, path
+from pathlib import Path
 from tkinter import Listbox, PhotoImage, font
 from uuid import uuid4
 
@@ -187,6 +188,16 @@ class Brushshe(ctk.CTk):
 
         self.canvas.configure(cursor="pencil")
         self.current_tool = None
+
+        if name == "nt":  # Для Windows
+            images_folder = Path(environ["USERPROFILE"]) / "Pictures"
+        else:  # Для macOS і Linux
+            images_folder = Path(environ.get("XDG_PICTURES_DIR"))
+
+        self.gallery_folder = images_folder / "Brushshe Images"
+
+        if not self.gallery_folder.exists():
+            self.gallery_folder.mkdir(parents=True)
 
     """ Функціонал """
 
@@ -521,10 +532,10 @@ class Brushshe(ctk.CTk):
 
         is_image_found = False
 
-        for filename in listdir("gallery"):
+        for filename in listdir(self.gallery_folder):
             if filename.endswith(".png"):
                 is_image_found = True
-                img_path = path.join("gallery", filename)
+                img_path = path.join(self.gallery_folder, filename)
                 img = Image.open(img_path)
 
                 button_image = ctk.CTkImage(img, size=(250, 250))
@@ -553,7 +564,7 @@ Brushshe (Брашше) - програма для малювання, в які�
 
 Орел на ім'я Brucklin (Браклін) - її талісман.
 
-v0.7.4
+v0.8
         """
         about_msg = CTkMessagebox(
             title="Про програму",
@@ -591,7 +602,7 @@ v0.7.4
         # вміст канви
         canvas_img = ImageGrab.grab(bbox=(x0, y0, x1, y1))
 
-        image_name = f"gallery/{uuid4()}.png"
+        image_name = f"{self.gallery_folder}/{uuid4()}.png"
 
         CTkMessagebox(
             title="Збережено",
