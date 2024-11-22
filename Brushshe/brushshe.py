@@ -1,16 +1,17 @@
+import json
 import webbrowser
 from gc import disable as garbage_collector_disable
-from os import environ, listdir, name, path
+from locale import getlocale
+from os import environ, listdir
 from pathlib import Path
 from tkinter import Listbox, PhotoImage, font
 from uuid import uuid4
 
 import customtkinter as ctk
-from PIL import Image, ImageDraw, ImageGrab, ImageTk
-
 from CTkColorPicker import AskColor
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
+from PIL import Image, ImageDraw, ImageGrab, ImageTk
 
 
 class Brushshe(ctk.CTk):
@@ -24,36 +25,64 @@ class Brushshe(ctk.CTk):
         ctk.set_appearance_mode("system")
         self.protocol("WM_DELETE_WINDOW", self.when_closing)
 
-        """ Інтерфейс """
-        menu = CTkMenuBar(self)  # Меню
+        language_code = getlocale()[0].split("_")[0]
 
-        file_menu = menu.add_cascade("Файл")
+        self.translations = {}
+        self.load_language(language_code)
+        self.initialization()
+
+    """Translate app"""
+
+    def load_language(self, language_code):
+        if language_code == "en":
+            pass
+        else:
+            try:
+                with open(
+                    f"locales/{language_code}.json",
+                    "r",
+                    encoding="utf-8",
+                ) as f:
+                    self.translations = json.load(f)
+            except FileNotFoundError:
+                print(f"File for language '{language_code}' not found.")
+                self.translations = {}
+
+    def _(self, key):
+        return self.translations.get(key, key)
+
+    """ Interface """
+
+    def initialization(self):
+        menu = CTkMenuBar(self)  # Menu
+
+        file_menu = menu.add_cascade(self._("File"))
         file_dropdown = CustomDropdownMenu(widget=file_menu)
-        file_dropdown.add_option(option="Відкрити з файлу", command=self.open_image)
-        file_dropdown.add_option(option="Експортувати на ПК", command=self.export)
+        file_dropdown.add_option(option=self._("Open from file"), command=self.open_image)
+        file_dropdown.add_option(option=self._("Export to PC"), command=self.export)
 
-        bg_menu = menu.add_cascade("Колір тла")
+        bg_menu = menu.add_cascade(self._("Background"))
         bg_dropdown = CustomDropdownMenu(widget=bg_menu)
-        ukr_colors = {
-            "Білий": "white",
-            "Червоний": "red",
-            "Яскраво-зелений": "#2eff00",
-            "Синій": "blue",
-            "Жовтий": "yellow",
-            "Фіолетовий": "purple",
-            "Блакитний": "cyan",
-            "Рожевий": "pink",
-            "Помаранчевий": "orange",
-            "Коричневий": "brown",
-            "Сірий": "gray",
-            "Чорний": "black",
+        colors_names = {
+            self._("White"): "white",
+            self._("Red"): "red",
+            self._("Bright green"): "#2eff00",
+            self._("Blue"): "blue",
+            self._("Yellow"): "yellow",
+            self._("Purple"): "purple",
+            self._("Cyan"): "cyan",
+            self._("Pink"): "pink",
+            self._("Orange"): "orange",
+            self._("Brown"): "brown",
+            self._("Gray"): "gray",
+            self._("Black"): "black",
         }
-        for ukr_name, color in ukr_colors.items():
-            bg_dropdown.add_option(option=ukr_name, command=lambda c=color: self.change_bg(c))
+        for name, color in colors_names.items():
+            bg_dropdown.add_option(option=name, command=lambda c=color: self.change_bg(c))
         bg_dropdown.add_separator()
-        bg_dropdown.add_option(option="Інший колір", command=self.other_bg_color)
+        bg_dropdown.add_option(option=self._("Other color"), command=self.other_bg_color)
 
-        # Ширина і висота всіх зображень стікерів - 88 px
+        # Width and height of all sticker images - 88 px
         stickers_names = [
             "smile",
             "flower",
@@ -76,46 +105,53 @@ class Brushshe(ctk.CTk):
         ]
         self.stickers = [Image.open(f"stickers/{name}.png") for name in stickers_names]
 
-        add_menu = menu.add_cascade("Додати")
+        add_menu = menu.add_cascade(self._("Add"))
         add_dropdown = CustomDropdownMenu(widget=add_menu)
         smile_icon = ctk.CTkImage(light_image=Image.open("icons/smile.png"), size=(50, 50))
-        add_dropdown.add_option(option="Наліпки", image=smile_icon, command=self.show_stickers_choice)
+        add_dropdown.add_option(
+            option=self._("Stickers"),
+            image=smile_icon,
+            command=self.show_stickers_choice,
+        )
         text_icon = ctk.CTkImage(light_image=Image.open("icons/text.png"), size=(50, 50))
-        text_submenu = add_dropdown.add_submenu("Текст", image=text_icon)
-        text_submenu.add_option(option="Додати текст на малюнок", command=self.add_text_window_show)
-        text_submenu.add_option(option="Налаштувати текст для вставлення", command=self.text_settings)
+        text_submenu = add_dropdown.add_submenu(self._("Text"), image=text_icon)
+        text_submenu.add_option(option=self._("Add text to a picture"), command=self.add_text_window_show)
+        text_submenu.add_option(option=self._("Customize text for insertion"), command=self.text_settings)
         frame_icon = ctk.CTkImage(light_image=Image.open("icons/frame.png"), size=(50, 50))
-        add_dropdown.add_option(option="Рамки", image=frame_icon, command=self.show_frame_choice)
+        add_dropdown.add_option(option=self._("Frames"), image=frame_icon, command=self.show_frame_choice)
 
-        shapes_menu = menu.add_cascade("Фігури")
+        shapes_menu = menu.add_cascade(self._("Shapes"))
         shapes_dropdown = CustomDropdownMenu(widget=shapes_menu)
-        shapes_dropdown.add_option(option="Прямокутник", command=lambda: self.create_shape("rectangle"))
-        shapes_dropdown.add_option(option="Овал", command=lambda: self.create_shape("oval"))
-        shapes_dropdown.add_option(option="Лінія", command=lambda: self.create_shape("line"))
-        shapes_dropdown.add_option(option="Заповнений прямокутник", command=lambda: self.create_shape("fill rectangle"))
-        shapes_dropdown.add_option(option="Заповнений овал", command=lambda: self.create_shape("fill oval"))
+        shapes_dropdown.add_option(option=self._("Rectangle"), command=lambda: self.create_shape("rectangle"))
+        shapes_dropdown.add_option(option=self._("Oval"), command=lambda: self.create_shape("oval"))
+        shapes_dropdown.add_option(option=self._("Line"), command=lambda: self.create_shape("line"))
+        shapes_dropdown.add_option(
+            option=self._("Fill rectangle"),
+            command=lambda: self.create_shape("fill rectangle"),
+        )
+        shapes_dropdown.add_option(option=self._("Fill oval"), command=lambda: self.create_shape("fill oval"))
 
-        menu.add_cascade("Моя галерея", command=self.show_gallery)
+        menu.add_cascade(self._("My Gallery"), command=self.show_gallery)
 
-        other_menu = menu.add_cascade("Інше")
+        other_menu = menu.add_cascade(self._("More"))
         other_dropdown = CustomDropdownMenu(widget=other_menu)
-        theme_submenu = other_dropdown.add_submenu("Тема")
-        theme_submenu.add_option(option="Системна", command=lambda: self.change_theme("system"))
-        theme_submenu.add_option(option="Світла", command=lambda: self.change_theme("light"))
-        theme_submenu.add_option(option="Темна", command=lambda: self.change_theme("dark"))
-        other_dropdown.add_option(option="Про програму", command=self.about_program)
+        theme_submenu = other_dropdown.add_submenu(self._("Theme"))
+        theme_submenu.add_option(option=self._("System"), command=lambda: self.change_theme("system"))
+        theme_submenu.add_option(option=self._("Light"), command=lambda: self.change_theme("light"))
+        theme_submenu.add_option(option=self._("Dark"), command=lambda: self.change_theme("dark"))
+        other_dropdown.add_option(option=self._("About program"), command=self.about_program)
 
-        tools_frame = ctk.CTkFrame(self)  # Панель інструментів
+        tools_frame = ctk.CTkFrame(self)  # Toolbar
         tools_frame.pack(side=ctk.TOP, fill=ctk.X)
 
-        clean_btn = ctk.CTkButton(tools_frame, text="Очистити все", width=50, command=self.clean_all)
+        clean_btn = ctk.CTkButton(tools_frame, text=self._("Clear all"), width=50, command=self.clean_all)
         clean_btn.pack(side=ctk.LEFT, padx=1)
 
         eraser_icon = ctk.CTkImage(light_image=Image.open("icons/eraser.png"), size=(20, 20))
         eraser = ctk.CTkButton(tools_frame, text=None, width=35, image=eraser_icon, command=self.eraser)
         eraser.pack(side=ctk.LEFT, padx=1)
 
-        self.tool_label = ctk.CTkLabel(tools_frame, text="Пензль:")
+        self.tool_label = ctk.CTkLabel(tools_frame, text=self._("Brush:"))
         self.tool_label.pack(side=ctk.LEFT, padx=1)
 
         size_slider = ctk.CTkSlider(tools_frame, from_=1, to=50, command=self.change_brush_size)
@@ -126,13 +162,18 @@ class Brushshe(ctk.CTk):
         self.brush_size_label = ctk.CTkLabel(tools_frame, text="2")
         self.brush_size_label.pack(side=ctk.LEFT, padx=1)
 
-        save_button = ctk.CTkButton(tools_frame, text="Зберегти в галерею", width=70, command=self.save_image)
+        save_button = ctk.CTkButton(
+            tools_frame,
+            text=self._("Save to gallery"),
+            width=70,
+            command=self.save_image,
+        )
         save_button.pack(side=ctk.RIGHT, padx=1)
 
-        self.canvas = ctk.CTkCanvas(self, bg="white")  # Канва
+        self.canvas = ctk.CTkCanvas(self, bg="white")  # Canvas
         self.canvas.pack(fill=ctk.BOTH, expand=True)
 
-        self.palette = ctk.CTkFrame(self)  # Палітра
+        self.palette = ctk.CTkFrame(self)  # Palette
         self.palette.pack(side=ctk.BOTTOM, fill=ctk.X)
 
         self.colors = [
@@ -160,14 +201,23 @@ class Brushshe(ctk.CTk):
             )
             color_btn.pack(side=ctk.LEFT, padx=1)
 
-        choice_other_color = ctk.CTkButton(self.palette, text="Інший", width=70, command=self.other_color_choise)
+        choice_other_color = ctk.CTkButton(
+            self.palette,
+            text=self._("Other"),
+            width=70,
+            command=self.other_color_choise,
+        )
         choice_other_color.pack(side=ctk.RIGHT, padx=1)
 
         self.other_color_btn = ctk.CTkButton(
-            self.palette, text=None, width=35, border_width=2, command=self.select_other_color_btn
+            self.palette,
+            text=None,
+            width=35,
+            border_width=2,
+            command=self.select_other_color_btn,
         )
 
-        """ Ініціалізація """
+        """ Initialization """
         self.color = "black"
 
         self.image = Image.new("RGB", (800, 600), "white")
@@ -181,7 +231,7 @@ class Brushshe(ctk.CTk):
         self.tk_font = ctk.CTkFont(size=self.font_size)
         self.size_a = 100
 
-        garbage_collector_disable()  # Бо ввімкнений gc думає що додані наліпки і текст - це сміття
+        garbage_collector_disable()  # Because the enabled gc thinks that the added stickers and text are garbage
 
         self.canvas.bind("<B1-Motion>", self.paint)
         self.canvas.bind("<ButtonRelease-1>", self.stop_paint)
@@ -189,9 +239,10 @@ class Brushshe(ctk.CTk):
         self.canvas.configure(cursor="pencil")
         self.current_tool = None
 
-        if name == "nt":  # Для Windows
+        # Defining the Gallery Folder Path
+        if name == "nt":  # For Windows
             images_folder = Path(environ["USERPROFILE"]) / "Pictures"
-        else:  # Для macOS і Linux
+        else:  # For macOS and Linux
             images_folder = Path(environ.get("XDG_PICTURES_DIR"))
 
         self.gallery_folder = images_folder / "Brushshe Images"
@@ -199,20 +250,20 @@ class Brushshe(ctk.CTk):
         if not self.gallery_folder.exists():
             self.gallery_folder.mkdir(parents=True)
 
-    """ Функціонал """
+    """ Functionality """
 
     def when_closing(self):
         closing_msg = CTkMessagebox(
-            title="Ви покидаєте Brushshe",
-            message="Зберегти малюнок?",
-            option_1="Ні",
-            option_2="Повернутися щоб зберегти",
+            title=self._("You are leaving Brushshe"),
+            message=self._("Save the picture?"),
+            option_1=self._("No"),
+            option_2=self._("Go back to save"),
             icon="icons/question.png",
             icon_size=(100, 100),
             sound=True,
         )
         response = closing_msg.get()
-        if response == "Ні":
+        if response == self._("No"):
             app.destroy()
         else:
             pass
@@ -236,8 +287,12 @@ class Brushshe(ctk.CTk):
 
     def open_image(self):
         file_path = ctk.filedialog.askopenfilename(
-            filetypes=[("Зображення", "*.png;*.jpg;*.jpeg;*.gif"), ("Всі файли", "*.*")]
+            filetypes=[
+                ("Images", "*.png;*.jpg;*.jpeg;*.gif"),
+                ("All files", "*.*"),
+            ]
         )
+        message_text = self._("Error - cannot open file:")
         if file_path:
             try:
                 image = Image.open(file_path)
@@ -249,36 +304,37 @@ class Brushshe(ctk.CTk):
                 self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.photo)
             except Exception as e:
                 CTkMessagebox(
-                    title="Ех, на жаль, це сталося",
-                    message=f"Помилка - неможливо відкрити файл: {e}",
+                    title=self._("Oh, unfortunately, it happened"),
+                    message=f"{message_text} {e}",
                     icon="icons/cry.png",
                     icon_size=(100, 100),
                     sound=True,
                 )
 
     def export(self):
-        # Позиції канви
+        # Canvas positions
         x0 = self.canvas.winfo_rootx()
         y0 = self.canvas.winfo_rooty()
         x1 = x0 + self.canvas.winfo_width()
         y1 = y0 + self.canvas.winfo_height()
 
-        # Вміст канви
+        # Canvas content
         canvas_img = ImageGrab.grab(bbox=(x0, y0, x1, y1))
 
         file_path = ctk.filedialog.asksaveasfilename(
-            defaultextension=".png", filetypes=[("PNG файли", "*.png"), ("Всі файли", "*.*")]
+            defaultextension=".png",
+            filetypes=[("PNG", "*.png"), ("All files", "*.*")],
         )
         if file_path:
             canvas_img.save(file_path)
 
     def change_bg(self, new_color):
         self.canvas.configure(bg=new_color)
-        if self.tool_label.cget("text") == "Ластик:":
+        if self.tool_label.cget("text") == self._("Eraser:"):
             self.eraser()
 
     def other_bg_color(self):
-        pick_color = AskColor(title="Оберіть інший колір тла")
+        pick_color = AskColor(title=self._("Choose a different background color"))
         bg_getcolor = pick_color.get()
         if bg_getcolor:
             self.canvas.configure(bg=bg_getcolor)
@@ -293,7 +349,10 @@ class Brushshe(ctk.CTk):
                 resized_image = image.resize((self.size_a, self.size_a))
                 image = ImageTk.PhotoImage(resized_image)
                 sticker_btn = ctk.CTkButton(
-                    stickers_frame, text=None, image=image, command=lambda img=image: self.set_current_sticker(img)
+                    stickers_frame,
+                    text=None,
+                    image=image,
+                    command=lambda img=image: self.set_current_sticker(img),
                 )
                 sticker_btn.grid(row=row, column=column, padx=10, pady=10)
                 column += 1
@@ -303,38 +362,43 @@ class Brushshe(ctk.CTk):
 
         sticker_choose = ctk.CTkToplevel(app)
         sticker_choose.geometry("350x420")
-        sticker_choose.title("Оберіть наліпку")
+        sticker_choose.title(self._("Choose a sticker"))
 
         tabview = ctk.CTkTabview(sticker_choose, command=update_btn)
-        tabview.add("Обрати наліпку")
-        tabview.add("Розмір наліпок")
-        tabview.set("Обрати наліпку")
+        tabview.add(self._("Choose a sticker"))
+        tabview.add(self._("Sticker size"))
+        tabview.set(self._("Choose a sticker"))
         tabview.pack(fill=ctk.BOTH, expand=True)
 
-        stickers_frame = ctk.CTkScrollableFrame(tabview.tab("Обрати наліпку"))
+        stickers_frame = ctk.CTkScrollableFrame(tabview.tab(self._("Choose a sticker")))
         stickers_frame.pack(fill=ctk.BOTH, expand=True)
 
-        self.st_size_label = ctk.CTkLabel(tabview.tab("Розмір наліпок"), text=self.size_a)
+        self.st_size_label = ctk.CTkLabel(tabview.tab(self._("Sticker size")), text=self.size_a)
         self.st_size_label.pack(padx=10, pady=10)
         self.st_slider = ctk.CTkSlider(
-            tabview.tab("Розмір наліпок"), from_=10, to=175, command=self.change_sticker_size
+            tabview.tab(self._("Sticker size")),
+            from_=10,
+            to=175,
+            command=self.change_sticker_size,
         )
         self.st_slider.set(self.size_a)
         self.st_slider.pack(padx=10, pady=10)
         set_default = ctk.CTkButton(
-            tabview.tab("Розмір наліпок"), text="Повернути як було", command=self.set_default_stickers_size
+            tabview.tab(self._("Sticker size")),
+            text=self._("Return as it was"),
+            command=self.set_default_stickers_size,
         )
         set_default.pack(padx=10, pady=10)
 
         update_btn()
 
-    def set_current_sticker(self, image):  # Обрати наліпку
+    def set_current_sticker(self, image):  # Choose a sticker
         self.current_sticker = image
         if self.current_sticker:
             self.canvas.bind("<Button-1>", self.add_sticker)
             self.canvas.configure(cursor="")
 
-    def add_sticker(self, event):  # Додати наліпку
+    def add_sticker(self, event):  # Add a sticker
         self.canvas.create_image(event.x, event.y, anchor="center", image=self.current_sticker)
         self.canvas.unbind("<Button-1>")
         self.canvas.configure(cursor="pencil")
@@ -348,14 +412,17 @@ class Brushshe(ctk.CTk):
         self.st_size_label.configure(text=self.size_a)
         self.st_slider.set(self.size_a)
 
-    def add_text_window_show(self):  # Обрати текст
-        dialog = ctk.CTkInputDialog(title="Введіть текст,", text="а потім клацніть на потрібне місце на малюнку")
+    def add_text_window_show(self):  # Choose text
+        dialog = ctk.CTkInputDialog(
+            title=self._("Enter text,"),
+            text=self._("then click where you want it on the picture"),
+        )
         text = dialog.get_input()
         if text:
             self.canvas.bind("<Button-1>", lambda event, t=text: self.add_text(event, text))
             self.canvas.configure(cursor="")
 
-    def add_text(self, event, text):  # Додати текст
+    def add_text(self, event, text):  # Add text
         self.tk_font = ctk.CTkFont(family=self.tk_font["family"], size=self.font_size)
         self.canvas.create_text(event.x, event.y, text=text, fill=self.color, font=self.tk_font)
         self.canvas.unbind("<Button-1>")
@@ -371,7 +438,7 @@ class Brushshe(ctk.CTk):
             self.tk_font = ctk.CTkFont(family=selected_font, size=self.font_size)
 
         text_settings = ctk.CTkToplevel(app)
-        text_settings.title("Налаштувати текст")
+        text_settings.title(self._("Customize text"))
 
         self.tx_size_label = ctk.CTkLabel(text_settings, text=self.font_size)
         self.tx_size_label.pack(padx=10, pady=10)
@@ -379,7 +446,7 @@ class Brushshe(ctk.CTk):
         tx_size_slider.set(self.font_size)
         tx_size_slider.pack(padx=10, pady=10)
 
-        fonts_label = ctk.CTkLabel(text_settings, text="Шрифти з системи:")
+        fonts_label = ctk.CTkLabel(text_settings, text=self._("System fonts:"))
         fonts_label.pack(padx=10, pady=10)
         fonts = list(font.families())
         fonts_listbox = Listbox(text_settings)
@@ -396,9 +463,17 @@ class Brushshe(ctk.CTk):
             self.canvas.create_image(0, 0, anchor="nw", image=self.frame_image)
 
         frames_win = ctk.CTkToplevel(app)
-        frames_win.title("Рамки")
+        frames_win.title(self._("Frames"))
 
-        frames_names = ["frame1", "frame2", "frame3", "frame4", "frame5", "frame6", "frame7"]
+        frames_names = [
+            "frame1",
+            "frame2",
+            "frame3",
+            "frame4",
+            "frame5",
+            "frame6",
+            "frame7",
+        ]
         frames_thumbnails = [
             ctk.CTkImage(light_image=Image.open(f"frames_preview/{name}.png"), size=(100, 100)) for name in frames_names
         ]
@@ -409,7 +484,12 @@ class Brushshe(ctk.CTk):
         column = 0
 
         for i, image in enumerate(frames_thumbnails):
-            frames_btn = ctk.CTkButton(frames_win, text=None, image=image, command=lambda i=i: on_frames_click(i))
+            frames_btn = ctk.CTkButton(
+                frames_win,
+                text=None,
+                image=image,
+                command=lambda i=i: on_frames_click(i),
+            )
             frames_btn.grid(column=column, row=row, padx=10, pady=10)
 
             column += 1
@@ -417,7 +497,7 @@ class Brushshe(ctk.CTk):
                 column = 0
                 row += 1
 
-    # Функції створення фігур
+    # Shape creation functions
     def create_shape(self, shape):
         def start_shape(event):
             self.shape_start_x = event.x
@@ -491,35 +571,37 @@ class Brushshe(ctk.CTk):
 
         self.canvas.configure(cursor="crosshair")
 
-        self.after(100)  # Невелика затримка, бо інакше не працює
+        self.after(100)  # A little delay, otherwise it doesn't work
 
-    def show_gallery(self):  # Галерея
+    def show_gallery(self):  # Gallery
         my_gallery = ctk.CTkToplevel(app)
-        my_gallery.title("Галерея Brushshe")
+        my_gallery.title(self._("Brushshe Gallery"))
         my_gallery.geometry("650x580")
 
-        gallery_frame = ctk.CTkScrollableFrame(my_gallery, label_text="Моя галерея")
+        gallery_frame = ctk.CTkScrollableFrame(my_gallery, label_text=self._("My Gallery"))
         gallery_frame.pack(fill=ctk.BOTH, expand=True)
 
         row = 0
         column = 0
 
         def open_from_gallery(img_path):
-            open_msg_message = """
-Малюнок, що Ви малюєте зараз, буде втрачено, якщо він не збережений і замінено на малюнок з галереї.
-Продовжити?
-            """
+            open_msg_message = self._(
+                "The drawing you are currently drawing will be lost if it is not saved "
+                "and replaced with a drawing from the gallery.\n\n"
+                "Continue?"
+            )
+            open_msg_message = self._(open_msg_message)
             open_msg = CTkMessagebox(
-                title="Відкриття малюнку",
+                title=self._("Opening a picture"),
                 message=open_msg_message,
-                option_1="Так",
-                option_2="Повернутися",
+                option_1=self._("Yes"),
+                option_2=self._("Return"),
                 icon="icons/question.png",
                 icon_size=(100, 100),
                 sound=True,
             )
             response = open_msg.get()
-            if response == "Повернутися":
+            if response == self._("Return"):
                 pass
             else:
                 image = Image.open(img_path)
@@ -535,7 +617,7 @@ class Brushshe(ctk.CTk):
         for filename in listdir(self.gallery_folder):
             if filename.endswith(".png"):
                 is_image_found = True
-                img_path = path.join(self.gallery_folder, filename)
+                img_path = self.gallery_folder / filename
                 img = Image.open(img_path)
 
                 button_image = ctk.CTkImage(img, size=(250, 250))
@@ -553,25 +635,22 @@ class Brushshe(ctk.CTk):
                     row += 1
 
         if not is_image_found:
-            gallery_frame.configure(label_text="Моя галерея (пусто)")
+            gallery_frame.configure(label_text=self._("My gallery (empty)"))
 
     def change_theme(self, theme):
         ctk.set_appearance_mode(theme)
 
     def about_program(self):
-        about_text = """
-Brushshe (Брашше) - програма для малювання, в якій можна створювати те, що Вам подобається.
-
-Орел на ім'я Brucklin (Браклін) - її талісман.
-
-v0.8
-        """
+        about_text = self._(
+            "Brushshe is a painting program where you can create whatever you like.\n\n"
+            "An eagle named Brucklin is its mascot.\n\n"
+        )
         about_msg = CTkMessagebox(
-            title="Про програму",
-            message=about_text,
+            title=self._("About program"),
+            message=about_text + "v0.9",
             icon="icons/brucklin.png",
             icon_size=(150, 191),
-            option_1="ОК",
+            option_1="OK",
             option_2="GitHub",
             height=400,
         )
@@ -588,25 +667,27 @@ v0.8
 
     def eraser(self):
         self.color = self.canvas.cget("bg")
-        self.tool_label.configure(text="Ластик:")
+        self.tool_label.configure(text=self._("Eraser:"))
         self.canvas.configure(cursor="crosshair")
         self.current_tool = "eraser"
 
     def save_image(self):
-        # позиції канви
+        # Canvas positions
         x0 = self.canvas.winfo_rootx()
         y0 = self.canvas.winfo_rooty()
         x1 = x0 + self.canvas.winfo_width()
         y1 = y0 + self.canvas.winfo_height()
 
-        # вміст канви
+        # Canvas content
         canvas_img = ImageGrab.grab(bbox=(x0, y0, x1, y1))
 
         image_name = f"{self.gallery_folder}/{uuid4()}.png"
 
         CTkMessagebox(
-            title="Збережено",
-            message='Малюнок успішно збережено в галерею ("Моя галерея" в меню вгорі)!',
+            title=self._("Saved"),
+            message=self._(
+                'The picture has been successfully saved to the gallery ("My Gallery" in the menu at the top)!'
+            ),
             icon="icons/saved.png",
             icon_size=(100, 100),
         )
@@ -615,20 +696,20 @@ v0.8
 
     def change_color(self, new_color):
         self.color = new_color
-        self.tool_label.configure(text="Пензль:")
+        self.tool_label.configure(text=self._("Brush:"))
         if self.current_tool == "eraser":
             self.canvas.configure(cursor="pencil")
             self.current_tool = None
 
     def other_color_choise(self):
         try:
-            pick_color = AskColor(title="Оберіть інший колір пензля")
+            pick_color = AskColor(title=self._("Choose a different brush color"))
             self.getcolor = pick_color.get()
             if self.getcolor:
                 self.color = self.getcolor
                 self.other_color_btn.pack(side=ctk.RIGHT, padx=1)
                 self.other_color_btn.configure(fg_color=self.getcolor)
-                self.tool_label.configure(text="Пензль:")
+                self.tool_label.configure(text=self._("Brush:"))
                 if self.current_tool == "eraser":
                     self.canvas.configure(cursor="pencil")
                     self.current_tool = None
@@ -637,7 +718,7 @@ v0.8
 
     def select_other_color_btn(self):
         self.color = self.getcolor
-        self.tool_label.configure(text="Пензль:")
+        self.tool_label.configure(text="Brush:")
         if self.current_tool == "eraser":
             self.canvas.configure(cursor="pencil")
             self.current_tool = None
