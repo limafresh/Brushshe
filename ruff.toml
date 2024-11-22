@@ -1,5 +1,5 @@
 line-length = 120
-exclude = ["CTkMenuBar/*.py", "CTkMessagebox/*.py", "CTkColorPicker/*.py"]
+exclude = ["Brushshe/CTkMenuBar/*.py", "Brushshe/CTkMessagebox/*.py", "Brushshe/CTkColorPicker/*.py"]
 
 [lint]
 extend-select = ["F", "E", "W", "I", "N"]

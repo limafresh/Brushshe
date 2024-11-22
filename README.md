@@ -1,60 +1,78 @@
-# Brushshe - програма для малювання
+# Brushshe - painting app
 
-## Опис
-**Брашше** - простий графічний редактор, написаний на Python 3 та CustomTkinter.
+## Description
+**Brushshe** is a simple graphical editor, written on Python 3 та CustomTkinter.
 
 ![Screenshot](https://raw.githubusercontent.com/limafresh/Brushshe/main/screenshot.png)
 
-## Встановлення
-1. Встановіть [Python 3](https://www.python.org/downloads/), якщо не встановлений;
-2. Завантажте код та розпакуйте завантажений архів:
+## Usage
+1. Install [Python 3](https://www.python.org/downloads/), if not installed;
+2. Download the code and unpack downloaded archive:
 
-[![Download the code](https://img.shields.io/badge/Завантажити_код-ZIP-orange?style=for-the-badge&logo=Python&logoColor=white)](https://github.com/limafresh/Brushshe/archive/refs/heads/main.zip)  
-3. Встановіть CustomTkinter, якщо не встановлений - відкрийте термінал чи командну строку та введіть:
-```
+[![Download the code](https://img.shields.io/badge/Download_the_code-ZIP-orange?style=for-the-badge&logo=Python&logoColor=white)](https://github.com/limafresh/Brushshe/archive/refs/heads/main.zip)  
+3. Install CustomTkinter, if not installed - open terminal or command line and enter:
+```bash
 pip install customtkinter
 ```
-4. Запустіть Python IDLE, відкрийте файл `brushshe.py` та запустіть його.
-### Можливі помилки
-1. Якщо Python не зміг знайти бібліотеку `PIL`, встановіть `Pillow`, яка сумісна з `PIL`:
-```
+4. Launch Python IDLE, open file `brushshe.py` and launch it.
+### Possible errors
+1. If Python cannot find the `PIL` library, install `Pillow`, which is compatible with `PIL`:
+```bash
 pip install Pillow
 ```
 
-## Функціонал
-### Малювання
-Можна обирати колір, змінювати товщину пензля і малювати.
-### Ластик
-Видалення зайвого ластиком.
-### Тло
-Можна обирати колір тла.
-### Наліпки
-Можна ставити наліпки і змінювати їх розмір. Всі зображення наліпок намальовані мною або створені штучним інтелектом.
-### Текст
-Можна ставити текст і змінювати його розмір.
-### Рамки
-Можна прикрасити малюнок рамками.
-### Фігури
-Прямокутник, овал (з заповненням та без), лінія.
-### Моя галерея
-Місце, де зберігаються малюнки, намальовані в Brushshe, а також вікно, де можна їх переглянути. Якщо треба перенести малюнки на новий пристрій, скопіюйте вміст папки "Brushshe Images", яка в папці "Зображення".
-### Темна тема
-Є світла і темна тема.
-### Файл
-Можна відкрити малюнок з файлу і зберегти не в галерею.
+## Functionality
+### Painting
+You can choose a color, change the brush thickness, and paint.
+### Eraser
+Removing excess with an eraser.
+### Background
+You can choose the background color..
+### Stickers
+You can add stickers and resize them. All sticker images are drawn by me or created by AI.
+### Text
+You can place text and change its size.
+### Frames
+You can decorate the picture with frames.
+### Shapes
+Rectangle, oval (with or without fill), line.
+### My Gallery
+The place where drawings drawn in Brushshe are stored, as well as a window where you can view them. If you need to transfer your drawings to a new device, copy the contents of the "Brushshe Images" folder, which is in the "Images" folder.
+### Dark theme
+There is a light and dark theme.
+### File
+You can open a picture from a file and save it outside the gallery.
 
-## Версії залежностей, використовувані під час розробки
+## Dependency versions used during development
 + Python 3.11.2
 + customtkinter 5.2.2
 
-## Подяки
-Дякую [Akascape](https://github.com/Akascape) за бібліотеки [CTkColorPicker](https://github.com/Akascape/CTkColorPicker), [CTkMenuBar](https://github.com/Akascape/CTkMenuBar) та [CTkMessagebox](https://github.com/Akascape/CTkMessagebox).
+## Credits
+Thanks [Akascape](https://github.com/Akascape) for libraries [CTkColorPicker](https://github.com/Akascape/CTkColorPicker), [CTkMenuBar](https://github.com/Akascape/CTkMenuBar) and [CTkMessagebox](https://github.com/Akascape/CTkMessagebox).
 
-## Ліцензія
-Ліцензія проекту - *GNU GPL v3*, ліцензія CTkColorPicker, CTkMenuBar та CTkMessagebox - *CC0*.
+## Translations
+The internationalization of this program has a simple principle - it determines what the computer's localization is (for example, en, ru, etc.), and then applies the Brushshe/locales/{localization}.json file, where localization is the computer's localization.
 
-## Для розробників
-### Лінтер
-Для підтримки чистоти коду використовується [Ruff](https://github.com/astral-sh/ruff).
+If you want to help translate into languages ​​that haven't been translated yet, just copy any json file that looks something like this:
+
+```json
+{
+	"File": "Файл",
+	"Open from file": "Открыть с файла",
+	"Export to PC": "Экспортировать на ПК",
+	"Background": "Фон",
+}
+```
+
+name it with the name of the localization and edit it.
+
+## License
++ Project license - *GNU GPL v3*
++ CTkColorPicker, CTkMenuBar and CTkMessagebox license - *CC0*
++ License for program translations (`Brushshe/locales/*.json`) - *CC0*
+
+## For developers
+### Linter
+[Ruff](https://github.com/astral-sh/ruff) is used to maintain code cleanliness
 
 ## 🎨🦅💪
