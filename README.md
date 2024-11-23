@@ -1,5 +1,9 @@
 # Brushshe - painting app
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/limafresh/Brushshe/refs/heads/main/Brushshe/icons/logo.svg" alt="logo" width="100" height="100">
+</p>
+
 ## Description
 **Brushshe** is a simple graphical editor, written on Python 3 та CustomTkinter.
 
@@ -9,7 +13,8 @@
 1. Install [Python 3](https://www.python.org/downloads/), if not installed;
 2. Download the code and unpack downloaded archive:
 
-[![Download the code](https://img.shields.io/badge/Download_the_code-ZIP-orange?style=for-the-badge&logo=Python&logoColor=white)](https://github.com/limafresh/Brushshe/archive/refs/heads/main.zip)  
+[![Download the code](https://img.shields.io/badge/Download_the_code-ZIP-orange?style=for-the-badge&logo=Python&logoColor=white)](https://github.com/limafresh/Brushshe/archive/refs/heads/main.zip)
+
 3. Install CustomTkinter, if not installed - open terminal or command line and enter:
 ```bash
 pip install customtkinter
@@ -51,20 +56,7 @@ You can open a picture from a file and save it outside the gallery.
 Thanks [Akascape](https://github.com/Akascape) for libraries [CTkColorPicker](https://github.com/Akascape/CTkColorPicker), [CTkMenuBar](https://github.com/Akascape/CTkMenuBar) and [CTkMessagebox](https://github.com/Akascape/CTkMessagebox).
 
 ## Translations
-The internationalization of this program has a simple principle - it determines what the computer's localization is (for example, en, ru, etc.), and then applies the Brushshe/locales/{localization}.json file, where localization is the computer's localization.
-
-If you want to help translate into languages ​​that haven't been translated yet, just copy any json file that looks something like this:
-
-```json
-{
-	"File": "Файл",
-	"Open from file": "Открыть с файла",
-	"Export to PC": "Экспортировать на ПК",
-	"Background": "Фон",
-}
-```
-
-name it with the name of the localization and edit it.
+The internationalization of this program has a simple principle - it determines what the computer's localization is (for example, *en*, *ru*, etc.), and then applies the `Brushshe/locales/{localization}.json` file, where *localization* is the computer's localization.
 
 ## License
 + Project license - *GNU GPL v3*
