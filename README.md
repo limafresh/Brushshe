@@ -32,7 +32,7 @@ You can choose a color, change the brush thickness, and paint.
 ### Eraser
 Removing excess with an eraser.
 ### Background
-You can choose the background color..
+You can choose the background color.
 ### Stickers
 You can add stickers and resize them. All sticker images are drawn by me or created by AI.
 ### Text
@@ -42,7 +42,7 @@ You can decorate the picture with frames.
 ### Shapes
 Rectangle, oval (with or without fill), line.
 ### My Gallery
-The place where drawings drawn in Brushshe are stored, as well as a window where you can view them. If you need to transfer your drawings to a new device, copy the contents of the "Brushshe Images" folder, which is in the "Images" folder.
+Window showing images drawn in Brushshe and "saved to gallery". Images from the gallery are stored in `<user_home_folder>/Pictures/Brushshe Images`.
 ### Dark theme
 There is a light and dark theme.
 ### File
