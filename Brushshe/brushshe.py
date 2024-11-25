@@ -288,8 +288,8 @@ class Brushshe(ctk.CTk):
     def open_image(self):
         file_path = ctk.filedialog.askopenfilename(
             filetypes=[
-                ("Images", "*.png;*.jpg;*.jpeg;*.gif"),
-                ("All files", "*.*"),
+                (self._("Images"), "*png* *jpg* *jpeg* *gif*"),
+                (self._("All files"), "*.*"),
             ]
         )
         message_text = self._("Error - cannot open file:")
@@ -323,7 +323,7 @@ class Brushshe(ctk.CTk):
 
         file_path = ctk.filedialog.asksaveasfilename(
             defaultextension=".png",
-            filetypes=[("PNG", "*.png"), ("All files", "*.*")],
+            filetypes=[(self._("All files"), "*.*")],
         )
         if file_path:
             canvas_img.save(file_path)
@@ -647,7 +647,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v0.9",
+            message=about_text + "v0.10",
             icon="icons/brucklin.png",
             icon_size=(150, 191),
             option_1="OK",
