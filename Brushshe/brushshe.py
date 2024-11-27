@@ -2,7 +2,7 @@ import json
 import webbrowser
 from gc import disable as garbage_collector_disable
 from locale import getlocale
-from os import environ, listdir
+from os import environ, listdir, name
 from pathlib import Path
 from tkinter import Listbox, PhotoImage, font
 from uuid import uuid4
@@ -51,9 +51,24 @@ class Brushshe(ctk.CTk):
     def _(self, key):
         return self.translations.get(key, key)
 
-    """ Interface """
-
     def initialization(self):
+        self.colors = [
+            "black",
+            "red",
+            "#2eff00",
+            "blue",
+            "yellow",
+            "purple",
+            "cyan",
+            "pink",
+            "orange",
+            "brown",
+            "gray",
+            "white",
+        ]
+
+        """ Interface """
+
         menu = CTkMenuBar(self)  # Menu
 
         file_menu = menu.add_cascade(self._("File"))
@@ -63,22 +78,9 @@ class Brushshe(ctk.CTk):
 
         bg_menu = menu.add_cascade(self._("Background"))
         bg_dropdown = CustomDropdownMenu(widget=bg_menu)
-        colors_names = {
-            self._("White"): "white",
-            self._("Red"): "red",
-            self._("Bright green"): "#2eff00",
-            self._("Blue"): "blue",
-            self._("Yellow"): "yellow",
-            self._("Purple"): "purple",
-            self._("Cyan"): "cyan",
-            self._("Pink"): "pink",
-            self._("Orange"): "orange",
-            self._("Brown"): "brown",
-            self._("Gray"): "gray",
-            self._("Black"): "black",
-        }
-        for name, color in colors_names.items():
-            bg_dropdown.add_option(option=name, command=lambda c=color: self.change_bg(c))
+
+        for color in self.colors:
+            bg_dropdown.add_option(option=None, bg_color=color, command=lambda c=color: self.change_bg(c))
         bg_dropdown.add_separator()
         bg_dropdown.add_option(option=self._("Other color"), command=self.other_bg_color)
 
@@ -176,20 +178,6 @@ class Brushshe(ctk.CTk):
         self.palette = ctk.CTkFrame(self)  # Palette
         self.palette.pack(side=ctk.BOTTOM, fill=ctk.X)
 
-        self.colors = [
-            "black",
-            "red",
-            "#2eff00",
-            "blue",
-            "yellow",
-            "purple",
-            "cyan",
-            "pink",
-            "orange",
-            "brown",
-            "gray",
-            "white",
-        ]
         for color in self.colors:
             color_btn = ctk.CTkButton(
                 self.palette,
@@ -647,7 +635,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v0.10",
+            message=about_text + "v0.11",
             icon="icons/brucklin.png",
             icon_size=(150, 191),
             option_1="OK",
