@@ -20,12 +20,17 @@ class Brushshe(ctk.CTk):
         self.title("Brushshe")
         self.geometry("650x580")
         self.minsize(650, 580)
-        self.iconphoto(True, PhotoImage(file="icons/icon.png"))
+        self.iconbitmap("icons/icon.ico") if name == "nt" else self.iconphoto(True, PhotoImage(file="icons/icon.png"))
         ctk.set_default_color_theme("brushshe_theme.json")
         ctk.set_appearance_mode("system")
         self.protocol("WM_DELETE_WINDOW", self.when_closing)
 
-        language_code = getlocale()[0].split("_")[0]
+        locale = getlocale()
+
+        if isinstance(locale, tuple):
+            language_code = getlocale()[0][:2].lower()
+        elif isinstance(locale, str):
+            language_code = locale[:2].lower()
 
         self.translations = {}
         self.load_language(language_code)
@@ -231,7 +236,7 @@ class Brushshe(ctk.CTk):
         if name == "nt":  # For Windows
             images_folder = Path(environ["USERPROFILE"]) / "Pictures"
         else:  # For macOS and Linux
-            images_folder = Path(environ.get("XDG_PICTURES_DIR"))
+            images_folder = Path(environ.get("XDG_PICTURES_DIR", str(Path.home())))
 
         self.gallery_folder = images_folder / "Brushshe Images"
 
@@ -635,7 +640,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v0.11",
+            message=about_text + "v0.11.1",
             icon="icons/brucklin.png",
             icon_size=(150, 191),
             option_1="OK",
