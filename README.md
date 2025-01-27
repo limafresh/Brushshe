@@ -15,16 +15,11 @@
 
 [![Download the code](https://img.shields.io/badge/Download_the_code-ZIP-orange?style=for-the-badge&logo=Python&logoColor=white)](https://github.com/limafresh/Brushshe/archive/refs/heads/main.zip)
 
-3. Install CustomTkinter, if not installed - open terminal or command line and enter:
+3. Install *CustomTkinter* and *Pillow* - open terminal or command line and enter:
 ```bash
-pip install customtkinter
+pip install customtkinter Pillow
 ```
 4. Launch Python IDLE, open file `brushshe.py` and launch it.
-### Possible errors
-1. If Python cannot find the `PIL` library, install `Pillow`, which is compatible with `PIL`:
-```bash
-pip install Pillow
-```
 
 ## Functionality
 ### Painting
