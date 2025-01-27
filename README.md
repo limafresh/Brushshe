@@ -10,6 +10,7 @@
 ![Screenshot](https://raw.githubusercontent.com/limafresh/Brushshe/main/screenshot.png)
 
 ## Usage
+### Launch via Python
 1. Install [Python 3](https://www.python.org/downloads/), if not installed;
 2. Download the code and unpack downloaded archive:
 
@@ -20,6 +21,20 @@
 pip install customtkinter Pillow
 ```
 4. Launch Python IDLE, open file `brushshe.py` and launch it.
+### Download portable program for Windows 64bit
+
+Works without installing Python and libraries
+
+[![Download for Windows](https://img.shields.io/badge/Download_for_Windows-ZIP-blue?style=for-the-badge)](https://github.com/limafresh/Brushshe/releases)
+
+For developers:
+```cmd
+git clone https://github.com/limafresh/Brushshe.git
+cd Brushshe/Brushshe
+pyinstaller --noconfirm --onedir --windowed --add-data CTkColorPicker:CTkColorPicker --add-data "C:/Users/%USERNAME%/AppData/Local/Programs/Python/Python313/Lib/site-packages/customtkinter;customtkinter/" --icon="icons/icon.ico" brushshe.py
+REM Please copy folders: frames, frames_preview, icons, locales, stickers, and file: brushshe_theme.json to dist/brushshe
+REM Please package dist/brushshe to ZIP and name it "brushshe-0.11.1-windows-x86-64.zip"
+```
 
 ## Functionality
 ### Painting
@@ -43,9 +58,8 @@ There is a light and dark theme.
 ### File
 You can open a picture from a file and save it outside the gallery.
 
-## Dependency versions used during development
-+ Python 3.11.2
-+ customtkinter 5.2.2
+## Screenshots
+[View more screenshots](https://github.com/limafresh/Brushshe/discussions/2)
 
 ## Credits
 Thanks [Akascape](https://github.com/Akascape) for libraries [CTkColorPicker](https://github.com/Akascape/CTkColorPicker), [CTkMenuBar](https://github.com/Akascape/CTkMenuBar) and [CTkMessagebox](https://github.com/Akascape/CTkMessagebox).
