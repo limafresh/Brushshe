@@ -79,7 +79,7 @@ class Brushshe(ctk.CTk):
         file_menu = menu.add_cascade(self._("File"))
         file_dropdown = CustomDropdownMenu(widget=file_menu)
         file_dropdown.add_option(option=self._("Open from file"), command=self.open_image)
-        file_dropdown.add_option(option=self._("Export to PC"), command=self.export)
+        file_dropdown.add_option(option=self._("Export to PC"), command=lambda: self.after(1000, self.export))
 
         bg_menu = menu.add_cascade(self._("Background"))
         bg_dropdown = CustomDropdownMenu(widget=bg_menu)
@@ -132,11 +132,17 @@ class Brushshe(ctk.CTk):
         shapes_dropdown.add_option(option=self._("Rectangle"), command=lambda: self.create_shape("rectangle"))
         shapes_dropdown.add_option(option=self._("Oval"), command=lambda: self.create_shape("oval"))
         shapes_dropdown.add_option(option=self._("Line"), command=lambda: self.create_shape("line"))
+        shapes_dropdown.add_option(option=self._("Arrow"), command=lambda: self.create_shape("arrow"))
+        shapes_dropdown.add_option(
+            option=self._("Double ended arrow"), command=lambda: self.create_shape("double ended arrow")
+        )
         shapes_dropdown.add_option(
             option=self._("Fill rectangle"),
             command=lambda: self.create_shape("fill rectangle"),
         )
         shapes_dropdown.add_option(option=self._("Fill oval"), command=lambda: self.create_shape("fill oval"))
+        shapes_dropdown.add_option(option=self._("Fill triangle"), command=lambda: self.create_shape("fill triangle"))
+        shapes_dropdown.add_option(option=self._("Fill diamond"), command=lambda: self.create_shape("fill diamond"))
 
         menu.add_cascade(self._("My Gallery"), command=self.show_gallery)
 
@@ -523,6 +529,28 @@ class Brushshe(ctk.CTk):
                     fill=self.color,
                     capstyle=ctk.ROUND,
                 )
+            elif self.shape == "arrow":
+                self.shape_id = self.canvas.create_line(
+                    self.shape_start_x,
+                    self.shape_start_y,
+                    self.shape_start_x,
+                    self.shape_start_y,
+                    width=self.brush_size,
+                    fill=self.color,
+                    arrow=ctk.LAST,
+                    arrowshape=(self.brush_size * 2, self.brush_size * 2, self.brush_size * 2),
+                )
+            elif self.shape == "double ended arrow":
+                self.shape_id = self.canvas.create_line(
+                    self.shape_start_x,
+                    self.shape_start_y,
+                    self.shape_start_x,
+                    self.shape_start_y,
+                    width=self.brush_size,
+                    fill=self.color,
+                    arrow=ctk.BOTH,
+                    arrowshape=(self.brush_size * 2, self.brush_size * 2, self.brush_size * 2),
+                )
             elif self.shape == "fill rectangle":
                 self.shape_id = self.canvas.create_rectangle(
                     self.shape_start_x,
@@ -543,9 +571,58 @@ class Brushshe(ctk.CTk):
                     outline=self.color,
                     fill=self.color,
                 )
+            elif self.shape == "fill triangle":
+                self.shape_id = self.canvas.create_polygon(
+                    self.shape_start_x,
+                    self.shape_start_y,
+                    self.shape_start_x,
+                    self.shape_start_y,
+                    self.shape_start_x,
+                    self.shape_start_y,
+                    width=self.brush_size,
+                    outline=self.color,
+                    fill=self.color,
+                )
+            elif self.shape == "fill diamond":
+                self.shape_id = self.canvas.create_polygon(
+                    self.shape_start_x,
+                    self.shape_start_y,
+                    self.shape_start_x,
+                    self.shape_start_y,
+                    self.shape_start_x,
+                    self.shape_start_y,
+                    self.shape_start_x,
+                    self.shape_start_y,
+                    width=self.brush_size,
+                    outline=self.color,
+                    fill=self.color,
+                )
 
         def draw_shape(event):
-            self.canvas.coords(self.shape_id, self.shape_start_x, self.shape_start_y, event.x, event.y)
+            if self.shape == "fill triangle":
+                self.canvas.coords(
+                    self.shape_id,
+                    self.shape_start_x,
+                    self.shape_start_y,
+                    event.x,
+                    event.y,
+                    2 * self.shape_start_x - event.x,
+                    event.y,
+                )
+            elif self.shape == "fill diamond":
+                self.canvas.coords(
+                    self.shape_id,
+                    self.shape_start_x,
+                    self.shape_start_y - (event.y - self.shape_start_y),  # Top vertex
+                    self.shape_start_x + (event.x - self.shape_start_x),  # Right vertex
+                    self.shape_start_y,
+                    self.shape_start_x,
+                    self.shape_start_y + (event.y - self.shape_start_y),  # Bottom vertex
+                    self.shape_start_x - (event.x - self.shape_start_x),  # Left vertex
+                    self.shape_start_y,
+                )
+            else:
+                self.canvas.coords(self.shape_id, self.shape_start_x, self.shape_start_y, event.x, event.y)
 
         def end_shape(event):
             self.canvas.unbind("<ButtonPress-1>")
@@ -640,7 +717,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v0.11.1",
+            message=about_text + "v0.12",
             icon="icons/brucklin.png",
             icon_size=(150, 191),
             option_1="OK",

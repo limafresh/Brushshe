@@ -35,7 +35,7 @@ You can place text and change its size.
 ### Frames
 You can decorate the picture with frames.
 ### Shapes
-Rectangle, oval (with or without fill), line.
+Rectangle, oval (with or without fill); line, arrows, fill triangle, fill diamond.
 ### My Gallery
 Window showing images drawn in Brushshe and "saved to gallery". Images from the gallery are stored in `<user_home_folder>/Pictures/Brushshe Images`.
 ### Dark theme
