@@ -79,7 +79,18 @@ class Brushshe(ctk.CTk):
         file_menu = menu.add_cascade(self._("File"))
         file_dropdown = CustomDropdownMenu(widget=file_menu)
         file_dropdown.add_option(option=self._("Open from file"), command=self.open_image)
-        file_dropdown.add_option(option=self._("Export to PC"), command=lambda: self.after(1000, self.export))
+        export_submenu = file_dropdown.add_submenu(self._("Export to PC"))
+        # 1000 - a slight delay so that when taking a snapshot of the picture the menu has time to hide
+        export_submenu.add_option(option="PNG", command=lambda: self.after(1000, lambda: self.export(".png")))
+        export_submenu.add_option(option="JPG", command=lambda: self.after(1000, lambda: self.export(".jpg")))
+        export_submenu.add_option(option="GIF", command=lambda: self.after(1000, lambda: self.export(".gif")))
+        export_submenu.add_option(option="BMP", command=lambda: self.after(1000, lambda: self.export(".bmp")))
+        export_submenu.add_option(option="TIFF", command=lambda: self.after(1000, lambda: self.export(".tiff")))
+        export_submenu.add_option(option="WEBP", command=lambda: self.after(1000, lambda: self.export(".webp")))
+        export_submenu.add_option(option="ICO", command=lambda: self.after(1000, lambda: self.export(".ico")))
+        export_submenu.add_option(option="PPM", command=lambda: self.after(1000, lambda: self.export(".ppm")))
+        export_submenu.add_option(option="PGM", command=lambda: self.after(1000, lambda: self.export(".pgm")))
+        export_submenu.add_option(option="PBM", command=lambda: self.after(1000, lambda: self.export(".pbm")))
 
         bg_menu = menu.add_cascade(self._("Background"))
         bg_dropdown = CustomDropdownMenu(widget=bg_menu)
@@ -254,15 +265,15 @@ class Brushshe(ctk.CTk):
     def when_closing(self):
         closing_msg = CTkMessagebox(
             title=self._("You are leaving Brushshe"),
-            message=self._("Save the picture?"),
-            option_1=self._("No"),
-            option_2=self._("Go back to save"),
+            message=self._("Continue?"),
+            option_1=self._("Yes"),
+            option_2=self._("No"),
             icon="icons/question.png",
             icon_size=(100, 100),
             sound=True,
         )
         response = closing_msg.get()
-        if response == self._("No"):
+        if response == self._("Yes"):
             app.destroy()
         else:
             pass
@@ -287,7 +298,7 @@ class Brushshe(ctk.CTk):
     def open_image(self):
         file_path = ctk.filedialog.askopenfilename(
             filetypes=[
-                (self._("Images"), "*png* *jpg* *jpeg* *gif*"),
+                (self._("Images"), "*png* *jpg* *jpeg* *gif* *ico* *bmp* *webp* *tiff* *ppm* *pgm* *pbm*"),
                 (self._("All files"), "*.*"),
             ]
         )
@@ -310,7 +321,7 @@ class Brushshe(ctk.CTk):
                     sound=True,
                 )
 
-    def export(self):
+    def export(self, extension):
         # Canvas positions
         x0 = self.canvas.winfo_rootx()
         y0 = self.canvas.winfo_rooty()
@@ -321,11 +332,18 @@ class Brushshe(ctk.CTk):
         canvas_img = ImageGrab.grab(bbox=(x0, y0, x1, y1))
 
         file_path = ctk.filedialog.asksaveasfilename(
-            defaultextension=".png",
+            defaultextension=extension,
             filetypes=[(self._("All files"), "*.*")],
         )
         if file_path:
             canvas_img.save(file_path)
+            CTkMessagebox(
+                title=self._("Exported"),
+                message=self._("The picture has been successfully exported to your computer in format")
+                + f" {extension}!",
+                icon="icons/saved.png",
+                icon_size=(100, 100),
+            )
 
     def change_bg(self, new_color):
         self.canvas.configure(bg=new_color)
@@ -717,7 +735,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v0.12",
+            message=about_text + "v0.13",
             icon="icons/brucklin.png",
             icon_size=(150, 191),
             option_1="OK",
@@ -753,6 +771,8 @@ class Brushshe(ctk.CTk):
 
         image_name = f"{self.gallery_folder}/{uuid4()}.png"
 
+        canvas_img.save(image_name)
+
         CTkMessagebox(
             title=self._("Saved"),
             message=self._(
@@ -761,8 +781,6 @@ class Brushshe(ctk.CTk):
             icon="icons/saved.png",
             icon_size=(100, 100),
         )
-
-        canvas_img.save(image_name)
 
     def change_color(self, new_color):
         self.color = new_color

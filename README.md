@@ -22,8 +22,12 @@ pip install customtkinter Pillow
 4. Launch Python IDLE, open file `brushshe.py` and launch it.
 
 ## Functionality
+### Open
+You can open a picture from a file.
 ### Painting
 You can choose a color, change the brush thickness, and paint.
+### Export
+You can export picture to your PC in different formats (PNG, JPG, GIF, BMP, TIFF, WEBP, ICO, PPM, PGM, PBM).
 ### Eraser
 Removing excess with an eraser.
 ### Background
@@ -37,15 +41,9 @@ You can decorate the picture with frames.
 ### Shapes
 Rectangle, oval (with or without fill); line, arrows, fill triangle, fill diamond.
 ### My Gallery
-Window showing images drawn in Brushshe and "saved to gallery". Images from the gallery are stored in `<user_home_folder>/Pictures/Brushshe Images`.
+Window showing images drawn in Brushshe and "saved to gallery". Images from the gallery are stored in `<user_home_folder>/Pictures/Brushshe Images` or `<user_home_folder>/Brushshe Imaages` on some minimalistic Linux distributions.
 ### Dark theme
-There is a light and dark theme.
-### File
-You can open a picture from a file and save it outside the gallery.
-
-## Dependency versions used during development
-+ Python 3.11.2
-+ customtkinter 5.2.2
+There is a system, light and dark theme.
 
 ## Credits
 Thanks [Akascape](https://github.com/Akascape) for libraries [CTkColorPicker](https://github.com/Akascape/CTkColorPicker), [CTkMenuBar](https://github.com/Akascape/CTkMenuBar) and [CTkMessagebox](https://github.com/Akascape/CTkMessagebox).

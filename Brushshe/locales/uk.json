@@ -32,9 +32,8 @@
 	"Save to gallery": "Зберегти в галерею",
 	"Other": "Інший",
 	"You are leaving Brushshe": "Ви покидаєте Brushshe",
-	"Save the picture?": "Зберегти малюнок?",
+	"Continue?": "Продовжити?",
 	"No": "Ні",
-	"Go back to save": "Повернутися щоб зберегти",
 	"Oh, unfortunately, it happened": "Ех, на жаль, це сталося",
 	"Images": "Зображення",
 	"All files": "Всі файли",
@@ -57,5 +56,7 @@
 	"Brushshe is a painting program where you can create whatever you like.\n\nAn eagle named Brucklin is its mascot.\n\n": "Brushshe (Брашше) - програма для малювання, в якій можна створювати те, що Вам подобається.\n\nОрел на ім'я Brucklin (Браклін) - її талісман.\n\n",
 	"Saved": "Збережено",
 	"The picture has been successfully saved to the gallery (\"My Gallery\" in the menu at the top)!": "Малюнок успішно збережено в галерею (\"Моя галерея\" в меню вгорі)!",
-	"Choose a different brush color": "Оберіть інший колір пензля"
+	"Choose a different brush color": "Оберіть інший колір пензля",
+	"Exported": "Експортовано",
+	"The picture has been successfully exported to your computer in format": "Малюнок успішно експортовано на Ваш комп'ютер у форматі"
 }
