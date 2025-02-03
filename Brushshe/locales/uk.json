@@ -58,5 +58,12 @@
 	"The picture has been successfully saved to the gallery (\"My Gallery\" in the menu at the top)!": "Малюнок успішно збережено в галерею (\"Моя галерея\" в меню вгорі)!",
 	"Choose a different brush color": "Оберіть інший колір пензля",
 	"Exported": "Експортовано",
-	"The picture has been successfully exported to your computer in format": "Малюнок успішно експортовано на Ваш комп'ютер у форматі"
+	"The picture has been successfully exported to your computer in format": "Малюнок успішно експортовано на Ваш комп'ютер у форматі",
+	"Effects": "Ефекти",
+	"Apply to picture": "Застосувати до малюнка",
+	"Blur": "Розмиття",
+	"Detail": "Деталізація",
+	"Contour": "Контур",
+	"Grayscale": "Відтінки сірого",
+	"Remove all effects": "Видалити всі ефекти"
 }

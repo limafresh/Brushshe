@@ -19,17 +19,19 @@
 ```bash
 pip install customtkinter Pillow
 ```
-4. Launch Python IDLE, open file `brushshe.py` and launch it.
+4. Launch file `Brushshe/brushshe.py`.
 
 ## Functionality
 ### Open
 You can open a picture from a file.
 ### Painting
-You can choose a color, change the brush thickness, and paint.
+You can choose a color, change the brush thickness, and paint. You can change canvas size.
 ### Export
 You can export picture to your PC in different formats (PNG, JPG, GIF, BMP, TIFF, WEBP, ICO, PPM, PGM, PBM).
 ### Eraser
 Removing excess with an eraser.
+### Pipette
+Right click on the desired place on the canvas to get its color and paint with it.
 ### Background
 You can choose the background color.
 ### Stickers
@@ -40,6 +42,8 @@ You can place text and change its size.
 You can decorate the picture with frames.
 ### Shapes
 Rectangle, oval (with or without fill); line, arrows, fill triangle, fill diamond.
+### Effects
+Blur, detail, contour and grayscale with adjustment slider.
 ### My Gallery
 Window showing images drawn in Brushshe and "saved to gallery". Images from the gallery are stored in `<user_home_folder>/Pictures/Brushshe Images` or `<user_home_folder>/Brushshe Imaages` on some minimalistic Linux distributions.
 ### Dark theme

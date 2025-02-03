@@ -58,5 +58,12 @@
 	"The picture has been successfully saved to the gallery (\"My Gallery\" in the menu at the top)!": "Рисунок успешно сохранён в галерею (\"Моя галерея\" в меню вверху)!",
 	"Choose a different brush color": "Выбрать другой цвет кисти",
 	"Exported": "Экспортировано",
-	"The picture has been successfully exported to your computer in format": "Рисунок успешно экспортировано на Ваш компьютер в формате"
+	"The picture has been successfully exported to your computer in format": "Рисунок успешно экспортировано на Ваш компьютер в формате",
+	"Effects": "Эффекты",
+	"Apply to picture": "Применить к рисунку",
+	"Blur": "Размытие",
+	"Detail": "Детализация",
+	"Contour": "Контур",
+	"Grayscale": "Оттенки серого",
+	"Remove all effects": "Удалить все эффекты"
 }

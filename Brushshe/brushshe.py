@@ -2,7 +2,7 @@ import json
 import webbrowser
 from gc import disable as garbage_collector_disable
 from locale import getlocale
-from os import environ, listdir, name
+from os import environ, listdir, name, path
 from pathlib import Path
 from tkinter import Listbox, PhotoImage, font
 from uuid import uuid4
@@ -11,17 +11,21 @@ import customtkinter as ctk
 from CTkColorPicker import AskColor
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
-from PIL import Image, ImageDraw, ImageGrab, ImageTk
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageGrab, ImageOps, ImageTk
+
+PATH = path.dirname(path.realpath(__file__))
 
 
 class Brushshe(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Brushshe")
-        self.geometry("650x580")
-        self.minsize(650, 580)
-        self.iconbitmap("icons/icon.ico") if name == "nt" else self.iconphoto(True, PhotoImage(file="icons/icon.png"))
-        ctk.set_default_color_theme("brushshe_theme.json")
+        self.geometry("680x600")
+        if name == "nt":
+            self.iconbitmap(path.join(PATH, "icons/icon.ico"))
+        else:
+            self.iconphoto(True, PhotoImage(file=path.join(PATH, "icons/icon.png")))
+        ctk.set_default_color_theme(path.join(PATH, "brushshe_theme.json"))
         ctk.set_appearance_mode("system")
         self.protocol("WM_DELETE_WINDOW", self.when_closing)
 
@@ -44,7 +48,7 @@ class Brushshe(ctk.CTk):
         else:
             try:
                 with open(
-                    f"locales/{language_code}.json",
+                    path.join(PATH, f"locales/{language_code}.json"),
                     "r",
                     encoding="utf-8",
                 ) as f:
@@ -121,22 +125,26 @@ class Brushshe(ctk.CTk):
             "butterfly",
             "flower2",
         ]
-        self.stickers = [Image.open(f"stickers/{name}.png") for name in stickers_names]
+        self.stickers = [Image.open(path.join(PATH, f"stickers/{name}.png")) for name in stickers_names]
 
         add_menu = menu.add_cascade(self._("Add"))
         add_dropdown = CustomDropdownMenu(widget=add_menu)
-        smile_icon = ctk.CTkImage(light_image=Image.open("icons/smile.png"), size=(50, 50))
+        smile_icon = ctk.CTkImage(light_image=Image.open(path.join(PATH, "icons/smile.png")), size=(50, 50))
         add_dropdown.add_option(
             option=self._("Stickers"),
             image=smile_icon,
             command=self.show_stickers_choice,
         )
-        text_icon = ctk.CTkImage(light_image=Image.open("icons/text.png"), size=(50, 50))
+        text_icon = ctk.CTkImage(light_image=Image.open(path.join(PATH, "icons/text.png")), size=(50, 50))
         text_submenu = add_dropdown.add_submenu(self._("Text"), image=text_icon)
         text_submenu.add_option(option=self._("Add text to a picture"), command=self.add_text_window_show)
         text_submenu.add_option(option=self._("Customize text for insertion"), command=self.text_settings)
-        frame_icon = ctk.CTkImage(light_image=Image.open("icons/frame.png"), size=(50, 50))
+        frame_icon = ctk.CTkImage(light_image=Image.open(path.join(PATH, "icons/frame.png")), size=(50, 50))
         add_dropdown.add_option(option=self._("Frames"), image=frame_icon, command=self.show_frame_choice)
+        effects_icon = ctk.CTkImage(light_image=Image.open(path.join(PATH, "icons/effects.png")), size=(50, 50))
+        add_dropdown.add_option(
+            option=self._("Effects"), image=effects_icon, command=lambda: self.after(1000, self.effects)
+        )
 
         shapes_menu = menu.add_cascade(self._("Shapes"))
         shapes_dropdown = CustomDropdownMenu(widget=shapes_menu)
@@ -171,7 +179,7 @@ class Brushshe(ctk.CTk):
         clean_btn = ctk.CTkButton(tools_frame, text=self._("Clear all"), width=50, command=self.clean_all)
         clean_btn.pack(side=ctk.LEFT, padx=1)
 
-        eraser_icon = ctk.CTkImage(light_image=Image.open("icons/eraser.png"), size=(20, 20))
+        eraser_icon = ctk.CTkImage(light_image=Image.open(path.join(PATH, "icons/eraser.png")), size=(20, 20))
         eraser = ctk.CTkButton(tools_frame, text=None, width=35, image=eraser_icon, command=self.eraser)
         eraser.pack(side=ctk.LEFT, padx=1)
 
@@ -194,8 +202,24 @@ class Brushshe(ctk.CTk):
         )
         save_button.pack(side=ctk.RIGHT, padx=1)
 
-        self.canvas = ctk.CTkCanvas(self, bg="white")  # Canvas
-        self.canvas.pack(fill=ctk.BOTH, expand=True)
+        self.canvas_frame = ctk.CTkFrame(self)  # Canvas
+        self.canvas_frame.pack_propagate(False)
+        self.canvas_frame.pack(fill=ctk.BOTH, expand=True)
+
+        width_slider = ctk.CTkSlider(
+            self.canvas_frame, from_=100, to=2000, orientation="horizontal", command=self.change_canvas_width
+        )
+        width_slider.set(500)
+        width_slider.pack(side=ctk.BOTTOM, fill=ctk.X)
+
+        height_slider = ctk.CTkSlider(
+            self.canvas_frame, from_=100, to=2000, orientation="vertical", command=self.change_canvas_height
+        )
+        height_slider.set(500)
+        height_slider.pack(side=ctk.LEFT, fill=ctk.Y)
+
+        self.canvas = ctk.CTkCanvas(self.canvas_frame, bg="white")
+        self.canvas.pack()
 
         self.palette = ctk.CTkFrame(self)  # Palette
         self.palette.pack(side=ctk.BOTTOM, fill=ctk.X)
@@ -245,6 +269,7 @@ class Brushshe(ctk.CTk):
 
         self.canvas.bind("<B1-Motion>", self.paint)
         self.canvas.bind("<ButtonRelease-1>", self.stop_paint)
+        self.canvas.bind("<Button-3>", self.pipette)
 
         self.canvas.configure(cursor="pencil")
         self.current_tool = None
@@ -260,6 +285,8 @@ class Brushshe(ctk.CTk):
         if not self.gallery_folder.exists():
             self.gallery_folder.mkdir(parents=True)
 
+        self.update_canvas_size()
+
     """ Functionality """
 
     def when_closing(self):
@@ -268,7 +295,7 @@ class Brushshe(ctk.CTk):
             message=self._("Continue?"),
             option_1=self._("Yes"),
             option_2=self._("No"),
-            icon="icons/question.png",
+            icon=path.join(PATH, "icons/question.png"),
             icon_size=(100, 100),
             sound=True,
         )
@@ -295,6 +322,41 @@ class Brushshe(ctk.CTk):
     def stop_paint(self, cur):
         self.prev_x, self.prev_y = (None, None)
 
+    def pipette(self, event):
+        # Get the coordinates of the click event
+        x, y = event.x, event.y
+
+        # Get the canvas position on the screen
+        x0 = self.canvas.winfo_rootx()
+        y0 = self.canvas.winfo_rooty()
+        x1 = x0 + self.canvas.winfo_width()
+        y1 = y0 + self.canvas.winfo_height()
+
+        # Capture the canvas content
+        canvas_img = ImageGrab.grab(bbox=(x0, y0, x1, y1))
+
+        # Get the color of the pixel at the clicked position and convert to HEX
+        self.getcolor = canvas_img.getpixel((x, y))
+        self.getcolor = "#{:02x}{:02x}{:02x}".format(self.getcolor[0], self.getcolor[1], self.getcolor[2])
+
+        self.color = self.getcolor
+        self.other_color_btn.pack(side=ctk.RIGHT, padx=1)
+        self.other_color_btn.configure(fg_color=self.getcolor)
+        self.tool_label.configure(text=self._("Brush:"))
+        if self.current_tool == "eraser":
+            self.canvas.configure(cursor="pencil")
+            self.current_tool = None
+
+    def change_canvas_width(self, value):
+        self.canvas.configure(width=int(value))
+
+    def change_canvas_height(self, value):
+        self.canvas.configure(height=int(value))
+
+    def update_canvas_size(self):
+        img_width, img_height = self.image.size
+        self.canvas.config(width=img_width, height=img_height)
+
     def open_image(self):
         file_path = ctk.filedialog.askopenfilename(
             filetypes=[
@@ -312,11 +374,12 @@ class Brushshe(ctk.CTk):
                 self.canvas.configure(bg="white")
                 self.photo = ImageTk.PhotoImage(self.image)
                 self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.photo)
+                self.update_canvas_size()
             except Exception as e:
                 CTkMessagebox(
                     title=self._("Oh, unfortunately, it happened"),
                     message=f"{message_text} {e}",
-                    icon="icons/cry.png",
+                    icon=path.join(PATH, "icons/cry.png"),
                     icon_size=(100, 100),
                     sound=True,
                 )
@@ -341,7 +404,7 @@ class Brushshe(ctk.CTk):
                 title=self._("Exported"),
                 message=self._("The picture has been successfully exported to your computer in format")
                 + f" {extension}!",
-                icon="icons/saved.png",
+                icon=path.join(PATH, "icons/saved.png"),
                 icon_size=(100, 100),
             )
 
@@ -492,10 +555,11 @@ class Brushshe(ctk.CTk):
             "frame7",
         ]
         frames_thumbnails = [
-            ctk.CTkImage(light_image=Image.open(f"frames_preview/{name}.png"), size=(100, 100)) for name in frames_names
+            ctk.CTkImage(light_image=Image.open(path.join(PATH, f"frames_preview/{name}.png")), size=(100, 100))
+            for name in frames_names
         ]
 
-        frames = [Image.open(f"frames/{name}.png") for name in frames_names]
+        frames = [Image.open(path.join(PATH, f"frames/{name}.png")) for name in frames_names]
 
         row = 0
         column = 0
@@ -657,9 +721,106 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<B1-Motion>", draw_shape)
         self.canvas.bind("<ButtonRelease-1>", end_shape)
 
-        self.canvas.configure(cursor="crosshair")
+        self.canvas.configure(cursor="plus")
 
         self.after(100)  # A little delay, otherwise it doesn't work
+
+    def effects(self):
+        def remove_all_effects():
+            canvas_img_tk = ImageTk.PhotoImage(canvas_img)
+            self.canvas.create_image(0, 0, anchor="nw", image=canvas_img_tk)
+            self.canvas.image = canvas_img_tk
+
+        def blur():
+            radius = blur_slider.get()
+            blurred_img = canvas_img.filter(ImageFilter.GaussianBlur(radius=radius))
+            blurred_img_tk = ImageTk.PhotoImage(blurred_img)
+            self.canvas.create_image(0, 0, anchor="nw", image=blurred_img_tk)
+            self.canvas.image = blurred_img_tk
+
+        def detail():
+            factor = detail_slider.get()
+            enhancer = ImageEnhance.Sharpness(canvas_img)
+            detailed_img = enhancer.enhance(factor)
+            detailed_img_tk = ImageTk.PhotoImage(detailed_img)
+            self.canvas.create_image(0, 0, anchor="nw", image=detailed_img_tk)
+            self.canvas.image = detailed_img_tk
+
+        def contour():
+            contoured_img = canvas_img.filter(ImageFilter.CONTOUR)
+            contoured_img_tk = ImageTk.PhotoImage(contoured_img)
+            self.canvas.create_image(0, 0, anchor="nw", image=contoured_img_tk)
+            self.canvas.image = contoured_img_tk
+
+        def grayscale():
+            grayscale_img = ImageOps.grayscale(canvas_img)
+            grayscale_img_tk = ImageTk.PhotoImage(grayscale_img)
+            self.canvas.create_image(0, 0, anchor="nw", image=grayscale_img_tk)
+            self.canvas.image = grayscale_img_tk
+
+        effects_win = ctk.CTkToplevel(app)
+        effects_win.title(self._("Effects"))
+
+        remove_all_effects_button = ctk.CTkButton(
+            effects_win, text=self._("Remove all effects"), command=remove_all_effects
+        )
+        remove_all_effects_button.pack(padx=10, pady=10)
+
+        # Blur
+        blur_frame = ctk.CTkFrame(effects_win)
+        blur_frame.pack(padx=10, pady=10)
+
+        blur_label = ctk.CTkLabel(blur_frame, text=self._("Blur"))
+        blur_label.pack(padx=10, pady=10)
+
+        blur_slider = ctk.CTkSlider(blur_frame, from_=0, to=20)
+        blur_slider.pack(padx=10, pady=10)
+
+        blur_button = ctk.CTkButton(blur_frame, text=self._("Apply to picture"), command=blur)
+        blur_button.pack(padx=10, pady=10)
+
+        # Detail
+        detail_frame = ctk.CTkFrame(effects_win)
+        detail_frame.pack(padx=10, pady=10)
+
+        detail_label = ctk.CTkLabel(detail_frame, text=self._("Detail"))
+        detail_label.pack(padx=10, pady=10)
+
+        detail_slider = ctk.CTkSlider(detail_frame, from_=1, to=20)
+        detail_slider.pack(padx=10, pady=10)
+
+        detail_button = ctk.CTkButton(detail_frame, text=self._("Apply to picture"), command=detail)
+        detail_button.pack(padx=10, pady=10)
+
+        # Contour
+        contour_frame = ctk.CTkFrame(effects_win)
+        contour_frame.pack(padx=10, pady=10)
+
+        contour_label = ctk.CTkLabel(contour_frame, text=self._("Contour"))
+        contour_label.pack(padx=10, pady=10)
+
+        contour_button = ctk.CTkButton(contour_frame, text=self._("Apply to picture"), command=contour)
+        contour_button.pack(padx=10, pady=10)
+
+        # Grayscale
+        grayscale_frame = ctk.CTkFrame(effects_win)
+        grayscale_frame.pack(padx=10, pady=10)
+
+        grayscale_label = ctk.CTkLabel(grayscale_frame, text=self._("Grayscale"))
+        grayscale_label.pack(padx=10, pady=10)
+
+        grayscale_button = ctk.CTkButton(grayscale_frame, text=self._("Apply to picture"), command=grayscale)
+        grayscale_button.pack(padx=10, pady=10)
+
+        # Canvas positions
+        x0 = self.canvas.winfo_rootx()
+        y0 = self.canvas.winfo_rooty()
+        x1 = x0 + self.canvas.winfo_width()
+        y1 = y0 + self.canvas.winfo_height()
+        # Canvas content
+        canvas_img = ImageGrab.grab(bbox=(x0, y0, x1, y1))
+
+        effects_win.grab_set()
 
     def show_gallery(self):  # Gallery
         my_gallery = ctk.CTkToplevel(app)
@@ -684,7 +845,7 @@ class Brushshe(ctk.CTk):
                 message=open_msg_message,
                 option_1=self._("Yes"),
                 option_2=self._("Return"),
-                icon="icons/question.png",
+                icon=path.join(PATH, "icons/question.png"),
                 icon_size=(100, 100),
                 sound=True,
             )
@@ -699,6 +860,7 @@ class Brushshe(ctk.CTk):
                 self.canvas.configure(bg="white")
                 self.photo = ImageTk.PhotoImage(self.image)
                 self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.photo)
+                self.update_canvas_size()
 
         is_image_found = False
 
@@ -735,8 +897,8 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v0.13",
-            icon="icons/brucklin.png",
+            message=about_text + "v0.14",
+            icon=path.join(PATH, "icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
             option_2="GitHub",
@@ -756,7 +918,7 @@ class Brushshe(ctk.CTk):
     def eraser(self):
         self.color = self.canvas.cget("bg")
         self.tool_label.configure(text=self._("Eraser:"))
-        self.canvas.configure(cursor="crosshair")
+        self.canvas.configure(cursor="plus")
         self.current_tool = "eraser"
 
     def save_image(self):
@@ -778,7 +940,7 @@ class Brushshe(ctk.CTk):
             message=self._(
                 'The picture has been successfully saved to the gallery ("My Gallery" in the menu at the top)!'
             ),
-            icon="icons/saved.png",
+            icon=path.join(PATH, "icons/saved.png"),
             icon_size=(100, 100),
         )
 
@@ -806,7 +968,7 @@ class Brushshe(ctk.CTk):
 
     def select_other_color_btn(self):
         self.color = self.getcolor
-        self.tool_label.configure(text="Brush:")
+        self.tool_label.configure(text=self._("Brush:"))
         if self.current_tool == "eraser":
             self.canvas.configure(cursor="pencil")
             self.current_tool = None
