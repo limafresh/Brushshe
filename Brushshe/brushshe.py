@@ -183,6 +183,14 @@ class Brushshe(ctk.CTk):
         eraser = ctk.CTkButton(tools_frame, text=None, width=35, image=eraser_icon, command=self.eraser)
         eraser.pack(side=ctk.LEFT, padx=1)
 
+        undo_icon = ctk.CTkImage(
+            light_image=Image.open(path.join(PATH, "icons/undo_light.png")),
+            dark_image=Image.open(path.join(PATH, "icons/undo_dark.png")),
+            size=(20, 20),
+        )
+        undo_button = ctk.CTkButton(tools_frame, text=None, width=35, image=undo_icon, command=self.undo)
+        undo_button.pack(side=ctk.LEFT, padx=1)
+
         self.tool_label = ctk.CTkLabel(tools_frame, text=self._("Brush:"))
         self.tool_label.pack(side=ctk.LEFT, padx=1)
 
@@ -274,6 +282,9 @@ class Brushshe(ctk.CTk):
         self.canvas.configure(cursor="pencil")
         self.current_tool = None
 
+        self.undo_stack = []
+        self.current_items = []
+
         # Defining the Gallery Folder Path
         if name == "nt":  # For Windows
             images_folder = Path(environ["USERPROFILE"]) / "Pictures"
@@ -307,7 +318,7 @@ class Brushshe(ctk.CTk):
 
     def paint(self, cur):
         if self.prev_x and self.prev_y:
-            self.canvas.create_line(
+            item = self.canvas.create_line(
                 self.prev_x,
                 self.prev_y,
                 cur.x,
@@ -317,9 +328,14 @@ class Brushshe(ctk.CTk):
                 smooth=True,
                 capstyle=ctk.ROUND,
             )
+            self.current_items.append(item)
         self.prev_x, self.prev_y = cur.x, cur.y
 
     def stop_paint(self, cur):
+        if self.current_items:
+            self.undo_stack.append(self.current_items)
+            self.current_items = []
+            self.optimize_undo_stack()
         self.prev_x, self.prev_y = (None, None)
 
     def pipette(self, event):
@@ -375,6 +391,7 @@ class Brushshe(ctk.CTk):
                 self.photo = ImageTk.PhotoImage(self.image)
                 self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.photo)
                 self.update_canvas_size()
+                self.undo_stack = []
             except Exception as e:
                 CTkMessagebox(
                     title=self._("Oh, unfortunately, it happened"),
@@ -410,8 +427,6 @@ class Brushshe(ctk.CTk):
 
     def change_bg(self, new_color):
         self.canvas.configure(bg=new_color)
-        if self.tool_label.cget("text") == self._("Eraser:"):
-            self.eraser()
 
     def other_bg_color(self):
         pick_color = AskColor(title=self._("Choose a different background color"))
@@ -479,7 +494,11 @@ class Brushshe(ctk.CTk):
             self.canvas.configure(cursor="")
 
     def add_sticker(self, event):  # Add a sticker
-        self.canvas.create_image(event.x, event.y, anchor="center", image=self.current_sticker)
+        item = self.canvas.create_image(event.x, event.y, anchor="center", image=self.current_sticker)
+        self.current_items.append(item)
+        self.undo_stack.append(self.current_items)
+        self.current_items = []
+        self.optimize_undo_stack()
         self.canvas.unbind("<Button-1>")
         self.canvas.configure(cursor="pencil")
 
@@ -504,7 +523,11 @@ class Brushshe(ctk.CTk):
 
     def add_text(self, event, text):  # Add text
         self.tk_font = ctk.CTkFont(family=self.tk_font["family"], size=self.font_size)
-        self.canvas.create_text(event.x, event.y, text=text, fill=self.color, font=self.tk_font)
+        item = self.canvas.create_text(event.x, event.y, text=text, fill=self.color, font=self.tk_font)
+        self.current_items.append(item)
+        self.undo_stack.append(self.current_items)
+        self.current_items = []
+        self.optimize_undo_stack()
         self.canvas.unbind("<Button-1>")
         self.canvas.configure(cursor="pencil")
 
@@ -540,7 +563,11 @@ class Brushshe(ctk.CTk):
             selected_frame = frames[index]
             resized_image = selected_frame.resize((self.canvas.winfo_width(), self.canvas.winfo_height()))
             self.frame_image = ImageTk.PhotoImage(resized_image)
-            self.canvas.create_image(0, 0, anchor="nw", image=self.frame_image)
+            item = self.canvas.create_image(0, 0, anchor="nw", image=self.frame_image)
+            self.current_items.append(item)
+            self.undo_stack.append(self.current_items)
+            self.current_items = []
+            self.optimize_undo_stack()
 
         frames_win = ctk.CTkToplevel(app)
         frames_win.title(self._("Frames"))
@@ -584,7 +611,7 @@ class Brushshe(ctk.CTk):
             self.shape_start_x = event.x
             self.shape_start_y = event.y
             if self.shape == "rectangle":
-                self.shape_id = self.canvas.create_rectangle(
+                item = self.shape_id = self.canvas.create_rectangle(
                     self.shape_start_x,
                     self.shape_start_y,
                     self.shape_start_x,
@@ -593,7 +620,7 @@ class Brushshe(ctk.CTk):
                     outline=self.color,
                 )
             elif self.shape == "oval":
-                self.shape_id = self.canvas.create_oval(
+                item = self.shape_id = self.canvas.create_oval(
                     self.shape_start_x,
                     self.shape_start_y,
                     self.shape_start_x,
@@ -602,7 +629,7 @@ class Brushshe(ctk.CTk):
                     outline=self.color,
                 )
             elif self.shape == "line":
-                self.shape_id = self.canvas.create_line(
+                item = self.shape_id = self.canvas.create_line(
                     self.shape_start_x,
                     self.shape_start_y,
                     self.shape_start_x,
@@ -612,7 +639,7 @@ class Brushshe(ctk.CTk):
                     capstyle=ctk.ROUND,
                 )
             elif self.shape == "arrow":
-                self.shape_id = self.canvas.create_line(
+                item = self.shape_id = self.canvas.create_line(
                     self.shape_start_x,
                     self.shape_start_y,
                     self.shape_start_x,
@@ -623,7 +650,7 @@ class Brushshe(ctk.CTk):
                     arrowshape=(self.brush_size * 2, self.brush_size * 2, self.brush_size * 2),
                 )
             elif self.shape == "double ended arrow":
-                self.shape_id = self.canvas.create_line(
+                item = self.shape_id = self.canvas.create_line(
                     self.shape_start_x,
                     self.shape_start_y,
                     self.shape_start_x,
@@ -634,7 +661,7 @@ class Brushshe(ctk.CTk):
                     arrowshape=(self.brush_size * 2, self.brush_size * 2, self.brush_size * 2),
                 )
             elif self.shape == "fill rectangle":
-                self.shape_id = self.canvas.create_rectangle(
+                item = self.shape_id = self.canvas.create_rectangle(
                     self.shape_start_x,
                     self.shape_start_y,
                     self.shape_start_x,
@@ -644,7 +671,7 @@ class Brushshe(ctk.CTk):
                     fill=self.color,
                 )
             elif self.shape == "fill oval":
-                self.shape_id = self.canvas.create_oval(
+                item = self.shape_id = self.canvas.create_oval(
                     self.shape_start_x,
                     self.shape_start_y,
                     self.shape_start_x,
@@ -654,7 +681,7 @@ class Brushshe(ctk.CTk):
                     fill=self.color,
                 )
             elif self.shape == "fill triangle":
-                self.shape_id = self.canvas.create_polygon(
+                item = self.shape_id = self.canvas.create_polygon(
                     self.shape_start_x,
                     self.shape_start_y,
                     self.shape_start_x,
@@ -666,7 +693,7 @@ class Brushshe(ctk.CTk):
                     fill=self.color,
                 )
             elif self.shape == "fill diamond":
-                self.shape_id = self.canvas.create_polygon(
+                item = self.shape_id = self.canvas.create_polygon(
                     self.shape_start_x,
                     self.shape_start_y,
                     self.shape_start_x,
@@ -679,6 +706,9 @@ class Brushshe(ctk.CTk):
                     outline=self.color,
                     fill=self.color,
                 )
+            self.current_items.append(item)
+            self.undo_stack.append(self.current_items)
+            self.current_items = []
 
         def draw_shape(event):
             if self.shape == "fill triangle":
@@ -725,11 +755,14 @@ class Brushshe(ctk.CTk):
 
         self.after(100)  # A little delay, otherwise it doesn't work
 
+        self.optimize_undo_stack()
+
     def effects(self):
         def remove_all_effects():
             canvas_img_tk = ImageTk.PhotoImage(canvas_img)
             self.canvas.create_image(0, 0, anchor="nw", image=canvas_img_tk)
             self.canvas.image = canvas_img_tk
+            self.undo_stack = []
 
         def blur():
             radius = blur_slider.get()
@@ -737,6 +770,7 @@ class Brushshe(ctk.CTk):
             blurred_img_tk = ImageTk.PhotoImage(blurred_img)
             self.canvas.create_image(0, 0, anchor="nw", image=blurred_img_tk)
             self.canvas.image = blurred_img_tk
+            self.undo_stack = []
 
         def detail():
             factor = detail_slider.get()
@@ -745,18 +779,21 @@ class Brushshe(ctk.CTk):
             detailed_img_tk = ImageTk.PhotoImage(detailed_img)
             self.canvas.create_image(0, 0, anchor="nw", image=detailed_img_tk)
             self.canvas.image = detailed_img_tk
+            self.undo_stack = []
 
         def contour():
             contoured_img = canvas_img.filter(ImageFilter.CONTOUR)
             contoured_img_tk = ImageTk.PhotoImage(contoured_img)
             self.canvas.create_image(0, 0, anchor="nw", image=contoured_img_tk)
             self.canvas.image = contoured_img_tk
+            self.undo_stack = []
 
         def grayscale():
             grayscale_img = ImageOps.grayscale(canvas_img)
             grayscale_img_tk = ImageTk.PhotoImage(grayscale_img)
             self.canvas.create_image(0, 0, anchor="nw", image=grayscale_img_tk)
             self.canvas.image = grayscale_img_tk
+            self.undo_stack = []
 
         effects_win = ctk.CTkToplevel(app)
         effects_win.title(self._("Effects"))
@@ -861,6 +898,7 @@ class Brushshe(ctk.CTk):
                 self.photo = ImageTk.PhotoImage(self.image)
                 self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.photo)
                 self.update_canvas_size()
+                self.undo_stack = []
 
         is_image_found = False
 
@@ -897,7 +935,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v0.14",
+            message=about_text + "v0.15",
             icon=path.join(PATH, "icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
@@ -910,6 +948,7 @@ class Brushshe(ctk.CTk):
 
     def clean_all(self):
         self.canvas.delete("all")
+        self.undo_stack = []
 
     def change_brush_size(self, size):
         self.brush_size = int(size)
@@ -920,6 +959,12 @@ class Brushshe(ctk.CTk):
         self.tool_label.configure(text=self._("Eraser:"))
         self.canvas.configure(cursor="plus")
         self.current_tool = "eraser"
+
+    def undo(self):
+        if self.undo_stack:
+            items = self.undo_stack.pop()
+            for i in items:
+                self.canvas.delete(i)
 
     def save_image(self):
         # Canvas positions
@@ -972,6 +1017,21 @@ class Brushshe(ctk.CTk):
         if self.current_tool == "eraser":
             self.canvas.configure(cursor="pencil")
             self.current_tool = None
+
+    def optimize_undo_stack(self):
+        def count_elements(lst):
+            count = 0
+            for item in lst:
+                if isinstance(item, list):
+                    count += count_elements(item)
+                else:
+                    count += 1
+                if count >= 5000:
+                    return count
+            return count
+
+        if count_elements(self.undo_stack) >= 5000:
+            self.undo_stack.clear()
 
 
 app = Brushshe()

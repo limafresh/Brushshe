@@ -1,5 +1,7 @@
 # Brushshe - painting app
 
+![Static Badge](https://img.shields.io/badge/Tested_on-Windows%2C_Linux-orange)
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/limafresh/Brushshe/refs/heads/main/Brushshe/icons/logo.svg" alt="logo" width="100" height="100">
 </p>
@@ -28,6 +30,7 @@ You can open a picture from a file.
 You can choose a color, change the brush thickness, and paint. You can change canvas size.
 ### Export
 You can export picture to your PC in different formats (PNG, JPG, GIF, BMP, TIFF, WEBP, ICO, PPM, PGM, PBM).
+### Undo
 ### Eraser
 Removing excess with an eraser.
 ### Pipette
