@@ -31,9 +31,10 @@ You can choose a color, change the brush thickness, and paint. You can change ca
 ### Export
 You can export picture to your PC in different formats (PNG, JPG, GIF, BMP, TIFF, WEBP, ICO, PPM, PGM, PBM).
 ### Undo
+You can undo 10 last actions.
 ### Eraser
 Removing excess with an eraser.
-### Pipette
+### Eyedropper
 Right click on the desired place on the canvas to get its color and paint with it.
 ### Background
 You can choose the background color.

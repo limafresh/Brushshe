@@ -29,12 +29,13 @@ class Brushshe(ctk.CTk):
         ctk.set_appearance_mode("system")
         self.protocol("WM_DELETE_WINDOW", self.when_closing)
 
+        # Get system locale
         locale = getlocale()
 
         if isinstance(locale, tuple):
-            language_code = getlocale()[0][:2].lower()
+            language_code = getlocale()[0][:2].lower()  # Linux
         elif isinstance(locale, str):
-            language_code = locale[:2].lower()
+            language_code = locale[:2].lower()  # Windows
 
         self.translations = {}
         self.load_language(language_code)
@@ -103,29 +104,6 @@ class Brushshe(ctk.CTk):
             bg_dropdown.add_option(option=None, bg_color=color, command=lambda c=color: self.change_bg(c))
         bg_dropdown.add_separator()
         bg_dropdown.add_option(option=self._("Other color"), command=self.other_bg_color)
-
-        # Width and height of all sticker images - 88 px
-        stickers_names = [
-            "smile",
-            "flower",
-            "heart",
-            "okay",
-            "cheese",
-            "face2",
-            "cat",
-            "alien",
-            "like",
-            "unicorn",
-            "pineapple",
-            "grass",
-            "rain",
-            "brucklin",
-            "brushshe",
-            "strawberry",
-            "butterfly",
-            "flower2",
-        ]
-        self.stickers = [Image.open(path.join(PATH, f"stickers/{name}.png")) for name in stickers_names]
 
         add_menu = menu.add_cascade(self._("Add"))
         add_dropdown = CustomDropdownMenu(widget=add_menu)
@@ -277,10 +255,9 @@ class Brushshe(ctk.CTk):
 
         self.canvas.bind("<B1-Motion>", self.paint)
         self.canvas.bind("<ButtonRelease-1>", self.stop_paint)
-        self.canvas.bind("<Button-3>", self.pipette)
+        self.canvas.bind("<Button-3>", self.eyedropper)
 
         self.canvas.configure(cursor="pencil")
-        self.current_tool = None
 
         self.undo_stack = []
         self.current_items = []
@@ -295,6 +272,29 @@ class Brushshe(ctk.CTk):
 
         if not self.gallery_folder.exists():
             self.gallery_folder.mkdir(parents=True)
+
+        # Width and height of all sticker images - 88 px
+        stickers_names = [
+            "smile",
+            "flower",
+            "heart",
+            "okay",
+            "cheese",
+            "face2",
+            "cat",
+            "alien",
+            "like",
+            "unicorn",
+            "pineapple",
+            "grass",
+            "rain",
+            "brucklin",
+            "brushshe",
+            "strawberry",
+            "butterfly",
+            "flower2",
+        ]
+        self.stickers = [Image.open(path.join(PATH, f"stickers/{name}.png")) for name in stickers_names]
 
         self.update_canvas_size()
 
@@ -335,33 +335,26 @@ class Brushshe(ctk.CTk):
         if self.current_items:
             self.undo_stack.append(self.current_items)
             self.current_items = []
-            self.optimize_undo_stack()
+            if len(self.undo_stack) == 10:
+                self.undo_stack.clear()
         self.prev_x, self.prev_y = (None, None)
 
-    def pipette(self, event):
+    def eyedropper(self, event):
         # Get the coordinates of the click event
         x, y = event.x, event.y
 
-        # Get the canvas position on the screen
-        x0 = self.canvas.winfo_rootx()
-        y0 = self.canvas.winfo_rooty()
-        x1 = x0 + self.canvas.winfo_width()
-        y1 = y0 + self.canvas.winfo_height()
+        self.capture_canvas_content()
 
-        # Capture the canvas content
-        canvas_img = ImageGrab.grab(bbox=(x0, y0, x1, y1))
+        self.obtained_color = self.canvas_content.getpixel((x, y))
+        self.obtained_color = "#{:02x}{:02x}{:02x}".format(
+            self.obtained_color[0], self.obtained_color[1], self.obtained_color[2]
+        )
 
-        # Get the color of the pixel at the clicked position and convert to HEX
-        self.getcolor = canvas_img.getpixel((x, y))
-        self.getcolor = "#{:02x}{:02x}{:02x}".format(self.getcolor[0], self.getcolor[1], self.getcolor[2])
-
-        self.color = self.getcolor
+        self.color = self.obtained_color
         self.other_color_btn.pack(side=ctk.RIGHT, padx=1)
-        self.other_color_btn.configure(fg_color=self.getcolor)
+        self.other_color_btn.configure(fg_color=self.obtained_color)
         self.tool_label.configure(text=self._("Brush:"))
-        if self.current_tool == "eraser":
-            self.canvas.configure(cursor="pencil")
-            self.current_tool = None
+        self.canvas.configure(cursor="pencil")
 
     def change_canvas_width(self, value):
         self.canvas.configure(width=int(value))
@@ -402,21 +395,14 @@ class Brushshe(ctk.CTk):
                 )
 
     def export(self, extension):
-        # Canvas positions
-        x0 = self.canvas.winfo_rootx()
-        y0 = self.canvas.winfo_rooty()
-        x1 = x0 + self.canvas.winfo_width()
-        y1 = y0 + self.canvas.winfo_height()
-
-        # Canvas content
-        canvas_img = ImageGrab.grab(bbox=(x0, y0, x1, y1))
+        self.capture_canvas_content()
 
         file_path = ctk.filedialog.asksaveasfilename(
             defaultextension=extension,
             filetypes=[(self._("All files"), "*.*")],
         )
         if file_path:
-            canvas_img.save(file_path)
+            self.canvas_content.save(file_path)
             CTkMessagebox(
                 title=self._("Exported"),
                 message=self._("The picture has been successfully exported to your computer in format")
@@ -429,10 +415,10 @@ class Brushshe(ctk.CTk):
         self.canvas.configure(bg=new_color)
 
     def other_bg_color(self):
-        pick_color = AskColor(title=self._("Choose a different background color"))
-        bg_getcolor = pick_color.get()
-        if bg_getcolor:
-            self.canvas.configure(bg=bg_getcolor)
+        askcolor = AskColor(title=self._("Choose a different background color"))
+        obtained_bg_color = askcolor.get()
+        if obtained_bg_color:
+            self.canvas.configure(bg=obtained_bg_color)
 
     def show_stickers_choice(self):
         def update_btn():
@@ -495,10 +481,7 @@ class Brushshe(ctk.CTk):
 
     def add_sticker(self, event):  # Add a sticker
         item = self.canvas.create_image(event.x, event.y, anchor="center", image=self.current_sticker)
-        self.current_items.append(item)
-        self.undo_stack.append(self.current_items)
-        self.current_items = []
-        self.optimize_undo_stack()
+        self.add_to_undo_stack(item)
         self.canvas.unbind("<Button-1>")
         self.canvas.configure(cursor="pencil")
 
@@ -524,10 +507,7 @@ class Brushshe(ctk.CTk):
     def add_text(self, event, text):  # Add text
         self.tk_font = ctk.CTkFont(family=self.tk_font["family"], size=self.font_size)
         item = self.canvas.create_text(event.x, event.y, text=text, fill=self.color, font=self.tk_font)
-        self.current_items.append(item)
-        self.undo_stack.append(self.current_items)
-        self.current_items = []
-        self.optimize_undo_stack()
+        self.add_to_undo_stack(item)
         self.canvas.unbind("<Button-1>")
         self.canvas.configure(cursor="pencil")
 
@@ -564,10 +544,7 @@ class Brushshe(ctk.CTk):
             resized_image = selected_frame.resize((self.canvas.winfo_width(), self.canvas.winfo_height()))
             self.frame_image = ImageTk.PhotoImage(resized_image)
             item = self.canvas.create_image(0, 0, anchor="nw", image=self.frame_image)
-            self.current_items.append(item)
-            self.undo_stack.append(self.current_items)
-            self.current_items = []
-            self.optimize_undo_stack()
+            self.add_to_undo_stack(item)
 
         frames_win = ctk.CTkToplevel(app)
         frames_win.title(self._("Frames"))
@@ -706,9 +683,7 @@ class Brushshe(ctk.CTk):
                     outline=self.color,
                     fill=self.color,
                 )
-            self.current_items.append(item)
-            self.undo_stack.append(self.current_items)
-            self.current_items = []
+            self.add_to_undo_stack(item)
 
         def draw_shape(event):
             if self.shape == "fill triangle":
@@ -753,20 +728,18 @@ class Brushshe(ctk.CTk):
 
         self.canvas.configure(cursor="plus")
 
-        self.after(100)  # A little delay, otherwise it doesn't work
-
-        self.optimize_undo_stack()
+        self.after(200)  # A little delay, otherwise it doesn't work
 
     def effects(self):
         def remove_all_effects():
-            canvas_img_tk = ImageTk.PhotoImage(canvas_img)
+            canvas_img_tk = ImageTk.PhotoImage(self.canvas_content)
             self.canvas.create_image(0, 0, anchor="nw", image=canvas_img_tk)
             self.canvas.image = canvas_img_tk
             self.undo_stack = []
 
         def blur():
             radius = blur_slider.get()
-            blurred_img = canvas_img.filter(ImageFilter.GaussianBlur(radius=radius))
+            blurred_img = self.canvas_content.filter(ImageFilter.GaussianBlur(radius=radius))
             blurred_img_tk = ImageTk.PhotoImage(blurred_img)
             self.canvas.create_image(0, 0, anchor="nw", image=blurred_img_tk)
             self.canvas.image = blurred_img_tk
@@ -774,7 +747,7 @@ class Brushshe(ctk.CTk):
 
         def detail():
             factor = detail_slider.get()
-            enhancer = ImageEnhance.Sharpness(canvas_img)
+            enhancer = ImageEnhance.Sharpness(self.canvas_content)
             detailed_img = enhancer.enhance(factor)
             detailed_img_tk = ImageTk.PhotoImage(detailed_img)
             self.canvas.create_image(0, 0, anchor="nw", image=detailed_img_tk)
@@ -782,14 +755,14 @@ class Brushshe(ctk.CTk):
             self.undo_stack = []
 
         def contour():
-            contoured_img = canvas_img.filter(ImageFilter.CONTOUR)
+            contoured_img = self.canvas_content.filter(ImageFilter.CONTOUR)
             contoured_img_tk = ImageTk.PhotoImage(contoured_img)
             self.canvas.create_image(0, 0, anchor="nw", image=contoured_img_tk)
             self.canvas.image = contoured_img_tk
             self.undo_stack = []
 
         def grayscale():
-            grayscale_img = ImageOps.grayscale(canvas_img)
+            grayscale_img = ImageOps.grayscale(self.canvas_content)
             grayscale_img_tk = ImageTk.PhotoImage(grayscale_img)
             self.canvas.create_image(0, 0, anchor="nw", image=grayscale_img_tk)
             self.canvas.image = grayscale_img_tk
@@ -849,17 +822,11 @@ class Brushshe(ctk.CTk):
         grayscale_button = ctk.CTkButton(grayscale_frame, text=self._("Apply to picture"), command=grayscale)
         grayscale_button.pack(padx=10, pady=10)
 
-        # Canvas positions
-        x0 = self.canvas.winfo_rootx()
-        y0 = self.canvas.winfo_rooty()
-        x1 = x0 + self.canvas.winfo_width()
-        y1 = y0 + self.canvas.winfo_height()
-        # Canvas content
-        canvas_img = ImageGrab.grab(bbox=(x0, y0, x1, y1))
+        self.capture_canvas_content()
 
-        effects_win.grab_set()
+        effects_win.grab_set()  # Disable main window
 
-    def show_gallery(self):  # Gallery
+    def show_gallery(self):
         my_gallery = ctk.CTkToplevel(app)
         my_gallery.title(self._("Brushshe Gallery"))
         my_gallery.geometry("650x580")
@@ -935,7 +902,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v0.15",
+            message=about_text + "v0.15.1",
             icon=path.join(PATH, "icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
@@ -958,7 +925,6 @@ class Brushshe(ctk.CTk):
         self.color = self.canvas.cget("bg")
         self.tool_label.configure(text=self._("Eraser:"))
         self.canvas.configure(cursor="plus")
-        self.current_tool = "eraser"
 
     def undo(self):
         if self.undo_stack:
@@ -967,18 +933,8 @@ class Brushshe(ctk.CTk):
                 self.canvas.delete(i)
 
     def save_image(self):
-        # Canvas positions
-        x0 = self.canvas.winfo_rootx()
-        y0 = self.canvas.winfo_rooty()
-        x1 = x0 + self.canvas.winfo_width()
-        y1 = y0 + self.canvas.winfo_height()
-
-        # Canvas content
-        canvas_img = ImageGrab.grab(bbox=(x0, y0, x1, y1))
-
-        image_name = f"{self.gallery_folder}/{uuid4()}.png"
-
-        canvas_img.save(image_name)
+        self.capture_canvas_content()
+        self.canvas_content.save(f"{self.gallery_folder}/{uuid4()}.png")
 
         CTkMessagebox(
             title=self._("Saved"),
@@ -992,46 +948,43 @@ class Brushshe(ctk.CTk):
     def change_color(self, new_color):
         self.color = new_color
         self.tool_label.configure(text=self._("Brush:"))
-        if self.current_tool == "eraser":
-            self.canvas.configure(cursor="pencil")
-            self.current_tool = None
+        self.canvas.configure(cursor="pencil")
 
     def other_color_choise(self):
         try:
-            pick_color = AskColor(title=self._("Choose a different brush color"))
-            self.getcolor = pick_color.get()
-            if self.getcolor:
-                self.color = self.getcolor
+            askcolor = AskColor(title=self._("Choose a different brush color"))
+            self.obtained_color = askcolor.get()
+            if self.obtained_color:
+                self.color = self.obtained_color
                 self.other_color_btn.pack(side=ctk.RIGHT, padx=1)
-                self.other_color_btn.configure(fg_color=self.getcolor)
+                self.other_color_btn.configure(fg_color=self.obtained_color)
                 self.tool_label.configure(text=self._("Brush:"))
-                if self.current_tool == "eraser":
-                    self.canvas.configure(cursor="pencil")
-                    self.current_tool = None
+                self.canvas.configure(cursor="pencil")
         except:  # noqa: E722
             pass
 
     def select_other_color_btn(self):
-        self.color = self.getcolor
+        self.color = self.obtained_color
         self.tool_label.configure(text=self._("Brush:"))
-        if self.current_tool == "eraser":
-            self.canvas.configure(cursor="pencil")
-            self.current_tool = None
+        self.canvas.configure(cursor="pencil")
 
-    def optimize_undo_stack(self):
-        def count_elements(lst):
-            count = 0
-            for item in lst:
-                if isinstance(item, list):
-                    count += count_elements(item)
-                else:
-                    count += 1
-                if count >= 5000:
-                    return count
-            return count
+    def add_to_undo_stack(self, item):
+        self.current_items.append(item)
+        self.undo_stack.append(self.current_items)
+        self.current_items = []
 
-        if count_elements(self.undo_stack) >= 5000:
+        if len(self.undo_stack) == 10:
             self.undo_stack.clear()
+
+    def capture_canvas_content(self):
+        self.canvas_content = ImageGrab.grab(
+            bbox=(
+                self.canvas.winfo_rootx(),
+                self.canvas.winfo_rooty(),
+                self.canvas.winfo_rootx() + self.canvas.winfo_width(),
+                self.canvas.winfo_rooty() + self.canvas.winfo_height(),
+            )
+        )
 
 
 app = Brushshe()
