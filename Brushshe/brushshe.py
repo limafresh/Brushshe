@@ -86,16 +86,11 @@ class Brushshe(ctk.CTk):
         file_dropdown.add_option(option=self._("Open from file"), command=self.open_image)
         export_submenu = file_dropdown.add_submenu(self._("Export to PC"))
         # 1000 - a slight delay so that when taking a snapshot of the picture the menu has time to hide
-        export_submenu.add_option(option="PNG", command=lambda: self.after(1000, lambda: self.export(".png")))
-        export_submenu.add_option(option="JPG", command=lambda: self.after(1000, lambda: self.export(".jpg")))
-        export_submenu.add_option(option="GIF", command=lambda: self.after(1000, lambda: self.export(".gif")))
-        export_submenu.add_option(option="BMP", command=lambda: self.after(1000, lambda: self.export(".bmp")))
-        export_submenu.add_option(option="TIFF", command=lambda: self.after(1000, lambda: self.export(".tiff")))
-        export_submenu.add_option(option="WEBP", command=lambda: self.after(1000, lambda: self.export(".webp")))
-        export_submenu.add_option(option="ICO", command=lambda: self.after(1000, lambda: self.export(".ico")))
-        export_submenu.add_option(option="PPM", command=lambda: self.after(1000, lambda: self.export(".ppm")))
-        export_submenu.add_option(option="PGM", command=lambda: self.after(1000, lambda: self.export(".pgm")))
-        export_submenu.add_option(option="PBM", command=lambda: self.after(1000, lambda: self.export(".pbm")))
+        formats = ["PNG", "JPG", "GIF", "BMP", "TIFF", "WEBP", "ICO", "PPM", "PGM", "PBM"]
+        for fmt in formats:
+            export_submenu.add_option(
+                option=fmt, command=lambda fmt=fmt: self.after(1000, lambda: self.export(f".{fmt.lower()}"))
+            )
 
         bg_menu = menu.add_cascade(self._("Background"))
         bg_dropdown = CustomDropdownMenu(widget=bg_menu)
@@ -126,20 +121,21 @@ class Brushshe(ctk.CTk):
 
         shapes_menu = menu.add_cascade(self._("Shapes"))
         shapes_dropdown = CustomDropdownMenu(widget=shapes_menu)
-        shapes_dropdown.add_option(option=self._("Rectangle"), command=lambda: self.create_shape("rectangle"))
-        shapes_dropdown.add_option(option=self._("Oval"), command=lambda: self.create_shape("oval"))
-        shapes_dropdown.add_option(option=self._("Line"), command=lambda: self.create_shape("line"))
-        shapes_dropdown.add_option(option=self._("Arrow"), command=lambda: self.create_shape("arrow"))
-        shapes_dropdown.add_option(
-            option=self._("Double ended arrow"), command=lambda: self.create_shape("double ended arrow")
-        )
-        shapes_dropdown.add_option(
-            option=self._("Fill rectangle"),
-            command=lambda: self.create_shape("fill rectangle"),
-        )
-        shapes_dropdown.add_option(option=self._("Fill oval"), command=lambda: self.create_shape("fill oval"))
-        shapes_dropdown.add_option(option=self._("Fill triangle"), command=lambda: self.create_shape("fill triangle"))
-        shapes_dropdown.add_option(option=self._("Fill diamond"), command=lambda: self.create_shape("fill diamond"))
+        shape_options = [
+            "Rectangle",
+            "Oval",
+            "Line",
+            "Arrow",
+            "Double ended arrow",
+            "Fill rectangle",
+            "Fill oval",
+            "Fill triangle",
+            "Fill diamond",
+        ]
+        for shape in shape_options:
+            shapes_dropdown.add_option(
+                option=self._(shape), command=lambda shape=shape: self.create_shape(shape.lower())
+            )
 
         menu.add_cascade(self._("My Gallery"), command=self.show_gallery)
 
@@ -310,8 +306,7 @@ class Brushshe(ctk.CTk):
             icon_size=(100, 100),
             sound=True,
         )
-        response = closing_msg.get()
-        if response == self._("Yes"):
+        if closing_msg.get() == self._("Yes"):
             app.destroy()
         else:
             pass
@@ -345,10 +340,8 @@ class Brushshe(ctk.CTk):
 
         self.capture_canvas_content()
 
-        self.obtained_color = self.canvas_content.getpixel((x, y))
-        self.obtained_color = "#{:02x}{:02x}{:02x}".format(
-            self.obtained_color[0], self.obtained_color[1], self.obtained_color[2]
-        )
+        color = self.canvas_content.getpixel((x, y))
+        self.obtained_color = "#{:02x}{:02x}{:02x}".format(*color)
 
         self.color = self.obtained_color
         self.other_color_btn.pack(side=ctk.RIGHT, padx=1)
@@ -373,11 +366,9 @@ class Brushshe(ctk.CTk):
                 (self._("All files"), "*.*"),
             ]
         )
-        message_text = self._("Error - cannot open file:")
         if file_path:
             try:
-                image = Image.open(file_path)
-                self.image = image
+                self.image = Image.open(file_path)
                 self.draw = ImageDraw.Draw(self.image)
                 self.canvas.delete("all")
                 self.canvas.configure(bg="white")
@@ -386,6 +377,7 @@ class Brushshe(ctk.CTk):
                 self.update_canvas_size()
                 self.undo_stack = []
             except Exception as e:
+                message_text = self._("Error - cannot open file:")
                 CTkMessagebox(
                     title=self._("Oh, unfortunately, it happened"),
                     message=f"{message_text} {e}",
@@ -853,8 +845,7 @@ class Brushshe(ctk.CTk):
                 icon_size=(100, 100),
                 sound=True,
             )
-            response = open_msg.get()
-            if response == self._("Return"):
+            if open_msg.get() == self._("Return"):
                 pass
             else:
                 image = Image.open(img_path)
@@ -902,15 +893,14 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v0.15.1",
+            message=about_text + "v0.15.2",
             icon=path.join(PATH, "icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
             option_2="GitHub",
             height=400,
         )
-        response = about_msg.get()
-        if response == "GitHub":
+        if about_msg.get() == "GitHub":
             webbrowser.open(r"https://github.com/limafresh/Brushshe")
 
     def clean_all(self):
