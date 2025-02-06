@@ -11,6 +11,8 @@
 
 ![Screenshot](https://raw.githubusercontent.com/limafresh/Brushshe/main/screenshot.png)
 
+[View more screenshots](https://github.com/limafresh/Brushshe/discussions/2)
+
 ## Usage
 1. Install [Python 3](https://www.python.org/downloads/), if not installed;
 2. Download the code and unpack downloaded archive:
