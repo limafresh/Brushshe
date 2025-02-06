@@ -8,7 +8,7 @@ from tkinter import Listbox, PhotoImage, font
 from uuid import uuid4
 
 import customtkinter as ctk
-from CTkColorPicker import AskColor
+from brushshe_color_picker import AskColor
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageGrab, ImageOps, ImageTk
@@ -893,7 +893,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v0.15.2",
+            message=about_text + "v0.16",
             icon=path.join(PATH, "icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",

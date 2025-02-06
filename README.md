@@ -61,7 +61,7 @@ The internationalization of this program has a simple principle - it determines 
 
 ## License
 + Project license - *GNU GPL v3*
-+ CTkColorPicker, CTkMenuBar and CTkMessagebox license - *CC0*
++ CTkColorPicker and CTkMenuBar license - *CC0*
 + License for program translations (`Brushshe/locales/*.json`) - *CC0*
 
 ## For developers
