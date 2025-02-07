@@ -33,9 +33,11 @@ class Brushshe(ctk.CTk):
         locale = getlocale()
 
         if isinstance(locale, tuple):
-            language_code = getlocale()[0][:2].lower()  # Linux
+            language_code = getlocale()[0][:2].lower()
         elif isinstance(locale, str):
-            language_code = locale[:2].lower()  # Windows
+            language_code = locale[:2].lower()
+        else:
+            language_code = None
 
         self.translations = {}
         self.load_language(language_code)
@@ -893,7 +895,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v0.16",
+            message=about_text + "v0.16.1",
             icon=path.join(PATH, "icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
