@@ -85,7 +85,7 @@ class Brushshe(ctk.CTk):
 
         file_menu = menu.add_cascade(self._("File"))
         file_dropdown = CustomDropdownMenu(widget=file_menu)
-        file_dropdown.add_option(option=self._("Open from file"), command=self.open_image)
+        file_dropdown.add_option(option=self._("Open from file"), command=self.open_from_file)
         export_submenu = file_dropdown.add_submenu(self._("Export to PC"))
         # 1000 - a slight delay so that when taking a snapshot of the picture the menu has time to hide
         formats = ["PNG", "JPG", "GIF", "BMP", "TIFF", "WEBP", "ICO", "PPM", "PGM", "PBM"]
@@ -98,7 +98,7 @@ class Brushshe(ctk.CTk):
         bg_dropdown = CustomDropdownMenu(widget=bg_menu)
 
         for color in self.colors:
-            bg_dropdown.add_option(option=None, bg_color=color, command=lambda c=color: self.change_bg(c))
+            bg_dropdown.add_option(option=None, bg_color=color, command=lambda c=color: self.canvas.configure(bg=c))
         bg_dropdown.add_separator()
         bg_dropdown.add_option(option=self._("Other color"), command=self.other_bg_color)
 
@@ -144,9 +144,9 @@ class Brushshe(ctk.CTk):
         other_menu = menu.add_cascade(self._("More"))
         other_dropdown = CustomDropdownMenu(widget=other_menu)
         theme_submenu = other_dropdown.add_submenu(self._("Theme"))
-        theme_submenu.add_option(option=self._("System"), command=lambda: self.change_theme("system"))
-        theme_submenu.add_option(option=self._("Light"), command=lambda: self.change_theme("light"))
-        theme_submenu.add_option(option=self._("Dark"), command=lambda: self.change_theme("dark"))
+        theme_submenu.add_option(option=self._("System"), command=lambda: ctk.set_appearance_mode("system"))
+        theme_submenu.add_option(option=self._("Light"), command=lambda: ctk.set_appearance_mode("light"))
+        theme_submenu.add_option(option=self._("Dark"), command=lambda: ctk.set_appearance_mode("dark"))
         other_dropdown.add_option(option=self._("About program"), command=self.about_program)
 
         tools_frame = ctk.CTkFrame(self)  # Toolbar
@@ -361,7 +361,7 @@ class Brushshe(ctk.CTk):
         img_width, img_height = self.image.size
         self.canvas.config(width=img_width, height=img_height)
 
-    def open_image(self):
+    def open_from_file(self):
         file_path = ctk.filedialog.askopenfilename(
             filetypes=[
                 (self._("Images"), "*png* *jpg* *jpeg* *gif* *ico* *bmp* *webp* *tiff* *ppm* *pgm* *pbm*"),
@@ -370,14 +370,7 @@ class Brushshe(ctk.CTk):
         )
         if file_path:
             try:
-                self.image = Image.open(file_path)
-                self.draw = ImageDraw.Draw(self.image)
-                self.canvas.delete("all")
-                self.canvas.configure(bg="white")
-                self.photo = ImageTk.PhotoImage(self.image)
-                self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.photo)
-                self.update_canvas_size()
-                self.undo_stack = []
+                self.open_image(file_path)
             except Exception as e:
                 message_text = self._("Error - cannot open file:")
                 CTkMessagebox(
@@ -404,9 +397,6 @@ class Brushshe(ctk.CTk):
                 icon=path.join(PATH, "icons/saved.png"),
                 icon_size=(100, 100),
             )
-
-    def change_bg(self, new_color):
-        self.canvas.configure(bg=new_color)
 
     def other_bg_color(self):
         askcolor = AskColor(title=self._("Choose a different background color"))
@@ -850,15 +840,7 @@ class Brushshe(ctk.CTk):
             if open_msg.get() == self._("Return"):
                 pass
             else:
-                image = Image.open(img_path)
-                self.image = image
-                self.draw = ImageDraw.Draw(self.image)
-                self.canvas.delete("all")
-                self.canvas.configure(bg="white")
-                self.photo = ImageTk.PhotoImage(self.image)
-                self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.photo)
-                self.update_canvas_size()
-                self.undo_stack = []
+                self.open_image(img_path)
 
         is_image_found = False
 
@@ -885,9 +867,6 @@ class Brushshe(ctk.CTk):
         if not is_image_found:
             gallery_frame.configure(label_text=self._("My gallery (empty)"))
 
-    def change_theme(self, theme):
-        ctk.set_appearance_mode(theme)
-
     def about_program(self):
         about_text = self._(
             "Brushshe is a painting program where you can create whatever you like.\n\n"
@@ -895,7 +874,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v0.16.1",
+            message=about_text + "v0.16.2",
             icon=path.join(PATH, "icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
@@ -977,6 +956,16 @@ class Brushshe(ctk.CTk):
                 self.canvas.winfo_rooty() + self.canvas.winfo_height(),
             )
         )
+
+    def open_image(self, openimage):
+        self.image = Image.open(openimage)
+        self.draw = ImageDraw.Draw(self.image)
+        self.canvas.delete("all")
+        self.canvas.configure(bg="white")
+        self.photo = ImageTk.PhotoImage(self.image)
+        self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.photo)
+        self.update_canvas_size()
+        self.undo_stack.clear()
 
 
 app = Brushshe()
