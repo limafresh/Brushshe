@@ -14,6 +14,7 @@
 [View more screenshots](https://github.com/limafresh/Brushshe/discussions/2)
 
 ## Usage
+### Run via Python
 1. Install [Python 3](https://www.python.org/downloads/), if not installed;
 2. Download the code and unpack downloaded archive:
 
@@ -23,7 +24,7 @@
 ```bash
 pip install customtkinter Pillow
 ```
-4. Launch file `Brushshe/brushshe.py`.
+4. Run file `Brushshe/brushshe.py`.
 
 ## Functionality
 ### Open

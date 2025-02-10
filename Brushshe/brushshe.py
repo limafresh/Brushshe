@@ -1,6 +1,5 @@
 import json
 import webbrowser
-from gc import disable as garbage_collector_disable
 from locale import getlocale
 from os import environ, listdir, name, path
 from pathlib import Path
@@ -11,7 +10,7 @@ import customtkinter as ctk
 from brushshe_color_picker import AskColor
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
-from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageGrab, ImageOps, ImageTk
+from PIL import Image, ImageEnhance, ImageFilter, ImageGrab, ImageOps, ImageTk
 
 PATH = path.dirname(path.realpath(__file__))
 
@@ -191,18 +190,26 @@ class Brushshe(ctk.CTk):
         self.canvas_frame.pack(fill=ctk.BOTH, expand=True)
 
         width_slider = ctk.CTkSlider(
-            self.canvas_frame, from_=100, to=2000, orientation="horizontal", command=self.change_canvas_width
+            self.canvas_frame,
+            from_=100,
+            to=2000,
+            orientation="horizontal",
+            command=lambda val: self.canvas.configure(width=int(val)),
         )
         width_slider.set(500)
         width_slider.pack(side=ctk.BOTTOM, fill=ctk.X)
 
         height_slider = ctk.CTkSlider(
-            self.canvas_frame, from_=100, to=2000, orientation="vertical", command=self.change_canvas_height
+            self.canvas_frame,
+            from_=100,
+            to=2000,
+            orientation="vertical",
+            command=lambda val: self.canvas.configure(height=int(val)),
         )
         height_slider.set(500)
         height_slider.pack(side=ctk.LEFT, fill=ctk.Y)
 
-        self.canvas = ctk.CTkCanvas(self.canvas_frame, bg="white")
+        self.canvas = ctk.CTkCanvas(self.canvas_frame, bg="white", highlightthickness=0)
         self.canvas.pack()
 
         self.palette = ctk.CTkFrame(self)  # Palette
@@ -237,19 +244,13 @@ class Brushshe(ctk.CTk):
 
         """ Initialization """
         self.color = "black"
-
         self.image = Image.new("RGB", (800, 600), "white")
-        self.draw = ImageDraw.Draw(self.image)
-        self.photo = None
 
-        self.prev_x = None
-        self.prev_y = None
+        self.prev_x, self.prev_y = (None, None)
 
         self.font_size = 24
         self.tk_font = ctk.CTkFont(size=self.font_size)
         self.size_a = 100
-
-        garbage_collector_disable()  # Because the enabled gc thinks that the added stickers and text are garbage
 
         self.canvas.bind("<B1-Motion>", self.paint)
         self.canvas.bind("<ButtonRelease-1>", self.stop_paint)
@@ -313,27 +314,26 @@ class Brushshe(ctk.CTk):
         else:
             pass
 
-    def paint(self, cur):
+    def paint(self, event):
         if self.prev_x and self.prev_y:
             item = self.canvas.create_line(
                 self.prev_x,
                 self.prev_y,
-                cur.x,
-                cur.y,
+                event.x,
+                event.y,
                 width=self.brush_size,
                 fill=self.color,
                 smooth=True,
                 capstyle=ctk.ROUND,
             )
             self.current_items.append(item)
-        self.prev_x, self.prev_y = cur.x, cur.y
+        self.prev_x, self.prev_y = event.x, event.y
 
-    def stop_paint(self, cur):
-        if self.current_items:
-            self.undo_stack.append(self.current_items)
-            self.current_items = []
-            if len(self.undo_stack) == 10:
-                self.undo_stack.clear()
+    def stop_paint(self, event):
+        self.undo_stack.append(self.current_items)
+        self.current_items = []
+        if len(self.undo_stack) == 10:
+            self.undo_stack.clear()
         self.prev_x, self.prev_y = (None, None)
 
     def eyedropper(self, event):
@@ -350,12 +350,6 @@ class Brushshe(ctk.CTk):
         self.other_color_btn.configure(fg_color=self.obtained_color)
         self.tool_label.configure(text=self._("Brush:"))
         self.canvas.configure(cursor="pencil")
-
-    def change_canvas_width(self, value):
-        self.canvas.configure(width=int(value))
-
-    def change_canvas_height(self, value):
-        self.canvas.configure(height=int(value))
 
     def update_canvas_size(self):
         img_width, img_height = self.image.size
@@ -458,13 +452,11 @@ class Brushshe(ctk.CTk):
         update_btn()
 
     def set_current_sticker(self, image):  # Choose a sticker
-        self.current_sticker = image
-        if self.current_sticker:
-            self.canvas.bind("<Button-1>", self.add_sticker)
-            self.canvas.configure(cursor="")
+        self.canvas.bind("<Button-1>", lambda event: self.add_sticker(event, image))
+        self.canvas.configure(cursor="")
 
-    def add_sticker(self, event):  # Add a sticker
-        item = self.canvas.create_image(event.x, event.y, anchor="center", image=self.current_sticker)
+    def add_sticker(self, event, image):  # Add a sticker
+        item = self.canvas.create_image(event.x, event.y, anchor="center", image=image)
         self.add_to_undo_stack(item)
         self.canvas.unbind("<Button-1>")
         self.canvas.configure(cursor="pencil")
@@ -719,7 +711,7 @@ class Brushshe(ctk.CTk):
             canvas_img_tk = ImageTk.PhotoImage(self.canvas_content)
             self.canvas.create_image(0, 0, anchor="nw", image=canvas_img_tk)
             self.canvas.image = canvas_img_tk
-            self.undo_stack = []
+            self.undo_stack.clear()
 
         def blur():
             radius = blur_slider.get()
@@ -727,7 +719,7 @@ class Brushshe(ctk.CTk):
             blurred_img_tk = ImageTk.PhotoImage(blurred_img)
             self.canvas.create_image(0, 0, anchor="nw", image=blurred_img_tk)
             self.canvas.image = blurred_img_tk
-            self.undo_stack = []
+            self.undo_stack.clear()
 
         def detail():
             factor = detail_slider.get()
@@ -736,21 +728,21 @@ class Brushshe(ctk.CTk):
             detailed_img_tk = ImageTk.PhotoImage(detailed_img)
             self.canvas.create_image(0, 0, anchor="nw", image=detailed_img_tk)
             self.canvas.image = detailed_img_tk
-            self.undo_stack = []
+            self.undo_stack.clear()
 
         def contour():
             contoured_img = self.canvas_content.filter(ImageFilter.CONTOUR)
             contoured_img_tk = ImageTk.PhotoImage(contoured_img)
             self.canvas.create_image(0, 0, anchor="nw", image=contoured_img_tk)
             self.canvas.image = contoured_img_tk
-            self.undo_stack = []
+            self.undo_stack.clear()
 
         def grayscale():
             grayscale_img = ImageOps.grayscale(self.canvas_content)
             grayscale_img_tk = ImageTk.PhotoImage(grayscale_img)
             self.canvas.create_image(0, 0, anchor="nw", image=grayscale_img_tk)
             self.canvas.image = grayscale_img_tk
-            self.undo_stack = []
+            self.undo_stack.clear()
 
         effects_win = ctk.CTkToplevel(app)
         effects_win.title(self._("Effects"))
@@ -874,7 +866,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v0.16.2",
+            message=about_text + "v0.16.3",
             icon=path.join(PATH, "icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
@@ -886,7 +878,7 @@ class Brushshe(ctk.CTk):
 
     def clean_all(self):
         self.canvas.delete("all")
-        self.undo_stack = []
+        self.undo_stack.clear()
 
     def change_brush_size(self, size):
         self.brush_size = int(size)
@@ -958,12 +950,13 @@ class Brushshe(ctk.CTk):
         )
 
     def open_image(self, openimage):
-        self.image = Image.open(openimage)
-        self.draw = ImageDraw.Draw(self.image)
         self.canvas.delete("all")
         self.canvas.configure(bg="white")
+
+        self.image = Image.open(openimage)
         self.photo = ImageTk.PhotoImage(self.image)
         self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.photo)
+
         self.update_canvas_size()
         self.undo_stack.clear()
 
