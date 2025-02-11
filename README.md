@@ -14,6 +14,10 @@
 [View more screenshots](https://github.com/limafresh/Brushshe/discussions/2)
 
 ## Usage
+### Download Brushshe for Windows 64bit
+[![Static Badge](https://img.shields.io/badge/Download-portable_.exe_file-blue?style=for-the-badge)](https://github.com/limafresh/Brushshe/releases)
+
+**or**
 ### Run via Python
 1. Install [Python 3](https://www.python.org/downloads/), if not installed;
 2. Download the code and unpack downloaded archive:
