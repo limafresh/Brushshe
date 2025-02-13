@@ -1,5 +1,6 @@
 import json
 import webbrowser
+from collections import deque
 from locale import getlocale
 from os import environ, listdir, name, path
 from pathlib import Path
@@ -258,7 +259,7 @@ class Brushshe(ctk.CTk):
 
         self.canvas.configure(cursor="pencil")
 
-        self.undo_stack = []
+        self.undo_stack = deque(maxlen=10)
         self.current_items = []
 
         # Defining the Gallery Folder Path
@@ -332,8 +333,6 @@ class Brushshe(ctk.CTk):
     def stop_paint(self, event):
         self.undo_stack.append(self.current_items)
         self.current_items = []
-        if len(self.undo_stack) == 10:
-            self.undo_stack.clear()
         self.prev_x, self.prev_y = (None, None)
 
     def eyedropper(self, event):
@@ -866,7 +865,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v0.16.3",
+            message=about_text + "v0.17",
             icon=path.join(PATH, "icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
@@ -935,9 +934,6 @@ class Brushshe(ctk.CTk):
         self.current_items.append(item)
         self.undo_stack.append(self.current_items)
         self.current_items = []
-
-        if len(self.undo_stack) == 10:
-            self.undo_stack.clear()
 
     def capture_canvas_content(self):
         self.canvas_content = ImageGrab.grab(
