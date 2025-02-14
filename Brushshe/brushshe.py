@@ -86,12 +86,12 @@ class Brushshe(ctk.CTk):
         file_menu = menu.add_cascade(self._("File"))
         file_dropdown = CustomDropdownMenu(widget=file_menu)
         file_dropdown.add_option(option=self._("Open from file"), command=self.open_from_file)
-        export_submenu = file_dropdown.add_submenu(self._("Export to PC"))
+        save_submenu = file_dropdown.add_submenu(self._("Save to device"))
         # 1000 - a slight delay so that when taking a snapshot of the picture the menu has time to hide
         formats = ["PNG", "JPG", "GIF", "BMP", "TIFF", "WEBP", "ICO", "PPM", "PGM", "PBM"]
         for fmt in formats:
-            export_submenu.add_option(
-                option=fmt, command=lambda fmt=fmt: self.after(1000, lambda: self.export(f".{fmt.lower()}"))
+            save_submenu.add_option(
+                option=fmt, command=lambda fmt=fmt: self.after(1000, lambda: self.save_to_device(f".{fmt.lower()}"))
             )
 
         bg_menu = menu.add_cascade(self._("Background"))
@@ -178,13 +178,13 @@ class Brushshe(ctk.CTk):
         self.brush_size_label = ctk.CTkLabel(tools_frame, text="2")
         self.brush_size_label.pack(side=ctk.LEFT, padx=1)
 
-        save_button = ctk.CTkButton(
+        save_to_gallery_btn = ctk.CTkButton(
             tools_frame,
             text=self._("Save to gallery"),
             width=70,
-            command=self.save_image,
+            command=self.save_to_gallery,
         )
-        save_button.pack(side=ctk.RIGHT, padx=1)
+        save_to_gallery_btn.pack(side=ctk.RIGHT, padx=1)
 
         self.canvas_frame = ctk.CTkFrame(self)  # Canvas
         self.canvas_frame.pack_propagate(False)
@@ -254,7 +254,6 @@ class Brushshe(ctk.CTk):
         self.size_a = 100
 
         self.canvas.bind("<B1-Motion>", self.paint)
-        self.canvas.bind("<ButtonRelease-1>", self.stop_paint)
         self.canvas.bind("<Button-3>", self.eyedropper)
 
         self.canvas.configure(cursor="pencil")
@@ -316,6 +315,7 @@ class Brushshe(ctk.CTk):
             pass
 
     def paint(self, event):
+        self.canvas.bind("<ButtonRelease-1>", self.stop_paint)
         if self.prev_x and self.prev_y:
             item = self.canvas.create_line(
                 self.prev_x,
@@ -374,7 +374,7 @@ class Brushshe(ctk.CTk):
                     sound=True,
                 )
 
-    def export(self, extension):
+    def save_to_device(self, extension):
         self.capture_canvas_content()
 
         file_path = ctk.filedialog.asksaveasfilename(
@@ -384,9 +384,8 @@ class Brushshe(ctk.CTk):
         if file_path:
             self.canvas_content.save(file_path)
             CTkMessagebox(
-                title=self._("Exported"),
-                message=self._("The picture has been successfully exported to your computer in format")
-                + f" {extension}!",
+                title=self._("Saved"),
+                message=self._("The picture has been successfully saved to your device in format") + f" {extension}!",
                 icon=path.join(PATH, "icons/saved.png"),
                 icon_size=(100, 100),
             )
@@ -398,6 +397,19 @@ class Brushshe(ctk.CTk):
             self.canvas.configure(bg=obtained_bg_color)
 
     def show_stickers_choice(self):
+        def sticker_from_file():
+            file_path = ctk.filedialog.askopenfilename(
+                filetypes=[
+                    (self._("Images"), "*png* *jpg* *jpeg* *gif* *ico* *bmp* *webp* *tiff* *ppm* *pgm* *pbm*"),
+                    (self._("All files"), "*.*"),
+                ]
+            )
+            if file_path:
+                image = Image.open(file_path)
+                img_tk = ImageTk.PhotoImage(image)
+                self.canvas.bind("<Button-1>", lambda event: self.add_sticker(event, img_tk))
+                self.canvas.configure(cursor="")
+
         def update_btn():
             for widget in stickers_frame.winfo_children():
                 widget.destroy()
@@ -425,6 +437,7 @@ class Brushshe(ctk.CTk):
         tabview = ctk.CTkTabview(sticker_choose, command=update_btn)
         tabview.add(self._("Choose a sticker"))
         tabview.add(self._("Sticker size"))
+        tabview.add(self._("Sticker from file"))
         tabview.set(self._("Choose a sticker"))
         tabview.pack(fill=ctk.BOTH, expand=True)
 
@@ -448,6 +461,13 @@ class Brushshe(ctk.CTk):
         )
         set_default.pack(padx=10, pady=10)
 
+        self.sticker_from_file_btn = ctk.CTkButton(
+            tabview.tab(self._("Sticker from file")),
+            text=self._("Choose sticker from file\nthen click where you want\nit on the picture"),
+            command=sticker_from_file,
+        )
+        self.sticker_from_file_btn.pack(padx=10, pady=10)
+
         update_btn()
 
     def set_current_sticker(self, image):  # Choose a sticker
@@ -455,6 +475,7 @@ class Brushshe(ctk.CTk):
         self.canvas.configure(cursor="")
 
     def add_sticker(self, event, image):  # Add a sticker
+        self.canvas.unbind("<ButtonRelease-1>")
         item = self.canvas.create_image(event.x, event.y, anchor="center", image=image)
         self.add_to_undo_stack(item)
         self.canvas.unbind("<Button-1>")
@@ -480,6 +501,7 @@ class Brushshe(ctk.CTk):
             self.canvas.configure(cursor="")
 
     def add_text(self, event, text):  # Add text
+        self.canvas.unbind("<ButtonRelease-1>")
         self.tk_font = ctk.CTkFont(family=self.tk_font["family"], size=self.font_size)
         item = self.canvas.create_text(event.x, event.y, text=text, fill=self.color, font=self.tk_font)
         self.add_to_undo_stack(item)
@@ -688,12 +710,9 @@ class Brushshe(ctk.CTk):
 
         def end_shape(event):
             self.canvas.unbind("<ButtonPress-1>")
-            self.canvas.unbind("<B1-Motion>")
             self.canvas.unbind("<ButtonRelease-1>")
 
             self.canvas.bind("<B1-Motion>", self.paint)
-            self.canvas.bind("<ButtonRelease-1>", self.stop_paint)
-
             self.canvas.configure(cursor="pencil")
 
         self.shape = shape
@@ -865,7 +884,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v0.17",
+            message=about_text + "v0.18",
             icon=path.join(PATH, "icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
@@ -894,7 +913,7 @@ class Brushshe(ctk.CTk):
             for i in items:
                 self.canvas.delete(i)
 
-    def save_image(self):
+    def save_to_gallery(self):
         self.capture_canvas_content()
         self.canvas_content.save(f"{self.gallery_folder}/{uuid4()}.png")
 
@@ -950,8 +969,8 @@ class Brushshe(ctk.CTk):
         self.canvas.configure(bg="white")
 
         self.image = Image.open(openimage)
-        self.photo = ImageTk.PhotoImage(self.image)
-        self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.photo)
+        self.img_tk = ImageTk.PhotoImage(self.image)
+        self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.img_tk)
 
         self.update_canvas_size()
         self.undo_stack.clear()

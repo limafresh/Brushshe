@@ -35,8 +35,8 @@ pip install customtkinter Pillow
 You can open a picture from a file.
 ### Painting
 You can choose a color, change the brush thickness, and paint. You can change canvas size.
-### Export
-You can export picture to your PC in different formats (PNG, JPG, GIF, BMP, TIFF, WEBP, ICO, PPM, PGM, PBM).
+### Save to device
+You can save picture to your PC in different formats (PNG, JPG, GIF, BMP, TIFF, WEBP, ICO, PPM, PGM, PBM).
 ### Undo
 You can undo 10 last actions.
 ### Eraser
@@ -46,7 +46,7 @@ Right click on the desired place on the canvas to get its color and paint with i
 ### Background
 You can choose the background color.
 ### Stickers
-You can add stickers and resize them. All sticker images are drawn by me or created by AI.
+You can add stickers from Brushshe sticker set (all sticker images are drawn by me or created by AI) and resize them. You can also add a sticker from a file.
 ### Text
 You can place text and change its size.
 ### Frames
