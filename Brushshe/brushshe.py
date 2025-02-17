@@ -111,9 +111,7 @@ class Brushshe(ctk.CTk):
             command=self.show_stickers_choice,
         )
         text_icon = ctk.CTkImage(light_image=Image.open(path.join(PATH, "icons/text.png")), size=(50, 50))
-        text_submenu = add_dropdown.add_submenu(self._("Text"), image=text_icon)
-        text_submenu.add_option(option=self._("Add text to a picture"), command=self.add_text_window_show)
-        text_submenu.add_option(option=self._("Customize text for insertion"), command=self.text_settings)
+        add_dropdown.add_option(self._("Text"), image=text_icon, command=self.show_text_window)
         frame_icon = ctk.CTkImage(light_image=Image.open(path.join(PATH, "icons/frame.png")), size=(50, 50))
         add_dropdown.add_option(option=self._("Frames"), image=frame_icon, command=self.show_frame_choice)
         effects_icon = ctk.CTkImage(light_image=Image.open(path.join(PATH, "icons/effects.png")), size=(50, 50))
@@ -127,6 +125,7 @@ class Brushshe(ctk.CTk):
             "Rectangle",
             "Oval",
             "Line",
+            "Dotted line",
             "Arrow",
             "Double ended arrow",
             "Fill rectangle",
@@ -143,10 +142,16 @@ class Brushshe(ctk.CTk):
 
         other_menu = menu.add_cascade(self._("More"))
         other_dropdown = CustomDropdownMenu(widget=other_menu)
-        theme_submenu = other_dropdown.add_submenu(self._("Theme"))
-        theme_submenu.add_option(option=self._("System"), command=lambda: ctk.set_appearance_mode("system"))
-        theme_submenu.add_option(option=self._("Light"), command=lambda: ctk.set_appearance_mode("light"))
-        theme_submenu.add_option(option=self._("Dark"), command=lambda: ctk.set_appearance_mode("dark"))
+        theme_var = ctk.StringVar(value=ctk.get_appearance_mode())
+        theme_checkbox = ctk.CTkCheckBox(
+            other_dropdown,
+            text=self._("Dark theme"),
+            variable=theme_var,
+            onvalue="Dark",
+            offvalue="Light",
+            command=lambda: ctk.set_appearance_mode(theme_var.get()),
+        )
+        theme_checkbox.pack(padx=10, pady=10)
         other_dropdown.add_option(option=self._("About program"), command=self.about_program)
 
         tools_frame = ctk.CTkFrame(self)  # Toolbar
@@ -406,8 +411,8 @@ class Brushshe(ctk.CTk):
             )
             if file_path:
                 image = Image.open(file_path)
-                img_tk = ImageTk.PhotoImage(image)
-                self.canvas.bind("<Button-1>", lambda event: self.add_sticker(event, img_tk))
+                sticker_image = ImageTk.PhotoImage(image)
+                self.canvas.bind("<Button-1>", lambda event: self.add_sticker(event, sticker_image))
                 self.canvas.configure(cursor="")
 
         def update_btn():
@@ -417,12 +422,13 @@ class Brushshe(ctk.CTk):
             column = 0
             for image in self.stickers:
                 resized_image = image.resize((self.size_a, self.size_a))
-                image = ImageTk.PhotoImage(resized_image)
+                sticker_image = ImageTk.PhotoImage(resized_image)
+                sticker_btn_image = ctk.CTkImage(light_image=image, size=(self.size_a, self.size_a))
                 sticker_btn = ctk.CTkButton(
                     stickers_frame,
                     text=None,
-                    image=image,
-                    command=lambda img=image: self.set_current_sticker(img),
+                    image=sticker_btn_image,
+                    command=lambda img=sticker_image: self.set_current_sticker(img),
                 )
                 sticker_btn.grid(row=row, column=column, padx=10, pady=10)
                 column += 1
@@ -470,13 +476,13 @@ class Brushshe(ctk.CTk):
 
         update_btn()
 
-    def set_current_sticker(self, image):  # Choose a sticker
-        self.canvas.bind("<Button-1>", lambda event: self.add_sticker(event, image))
+    def set_current_sticker(self, sticker_image):  # Choose a sticker
+        self.canvas.bind("<Button-1>", lambda event: self.add_sticker(event, sticker_image))
         self.canvas.configure(cursor="")
 
-    def add_sticker(self, event, image):  # Add a sticker
+    def add_sticker(self, event, sticker_image):  # Add a sticker
         self.canvas.unbind("<ButtonRelease-1>")
-        item = self.canvas.create_image(event.x, event.y, anchor="center", image=image)
+        item = self.canvas.create_image(event.x, event.y, anchor="center", image=sticker_image)
         self.add_to_undo_stack(item)
         self.canvas.unbind("<Button-1>")
         self.canvas.configure(cursor="pencil")
@@ -490,16 +496,6 @@ class Brushshe(ctk.CTk):
         self.st_size_label.configure(text=self.size_a)
         self.st_slider.set(self.size_a)
 
-    def add_text_window_show(self):  # Choose text
-        dialog = ctk.CTkInputDialog(
-            title=self._("Enter text,"),
-            text=self._("then click where you want it on the picture"),
-        )
-        text = dialog.get_input()
-        if text:
-            self.canvas.bind("<Button-1>", lambda event, t=text: self.add_text(event, text))
-            self.canvas.configure(cursor="")
-
     def add_text(self, event, text):  # Add text
         self.canvas.unbind("<ButtonRelease-1>")
         self.tk_font = ctk.CTkFont(family=self.tk_font["family"], size=self.font_size)
@@ -507,33 +503,53 @@ class Brushshe(ctk.CTk):
         self.add_to_undo_stack(item)
         self.canvas.unbind("<Button-1>")
         self.canvas.configure(cursor="pencil")
+        if self.tx_message_label.winfo_exists():
+            self.tx_message_label.configure(text="\n")
 
-    def text_settings(self):
+    def show_text_window(self):
         def change_text_size(size):
             self.font_size = int(size)
             self.tx_size_label.configure(text=self.font_size)
 
         def listbox_callback(event):
-            selected_font = fonts_listbox.get(fonts_listbox.curselection())
-            self.tk_font = ctk.CTkFont(family=selected_font, size=self.font_size)
+            if fonts_listbox.curselection():
+                selected_font = fonts_listbox.get(fonts_listbox.curselection())
+                self.tk_font = ctk.CTkFont(family=selected_font, size=self.font_size)
 
-        text_settings = ctk.CTkToplevel(app)
-        text_settings.title(self._("Customize text"))
+        def add_text_ready():
+            self.tx_message_label.configure(text=self._("Now click where you\nwant it on the picture"))
+            text = tx_entry.get()
+            self.canvas.bind("<Button-1>", lambda event, t=text: self.add_text(event, text))
+            self.canvas.configure(cursor="")
 
-        self.tx_size_label = ctk.CTkLabel(text_settings, text=self.font_size)
+        text_win = ctk.CTkToplevel(app)
+        text_win.title(self._("Add text to a picture"))
+
+        tx_entry = ctk.CTkEntry(text_win, placeholder_text=self._("Enter text..."))
+        tx_entry.pack(padx=10, pady=10)
+
+        self.tx_size_label = ctk.CTkLabel(text_win, text=self.font_size)
         self.tx_size_label.pack(padx=10, pady=10)
-        tx_size_slider = ctk.CTkSlider(text_settings, from_=11, to=96, command=change_text_size)
+
+        tx_size_slider = ctk.CTkSlider(text_win, from_=11, to=96, command=change_text_size)
         tx_size_slider.set(self.font_size)
         tx_size_slider.pack(padx=10, pady=10)
 
-        fonts_label = ctk.CTkLabel(text_settings, text=self._("System fonts:"))
+        fonts_label = ctk.CTkLabel(text_win, text=self._("System fonts:"))
         fonts_label.pack(padx=10, pady=10)
+
         fonts = list(font.families())
-        fonts_listbox = Listbox(text_settings)
+        fonts_listbox = Listbox(text_win)
         fonts_listbox.pack(padx=10, pady=10)
         for f in fonts:
             fonts_listbox.insert(ctk.END, f)
         fonts_listbox.bind("<<ListboxSelect>>", listbox_callback)
+
+        tx_ok_btn = ctk.CTkButton(text_win, text="OK", command=add_text_ready)
+        tx_ok_btn.pack(padx=10, pady=10)
+
+        self.tx_message_label = ctk.CTkLabel(text_win, text="\n")
+        self.tx_message_label.pack(padx=10, pady=10)
 
     def show_frame_choice(self):
         def on_frames_click(index):
@@ -611,6 +627,17 @@ class Brushshe(ctk.CTk):
                     width=self.brush_size,
                     fill=self.color,
                     capstyle=ctk.ROUND,
+                )
+            elif self.shape == "dotted line":
+                item = self.shape_id = self.canvas.create_line(
+                    self.shape_start_x,
+                    self.shape_start_y,
+                    self.shape_start_x,
+                    self.shape_start_y,
+                    width=self.brush_size,
+                    fill=self.color,
+                    capstyle=ctk.ROUND,
+                    dash=(self.brush_size, self.brush_size * 2),
                 )
             elif self.shape == "arrow":
                 item = self.shape_id = self.canvas.create_line(
@@ -884,7 +911,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v0.18",
+            message=about_text + "v0.19",
             icon=path.join(PATH, "icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",

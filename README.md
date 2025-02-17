@@ -52,7 +52,7 @@ You can place text and change its size.
 ### Frames
 You can decorate the picture with frames.
 ### Shapes
-Rectangle, oval (with or without fill); line, arrows, fill triangle, fill diamond.
+Rectangle, oval (with or without fill); lines, arrows, fill triangle, fill diamond.
 ### Effects
 Blur, detail, contour and grayscale with adjustment slider.
 ### My Gallery
