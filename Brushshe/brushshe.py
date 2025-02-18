@@ -753,41 +753,41 @@ class Brushshe(ctk.CTk):
 
     def effects(self):
         def remove_all_effects():
+            self.clean_all()
             canvas_img_tk = ImageTk.PhotoImage(self.canvas_content)
             self.canvas.create_image(0, 0, anchor="nw", image=canvas_img_tk)
             self.canvas.image = canvas_img_tk
-            self.undo_stack.clear()
 
         def blur():
+            self.clean_all()
             radius = blur_slider.get()
             blurred_img = self.canvas_content.filter(ImageFilter.GaussianBlur(radius=radius))
             blurred_img_tk = ImageTk.PhotoImage(blurred_img)
             self.canvas.create_image(0, 0, anchor="nw", image=blurred_img_tk)
             self.canvas.image = blurred_img_tk
-            self.undo_stack.clear()
 
         def detail():
+            self.clean_all()
             factor = detail_slider.get()
             enhancer = ImageEnhance.Sharpness(self.canvas_content)
             detailed_img = enhancer.enhance(factor)
             detailed_img_tk = ImageTk.PhotoImage(detailed_img)
             self.canvas.create_image(0, 0, anchor="nw", image=detailed_img_tk)
             self.canvas.image = detailed_img_tk
-            self.undo_stack.clear()
 
         def contour():
+            self.clean_all()
             contoured_img = self.canvas_content.filter(ImageFilter.CONTOUR)
             contoured_img_tk = ImageTk.PhotoImage(contoured_img)
             self.canvas.create_image(0, 0, anchor="nw", image=contoured_img_tk)
             self.canvas.image = contoured_img_tk
-            self.undo_stack.clear()
 
         def grayscale():
+            self.clean_all()
             grayscale_img = ImageOps.grayscale(self.canvas_content)
             grayscale_img_tk = ImageTk.PhotoImage(grayscale_img)
             self.canvas.create_image(0, 0, anchor="nw", image=grayscale_img_tk)
             self.canvas.image = grayscale_img_tk
-            self.undo_stack.clear()
 
         effects_win = ctk.CTkToplevel(app)
         effects_win.title(self._("Effects"))
@@ -911,7 +911,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v0.19",
+            message=about_text + "v0.19.1",
             icon=path.join(PATH, "icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
@@ -992,7 +992,7 @@ class Brushshe(ctk.CTk):
         )
 
     def open_image(self, openimage):
-        self.canvas.delete("all")
+        self.clean_all()
         self.canvas.configure(bg="white")
 
         self.image = Image.open(openimage)
@@ -1000,7 +1000,6 @@ class Brushshe(ctk.CTk):
         self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.img_tk)
 
         self.update_canvas_size()
-        self.undo_stack.clear()
 
 
 app = Brushshe()
