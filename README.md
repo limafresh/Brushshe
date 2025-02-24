@@ -13,6 +13,8 @@
 
 [View more screenshots](https://github.com/limafresh/Brushshe/discussions/2)
 
+*Due to the fact that Brushshe switched to PIL.ImageDraw in v1.0.0, some functions, especially shapes and fonts, have undergone changes. But now the program is more optimized and does not start to slow down if you draw for a long time.*
+
 ## Usage
 ### Download Brushshe for Windows 64bit
 [![Static Badge](https://img.shields.io/badge/Download-portable_.exe_file-blue?style=for-the-badge)](https://github.com/limafresh/Brushshe/releases)
@@ -52,7 +54,7 @@ You can place text and change its size.
 ### Frames
 You can decorate the picture with frames.
 ### Shapes
-Rectangle, oval (with or without fill); lines, arrows, fill triangle, fill diamond.
+Rectangle, oval (with or without fill); line.
 ### Effects
 Blur, detail, contour and grayscale with adjustment slider.
 ### My Gallery
