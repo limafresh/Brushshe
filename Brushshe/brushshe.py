@@ -312,25 +312,32 @@ class Brushshe(ctk.CTk):
     def paint(self, event):
         self.canvas.bind("<ButtonRelease-1>", self.stop_paint)
         if self.prev_x is not None and self.prev_y is not None:
-            self.draw.line(
-                [self.prev_x, self.prev_y, event.x, event.y], fill=self.color, width=self.brush_size, joint="curve"
-            )
-            # for rounded ends
-            self.draw.ellipse(
-                [
-                    event.x - self.brush_size / 2,
-                    event.y - self.brush_size / 2,
-                    event.x + self.brush_size / 2,
-                    event.y + self.brush_size / 2,
-                ],
-                fill=self.color,
-            )
+            self.draw_thick_line(self.prev_x, self.prev_y, event.x, event.y)
             self.update_canvas()
         self.prev_x, self.prev_y = event.x, event.y
 
     def stop_paint(self, event):
         self.prev_x, self.prev_y = (None, None)
         self.undo_stack.append(self.image.copy())
+
+    def draw_thick_line(self, x1, y1, x2, y2):
+        steps = max(abs(x2 - x1), abs(y2 - y1))
+
+        for i in range(steps):
+            t = i / steps
+            x = int(x1 + (x2 - x1) * t)
+            y = int(y1 + (y2 - y1) * t)
+
+            self.draw.ellipse(
+                [
+                    x - self.brush_size // 2,
+                    y - self.brush_size // 2,
+                    x + self.brush_size // 2,
+                    y + self.brush_size // 2,
+                ],
+                fill=self.color,
+                outline=self.color,
+            )
 
     def update_canvas(self):
         self.canvas.delete("all")
@@ -861,7 +868,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v1.0.1",
+            message=about_text + "v1.0.2",
             icon=path.join(PATH, "icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
