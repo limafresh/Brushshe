@@ -193,7 +193,7 @@ class Brushshe(ctk.CTk):
             command=lambda val: self.canvas.configure(width=int(val)),
         )
         self.width_slider.pack(side=ctk.BOTTOM, fill=ctk.X)
-        self.width_slider.bind("<ButtonRelease-1>", self.change_picture_size)
+        self.width_slider.bind("<ButtonRelease-1>", self.crop_picture)
 
         self.height_slider = ctk.CTkSlider(
             self.canvas_frame,
@@ -203,7 +203,7 @@ class Brushshe(ctk.CTk):
             command=lambda val: self.canvas.configure(height=int(val)),
         )
         self.height_slider.pack(side=ctk.LEFT, fill=ctk.Y)
-        self.height_slider.bind("<ButtonRelease-1>", self.change_picture_size)
+        self.height_slider.bind("<ButtonRelease-1>", self.crop_picture)
 
         self.canvas = ctk.CTkCanvas(self.canvas_frame)
         self.canvas.pack()
@@ -250,7 +250,7 @@ class Brushshe(ctk.CTk):
         self.prev_x, self.prev_y = (None, None)
 
         self.font_size = 24
-        self.font_path = path.join(PATH, "fonts/Lato/Lato-Regular.ttf")
+        self.font_path = path.join(PATH, "fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
         self.size_a = 100
 
         self.canvas.bind("<B1-Motion>", self.paint)
@@ -315,6 +315,7 @@ class Brushshe(ctk.CTk):
             self.draw.line(
                 [self.prev_x, self.prev_y, event.x, event.y], fill=self.color, width=self.brush_size, joint="curve"
             )
+            # for rounded ends
             self.draw.ellipse(
                 [
                     event.x - self.brush_size / 2,
@@ -337,7 +338,7 @@ class Brushshe(ctk.CTk):
         self.img_tk = ImageTk.PhotoImage(self.image)
         self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.img_tk)
 
-    def change_picture_size(self, event):
+    def crop_picture(self, event):
         new_image = Image.new("RGB", (self.canvas.winfo_width(), self.canvas.winfo_height()), self.bg_color)
         new_image.paste(self.image, (0, 0))
         self.image = new_image
@@ -368,14 +369,7 @@ class Brushshe(ctk.CTk):
             try:
                 self.open_image(file_path)
             except Exception as e:
-                message_text = self._("Error - cannot open file:")
-                CTkMessagebox(
-                    title=self._("Oh, unfortunately, it happened"),
-                    message=f"{message_text} {e}",
-                    icon=path.join(PATH, "icons/cry.png"),
-                    icon_size=(100, 100),
-                    sound=True,
-                )
+                self.open_file_error(e)
 
     def save_to_device(self, extension):
         file_path = ctk.filedialog.asksaveasfilename(
@@ -406,9 +400,12 @@ class Brushshe(ctk.CTk):
                 ]
             )
             if file_path:
-                sticker_image = Image.open(file_path)
-                self.canvas.bind("<Button-1>", lambda event: self.add_sticker(event, sticker_image))
-                self.canvas.configure(cursor="")
+                try:
+                    sticker_image = Image.open(file_path)
+                    self.canvas.bind("<Button-1>", lambda event: self.add_sticker(event, sticker_image))
+                    self.canvas.configure(cursor="")
+                except Exception as e:
+                    self.open_file_error(e)
 
         def update_btn():
             for widget in stickers_frame.winfo_children():
@@ -477,11 +474,11 @@ class Brushshe(ctk.CTk):
     def add_sticker(self, event, sticker_image):  # Add a sticker
         self.canvas.unbind("<ButtonRelease-1>")
 
-        try:
+        if sticker_image.mode == "RGBA":
             self.image.paste(
                 sticker_image, (event.x - sticker_image.width // 2, event.y - sticker_image.height // 2), sticker_image
             )
-        except:  # noqa: E722
+        else:
             self.image.paste(sticker_image, (event.x - sticker_image.width // 2, event.y - sticker_image.height // 2))
 
         self.update_canvas()
@@ -550,7 +547,7 @@ class Brushshe(ctk.CTk):
         fonts_label.pack(padx=10, pady=10)
 
         fonts_dict = {
-            "Lato": path.join(PATH, "fonts/Lato/Lato-Regular.ttf"),
+            "Open Sans": path.join(PATH, "fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf"),
             "Sigmar": path.join(PATH, "fonts/Sigmar/Sigmar-Regular.ttf"),
             "Playwrite IT Moderna": path.join(
                 PATH, "fonts/Playwrite_IT_Moderna/PlaywriteITModerna-VariableFont_wght.ttf"
@@ -645,6 +642,7 @@ class Brushshe(ctk.CTk):
                     self.shape_start_y,
                     width=self.brush_size,
                     fill=self.color,
+                    capstyle=ctk.ROUND,
                 )
             elif self.shape == "fill rectangle":
                 self.shape_id = self.canvas.create_rectangle(
@@ -686,6 +684,25 @@ class Brushshe(ctk.CTk):
                     [self.shape_start_x, self.shape_start_y, event.x, event.y],
                     fill=self.color,
                     width=self.brush_size,
+                )
+                # for rounded ends
+                self.draw.ellipse(
+                    [
+                        self.shape_start_x - self.brush_size / 2,
+                        self.shape_start_y - self.brush_size / 2,
+                        self.shape_start_x + self.brush_size / 2,
+                        self.shape_start_y + self.brush_size / 2,
+                    ],
+                    fill=self.color,
+                )
+                self.draw.ellipse(
+                    [
+                        event.x - self.brush_size / 2,
+                        event.y - self.brush_size / 2,
+                        event.x + self.brush_size / 2,
+                        event.y + self.brush_size / 2,
+                    ],
+                    fill=self.color,
                 )
             elif self.shape == "fill rectangle":
                 self.draw.rectangle(
@@ -844,7 +861,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v1.0.0 codename Marchdream",
+            message=about_text + "v1.0.1",
             icon=path.join(PATH, "icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
@@ -932,6 +949,16 @@ class Brushshe(ctk.CTk):
 
         self.update_canvas()
         self.undo_stack.append(self.image.copy())
+
+    def open_file_error(self, e):
+        message_text = self._("Error - cannot open file:")
+        CTkMessagebox(
+            title=self._("Oh, unfortunately, it happened"),
+            message=f"{message_text} {e}",
+            icon=path.join(PATH, "icons/cry.png"),
+            icon_size=(100, 100),
+            sound=True,
+        )
 
 
 app = Brushshe()

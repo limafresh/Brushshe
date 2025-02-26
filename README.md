@@ -58,7 +58,7 @@ Rectangle, oval (with or without fill); line.
 ### Effects
 Blur, detail, contour and grayscale with adjustment slider.
 ### My Gallery
-Window showing images drawn in Brushshe and "saved to gallery". Images from the gallery are stored in `<user_home_folder>/Pictures/Brushshe Images` or `<user_home_folder>/Brushshe Imaages` on some minimalistic Linux distributions.
+Window showing images drawn in Brushshe and "saved to gallery". Images from the gallery are stored in `<user_home_folder>/Pictures/Brushshe Images` or `<user_home_folder>/Brushshe Images` on some minimalistic Linux distributions.
 ### Dark theme
 There is a system, light and dark theme.
 
