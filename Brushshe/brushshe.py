@@ -19,7 +19,6 @@ PATH = path.dirname(path.realpath(__file__))
 class Brushshe(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title("Brushshe")
         self.geometry("680x600")
         if name == "nt":
             self.iconbitmap(path.join(PATH, "icons/icon.ico"))
@@ -33,7 +32,7 @@ class Brushshe(ctk.CTk):
         locale = getlocale()
 
         if isinstance(locale, tuple):
-            language_code = getlocale()[0][:2].lower()
+            language_code = locale[0][:2].lower()
         elif isinstance(locale, str):
             language_code = locale[:2].lower()
         else:
@@ -42,6 +41,8 @@ class Brushshe(ctk.CTk):
         self.translations = {}
         self.load_language(language_code)
         self.initialization()
+
+        self.title(self._("Brushshe"))
 
     """Translate app"""
 
@@ -111,9 +112,7 @@ class Brushshe(ctk.CTk):
         frame_icon = ctk.CTkImage(light_image=Image.open(path.join(PATH, "icons/frame.png")), size=(50, 50))
         add_dropdown.add_option(option=self._("Frames"), image=frame_icon, command=self.show_frame_choice)
         effects_icon = ctk.CTkImage(light_image=Image.open(path.join(PATH, "icons/effects.png")), size=(50, 50))
-        add_dropdown.add_option(
-            option=self._("Effects"), image=effects_icon, command=lambda: self.after(1000, self.effects)
-        )
+        add_dropdown.add_option(option=self._("Effects"), image=effects_icon, command=self.effects)
 
         shapes_menu = menu.add_cascade(self._("Shapes"))
         shapes_dropdown = CustomDropdownMenu(widget=shapes_menu)
@@ -164,7 +163,7 @@ class Brushshe(ctk.CTk):
         self.tool_label = ctk.CTkLabel(tools_frame, text=self._("Brush:"))
         self.tool_label.pack(side=ctk.LEFT, padx=1)
 
-        size_slider = ctk.CTkSlider(tools_frame, from_=1, to=50, command=self.change_brush_size)
+        size_slider = ctk.CTkSlider(tools_frame, from_=2, to=50, command=self.change_brush_size)
         self.brush_size = 2
         size_slider.set(self.brush_size)
         size_slider.pack(side=ctk.LEFT, padx=1)
@@ -868,7 +867,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v1.0.2",
+            message=about_text + "v1.1.0",
             icon=path.join(PATH, "icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
