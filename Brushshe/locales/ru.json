@@ -54,7 +54,10 @@
 	"Detail": "Детализация",
 	"Contour": "Контур",
 	"Grayscale": "Оттенки серого",
+	"Mirror": "Зеркало",
+	"Metal": "Металл",
 	"Remove all effects": "Удалить все эффекты",
 	"Sticker from file": "Наклейка из файла",
-	"Choose sticker from file\nthen click where you want\nit on the picture": "Выберите наклейку из файла,\nа затем нажмите на нужное\nместо на рисунке"
+	"Choose sticker from file\nthen click where you want\nit on the picture": "Выберите наклейку из файла,\nа затем нажмите на нужное\nместо на рисунке",
+	"Brushshe Gallery (loading...)": "Галерея Брашше (загрузка...)"
 }

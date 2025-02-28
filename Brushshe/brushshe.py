@@ -59,7 +59,14 @@ class Brushshe(ctk.CTk):
                     self.translations = json.load(f)
             except FileNotFoundError:
                 print(f"File for language '{language_code}' not found.")
-                self.translations = {}
+            except json.JSONDecodeError:
+                CTkMessagebox(
+                    title="Oh, unfortunately, it happened",
+                    message="Localization file is corrupted. Brushshe will be in English.",
+                    icon=path.join(PATH, "icons/cry.png"),
+                    icon_size=(100, 100),
+                    sound=True,
+                )
 
     def _(self, key):
         return self.translations.get(key, key)
@@ -226,7 +233,7 @@ class Brushshe(ctk.CTk):
             self.palette,
             text=self._("Other"),
             width=70,
-            command=self.other_color_choise,
+            command=self.other_color_choice,
         )
         choice_other_color.pack(side=ctk.RIGHT, padx=1)
 
@@ -250,10 +257,13 @@ class Brushshe(ctk.CTk):
 
         self.font_size = 24
         self.font_path = path.join(PATH, "fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
-        self.size_a = 100
+        self.sticker_size = 100
 
         self.canvas.bind("<B1-Motion>", self.paint)
         self.canvas.bind("<Button-3>", self.eyedropper)
+
+        self.bind("<Control-z>", lambda e: self.undo())
+        self.bind("<Control-s>", lambda e: self.save_to_gallery())
 
         self.canvas.configure(cursor="pencil")
 
@@ -311,7 +321,7 @@ class Brushshe(ctk.CTk):
     def paint(self, event):
         self.canvas.bind("<ButtonRelease-1>", self.stop_paint)
         if self.prev_x is not None and self.prev_y is not None:
-            self.draw_thick_line(self.prev_x, self.prev_y, event.x, event.y)
+            self.draw_line(self.prev_x, self.prev_y, event.x, event.y)
             self.update_canvas()
         self.prev_x, self.prev_y = event.x, event.y
 
@@ -319,7 +329,7 @@ class Brushshe(ctk.CTk):
         self.prev_x, self.prev_y = (None, None)
         self.undo_stack.append(self.image.copy())
 
-    def draw_thick_line(self, x1, y1, x2, y2):
+    def draw_line(self, x1, y1, x2, y2):
         steps = max(abs(x2 - x1), abs(y2 - y1))
 
         for i in range(steps):
@@ -419,8 +429,8 @@ class Brushshe(ctk.CTk):
             row = 0
             column = 0
             for image in self.stickers:
-                sticker_image = image.resize((self.size_a, self.size_a))
-                sticker_ctkimage = ctk.CTkImage(light_image=image, size=(self.size_a, self.size_a))
+                sticker_image = image.resize((self.sticker_size, self.sticker_size))
+                sticker_ctkimage = ctk.CTkImage(light_image=image, size=(self.sticker_size, self.sticker_size))
                 sticker_btn = ctk.CTkButton(
                     stickers_frame,
                     text=None,
@@ -447,7 +457,7 @@ class Brushshe(ctk.CTk):
         stickers_frame = ctk.CTkScrollableFrame(tabview.tab(self._("Choose a sticker")))
         stickers_frame.pack(fill=ctk.BOTH, expand=True)
 
-        self.st_size_label = ctk.CTkLabel(tabview.tab(self._("Sticker size")), text=self.size_a)
+        self.st_size_label = ctk.CTkLabel(tabview.tab(self._("Sticker size")), text=self.sticker_size)
         self.st_size_label.pack(padx=10, pady=10)
         self.st_slider = ctk.CTkSlider(
             tabview.tab(self._("Sticker size")),
@@ -455,7 +465,7 @@ class Brushshe(ctk.CTk):
             to=175,
             command=self.change_sticker_size,
         )
-        self.st_slider.set(self.size_a)
+        self.st_slider.set(self.sticker_size)
         self.st_slider.pack(padx=10, pady=10)
         set_default = ctk.CTkButton(
             tabview.tab(self._("Sticker size")),
@@ -494,13 +504,13 @@ class Brushshe(ctk.CTk):
         self.undo_stack.append(self.image.copy())
 
     def change_sticker_size(self, value):
-        self.size_a = int(self.st_slider.get())
-        self.st_size_label.configure(text=self.size_a)
+        self.sticker_size = int(self.st_slider.get())
+        self.st_size_label.configure(text=self.sticker_size)
 
     def set_default_stickers_size(self):
-        self.size_a = 100
-        self.st_size_label.configure(text=self.size_a)
-        self.st_slider.set(self.size_a)
+        self.sticker_size = 100
+        self.st_size_label.configure(text=self.sticker_size)
+        self.st_slider.set(self.sticker_size)
 
     def add_text(self, event, text):  # Add text
         self.canvas.unbind("<ButtonRelease-1>")
@@ -766,16 +776,32 @@ class Brushshe(ctk.CTk):
             self.image = ImageOps.grayscale(image_copy)
             post_actions()
 
+        def mirror():
+            self.image = ImageOps.mirror(image_copy)
+            post_actions()
+
+        def metal():
+            self.image = image_copy.filter(ImageFilter.EMBOSS)
+            post_actions()
+
         effects_win = ctk.CTkToplevel(app)
         effects_win.title(self._("Effects"))
+        effects_win.geometry("250x500")
+
+        effects_frame = ctk.CTkScrollableFrame(effects_win)
+        effects_frame.pack(fill=ctk.BOTH, expand=True)
 
         remove_all_effects_button = ctk.CTkButton(
-            effects_win, text=self._("Remove all effects"), command=remove_all_effects
+            effects_win,
+            text=self._("Remove all effects"),
+            command=remove_all_effects,
+            fg_color="red",
+            text_color="white",
         )
         remove_all_effects_button.pack(padx=10, pady=10)
 
         # Blur
-        blur_frame = ctk.CTkFrame(effects_win)
+        blur_frame = ctk.CTkFrame(effects_frame)
         blur_frame.pack(padx=10, pady=10)
 
         blur_label = ctk.CTkLabel(blur_frame, text=self._("Blur"))
@@ -788,7 +814,7 @@ class Brushshe(ctk.CTk):
         blur_button.pack(padx=10, pady=10)
 
         # Detail
-        detail_frame = ctk.CTkFrame(effects_win)
+        detail_frame = ctk.CTkFrame(effects_frame)
         detail_frame.pack(padx=10, pady=10)
 
         detail_label = ctk.CTkLabel(detail_frame, text=self._("Detail"))
@@ -800,25 +826,22 @@ class Brushshe(ctk.CTk):
         detail_button = ctk.CTkButton(detail_frame, text=self._("Apply to picture"), command=detail)
         detail_button.pack(padx=10, pady=10)
 
-        # Contour
-        contour_frame = ctk.CTkFrame(effects_win)
-        contour_frame.pack(padx=10, pady=10)
+        effects_dict = {  # dictionary for effects which without slider
+            "Contour": contour,
+            "Grayscale": grayscale,
+            "Mirror": mirror,
+            "Metal": metal,
+        }
 
-        contour_label = ctk.CTkLabel(contour_frame, text=self._("Contour"))
-        contour_label.pack(padx=10, pady=10)
+        for effect_name, effect_command in effects_dict.items():
+            effect_frame = ctk.CTkFrame(effects_frame)
+            effect_frame.pack(padx=10, pady=10)
 
-        contour_button = ctk.CTkButton(contour_frame, text=self._("Apply to picture"), command=contour)
-        contour_button.pack(padx=10, pady=10)
+            effect_label = ctk.CTkLabel(effect_frame, text=self._(effect_name))
+            effect_label.pack(padx=10, pady=10)
 
-        # Grayscale
-        grayscale_frame = ctk.CTkFrame(effects_win)
-        grayscale_frame.pack(padx=10, pady=10)
-
-        grayscale_label = ctk.CTkLabel(grayscale_frame, text=self._("Grayscale"))
-        grayscale_label.pack(padx=10, pady=10)
-
-        grayscale_button = ctk.CTkButton(grayscale_frame, text=self._("Apply to picture"), command=grayscale)
-        grayscale_button.pack(padx=10, pady=10)
+            effect_button = ctk.CTkButton(effect_frame, text=self._("Apply to picture"), command=effect_command)
+            effect_button.pack(padx=10, pady=10)
 
         image_copy = self.image.copy()
 
@@ -826,11 +849,14 @@ class Brushshe(ctk.CTk):
 
     def show_gallery(self):
         my_gallery = ctk.CTkToplevel(app)
-        my_gallery.title(self._("Brushshe Gallery"))
+        my_gallery.title(self._("Brushshe Gallery (loading...)"))
         my_gallery.geometry("650x580")
 
-        gallery_frame = ctk.CTkScrollableFrame(my_gallery, label_text=self._("My Gallery"))
-        gallery_frame.pack(fill=ctk.BOTH, expand=True)
+        gallery_scrollable_frame = ctk.CTkScrollableFrame(my_gallery, label_text=self._("My Gallery"))
+        gallery_scrollable_frame.pack(fill=ctk.BOTH, expand=True)
+
+        gallery_frame = ctk.CTkFrame(gallery_scrollable_frame)
+        gallery_frame.pack(padx=10, pady=10)
 
         row = 0
         column = 0
@@ -860,6 +886,8 @@ class Brushshe(ctk.CTk):
         if not is_image_found:
             gallery_frame.configure(label_text=self._("My gallery (empty)"))
 
+        my_gallery.title(self._("Brushshe Gallery"))
+
     def about_program(self):
         about_text = self._(
             "Brushshe is a painting program where you can create whatever you like.\n\n"
@@ -867,7 +895,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v1.1.0",
+            message=about_text + "v1.2.0",
             icon=path.join(PATH, "icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
@@ -906,6 +934,8 @@ class Brushshe(ctk.CTk):
             self.draw = ImageDraw.Draw(self.image)
             if self.image.width != self.canvas.winfo_width() or self.image.height != self.canvas.winfo_height():
                 self.canvas.configure(width=self.image.width, height=self.image.height)
+                self.width_slider.set(self.image.width)
+                self.height_slider.set(self.image.height)
             self.update_canvas()
 
     def save_to_gallery(self):
@@ -925,7 +955,7 @@ class Brushshe(ctk.CTk):
         self.tool_label.configure(text=self._("Brush:"))
         self.canvas.configure(cursor="pencil")
 
-    def other_color_choise(self):
+    def other_color_choice(self):
         try:
             askcolor = AskColor(title=self._("Choose a different brush color"))
             self.obtained_color = askcolor.get()
