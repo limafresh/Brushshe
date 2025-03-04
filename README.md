@@ -43,6 +43,8 @@ You can save picture to your PC in different formats (PNG, JPG, GIF, BMP, TIFF, 
 You can undo 10 last actions. There is a button in toolbar and hotkey Ctrl+Z.
 ### Eraser
 Removing excess with an eraser.
+### Fill (beta)
+Double click for fill.
 ### Eyedropper
 Right click on the desired place on the canvas to get its color and paint with it.
 ### Background
