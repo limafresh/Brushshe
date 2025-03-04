@@ -13,8 +13,6 @@
 
 [View more screenshots](https://github.com/limafresh/Brushshe/discussions/2)
 
-*Due to the fact that Brushshe switched to PIL.ImageDraw in v1.0.0, some functions, especially shapes and fonts, have undergone changes. But now the program is more optimized and does not start to slow down if you draw for a long time.*
-
 ## Usage
 ### Download Brushshe for Windows 64bit
 [![Static Badge](https://img.shields.io/badge/Download-portable_.exe_file-blue?style=for-the-badge)](https://github.com/limafresh/Brushshe/releases)
@@ -43,6 +41,8 @@ You can save picture to your PC in different formats (PNG, JPG, GIF, BMP, TIFF, 
 You can undo 10 last actions. There is a button in toolbar and hotkey Ctrl+Z.
 ### Eraser
 Removing excess with an eraser.
+### Fill (beta)
+Double click for fill.
 ### Eyedropper
 Right click on the desired place on the canvas to get its color and paint with it.
 ### Background

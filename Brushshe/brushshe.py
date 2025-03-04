@@ -11,7 +11,7 @@ import customtkinter as ctk
 from brushshe_color_picker import AskColor
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
-from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps, ImageTk
+from PIL import Image, ImageColor, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps, ImageTk
 
 PATH = path.dirname(path.realpath(__file__))
 
@@ -261,6 +261,7 @@ class Brushshe(ctk.CTk):
 
         self.canvas.bind("<B1-Motion>", self.paint)
         self.canvas.bind("<Button-3>", self.eyedropper)
+        self.canvas.bind("<Double-1>", self.fill)
 
         self.bind("<Control-z>", lambda e: self.undo())
         self.bind("<Control-s>", lambda e: self.save_to_gallery())
@@ -328,6 +329,7 @@ class Brushshe(ctk.CTk):
     def stop_paint(self, event):
         self.prev_x, self.prev_y = (None, None)
         self.undo_stack.append(self.image.copy())
+        self.canvas.unbind("<ButtonRelease-1>")
 
     def draw_line(self, x1, y1, x2, y2):
         steps = max(abs(x2 - x1), abs(y2 - y1))
@@ -355,7 +357,7 @@ class Brushshe(ctk.CTk):
         self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.img_tk)
 
     def crop_picture(self, event):
-        new_image = Image.new("RGB", (self.canvas.winfo_width(), self.canvas.winfo_height()), self.bg_color)
+        new_image = Image.new("RGB", (int(self.width_slider.get()), int(self.height_slider.get())), self.bg_color)
         new_image.paste(self.image, (0, 0))
         self.image = new_image
         self.draw = ImageDraw.Draw(self.image)
@@ -373,6 +375,12 @@ class Brushshe(ctk.CTk):
         self.other_color_btn.configure(fg_color=self.obtained_color)
         self.tool_label.configure(text=self._("Brush:"))
         self.canvas.configure(cursor="pencil")
+
+    def fill(self, event):  # beta
+        x, y = event.x, event.y
+        ImageDraw.floodfill(self.image, (x, y), ImageColor.getrgb(self.color))
+        self.update_canvas()
+        self.undo_stack.append(self.image.copy())
 
     def open_from_file(self):
         file_path = ctk.filedialog.askopenfilename(
@@ -488,8 +496,6 @@ class Brushshe(ctk.CTk):
         self.canvas.configure(cursor="")
 
     def add_sticker(self, event, sticker_image):  # Add a sticker
-        self.canvas.unbind("<ButtonRelease-1>")
-
         if sticker_image.mode == "RGBA":
             self.image.paste(
                 sticker_image, (event.x - sticker_image.width // 2, event.y - sticker_image.height // 2), sticker_image
@@ -513,7 +519,6 @@ class Brushshe(ctk.CTk):
         self.st_slider.set(self.sticker_size)
 
     def add_text(self, event, text):  # Add text
-        self.canvas.unbind("<ButtonRelease-1>")
         imagefont = ImageFont.truetype(self.font_path, self.font_size)
 
         bbox = self.draw.textbbox((event.x, event.y), text, font=imagefont)
@@ -895,7 +900,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v1.2.0",
+            message=about_text + "v1.3.0",
             icon=path.join(PATH, "icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
