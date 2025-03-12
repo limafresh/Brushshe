@@ -300,7 +300,7 @@ class Brushshe(ctk.CTk):
             "butterfly",
             "flower2",
         ]
-        self.stickers = [Image.open(path.join(PATH, f"stickers/{name}.png")) for name in stickers_names]
+        self.stickers = [Image.open(path.join(PATH, f"stickers/{sticker_name}.png")) for sticker_name in stickers_names]
 
     """ Functionality """
 
@@ -322,12 +322,23 @@ class Brushshe(ctk.CTk):
     def paint(self, event):
         self.canvas.bind("<ButtonRelease-1>", self.stop_paint)
         if self.prev_x is not None and self.prev_y is not None:
+            # To display in the picture
             self.draw_line(self.prev_x, self.prev_y, event.x, event.y)
-            self.update_canvas()
+            # To display on canvas while drawing
+            self.canvas.create_line(
+                self.prev_x,
+                self.prev_y,
+                event.x,
+                event.y,
+                width=self.brush_size + 1,
+                fill=self.color,
+                capstyle=ctk.ROUND,
+            )
         self.prev_x, self.prev_y = event.x, event.y
 
     def stop_paint(self, event):
         self.prev_x, self.prev_y = (None, None)
+        self.update_canvas()
         self.undo_stack.append(self.image.copy())
         self.canvas.unbind("<ButtonRelease-1>")
 
@@ -357,7 +368,7 @@ class Brushshe(ctk.CTk):
         self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.img_tk)
 
     def crop_picture(self, event):
-        new_image = Image.new("RGB", (self.canvas.winfo_width(), self.canvas.winfo_height()), self.bg_color)
+        new_image = Image.new("RGB", (int(self.width_slider.get()), int(self.height_slider.get())), self.bg_color)
         new_image.paste(self.image, (0, 0))
         self.image = new_image
         self.draw = ImageDraw.Draw(self.image)
@@ -900,7 +911,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v1.3.0",
+            message=about_text + "v1.4.0",
             icon=path.join(PATH, "icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
