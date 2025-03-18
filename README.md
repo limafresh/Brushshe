@@ -37,12 +37,12 @@ You can open a picture from a file.
 You can choose a color, change the brush thickness, and paint. You can change canvas size.
 ### Save to device
 You can save picture to your PC in different formats (PNG, JPG, GIF, BMP, TIFF, WEBP, ICO, PPM, PGM, PBM).
-### Undo
-You can undo 10 last actions. There is a button in toolbar and hotkey Ctrl+Z.
+### Undo and redo
+You can undo and redo (beta) 10 last actions. There are buttons on toolbar and hotkeys (Ctrl+Z - undo, Ctrl+Y - redo).
 ### Eraser
 Removing excess with an eraser.
-### Fill (beta)
-Double click for fill.
+### Fill
+Can fill areas of a drawing. Can work slowly on large areas, and not work on RGBA-images.
 ### Eyedropper
 Right click on the desired place on the canvas to get its color and paint with it.
 ### Background
@@ -63,15 +63,16 @@ Window showing images drawn in Brushshe and "saved to gallery". Images from the 
 There is a system, light and dark theme.
 
 ## Credits
-Thanks [Akascape](https://github.com/Akascape) for libraries [CTkColorPicker](https://github.com/Akascape/CTkColorPicker), [CTkMenuBar](https://github.com/Akascape/CTkMenuBar) and [CTkMessagebox](https://github.com/Akascape/CTkMessagebox).
+Thanks [Akascape](https://github.com/Akascape) for libraries [CTkColorPicker](https://github.com/Akascape/CTkColorPicker), [CTkMenuBar](https://github.com/Akascape/CTkMenuBar), [CTkMessagebox](https://github.com/Akascape/CTkMessagebox) and [CTkToolTip](https://github.com/Akascape/CTkToolTip).
 
 ## Translations
 The internationalization of this program has a simple principle - it determines what the computer's localization is (for example, *en*, *ru*, etc.), and then applies the `Brushshe/locales/{localization}.json` file, where *localization* is the computer's localization.
 
 ## License
 + Project license - *GNU GPL v3*
-+ CTkColorPicker and CTkMenuBar license - *CC0*
++ CTkColorPicker, CTkMenuBar and CTkToolTip license - *CC0*
 + License for program translations (`Brushshe/locales/*.json`) - *CC0*
++ Fonts - *OFL*
 
 ## For developers
 ### Linter

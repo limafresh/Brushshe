@@ -21,7 +21,8 @@
 	"Dark theme": "Темна тема",
 	"About program": "Про програму",
 	"Clear all": "Очистити все",
-	"Brush:": "Пензль:",
+	"Brush": "Пензль",
+	"Fill": "Заливка",
 	"Save to gallery": "Зберегти в галерею",
 	"Other": "Інший",
 	"You are leaving Brushshe": "Ви покидаєте Брашше",
@@ -41,7 +42,7 @@
 	"Brushshe Gallery": "Галерея Брашше",
 	"Yes": "Так",
 	"Return": "Повернутися",
-	"Eraser:": "Ластик:",
+	"Eraser": "Ластик",
 	"My gallery (empty)": "Моя галерея (пусто)",
 	"Brushshe is a painting program where you can create whatever you like.\n\nAn eagle named Brucklin is its mascot.\n\n": "Брашше - програма для малювання, в якій можна створювати те, що Вам подобається.\n\nОрел на ім'я Браклін - її талісман.\n\n",
 	"Saved": "Збережено",
@@ -59,5 +60,7 @@
 	"Remove all effects": "Видалити всі ефекти",
 	"Sticker from file": "Наліпка з файла",
 	"Choose sticker from file\nthen click where you want\nit on the picture": "Виберіть наліпку з файла,\nа потім клацніть на потрібне\nмісце на малюнку",
-	"Brushshe Gallery (loading...)": "Галерея Брашше (завантаження...)"
+	"Brushshe Gallery (loading...)": "Галерея Брашше (завантаження...)",
+	"Undo": "Скасувати",
+	"Redo": "Повернути"
 }

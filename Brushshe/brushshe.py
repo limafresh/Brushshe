@@ -11,6 +11,7 @@ import customtkinter as ctk
 from brushshe_color_picker import AskColor
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
+from CTkToolTip import CTkToolTip
 from PIL import Image, ImageColor, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps, ImageTk
 
 PATH = path.dirname(path.realpath(__file__))
@@ -31,7 +32,7 @@ class Brushshe(ctk.CTk):
         # Get system locale
         locale = getlocale()
 
-        if isinstance(locale, tuple):
+        if isinstance(locale, tuple) and all(isinstance(item, str) for item in locale):
             language_code = locale[0][:2].lower()
         elif isinstance(locale, str):
             language_code = locale[:2].lower()
@@ -131,9 +132,7 @@ class Brushshe(ctk.CTk):
             "Fill oval",
         ]
         for shape in shape_options:
-            shapes_dropdown.add_option(
-                option=self._(shape), command=lambda shape=shape: self.create_shape(shape.lower())
-            )
+            shapes_dropdown.add_option(option=self._(shape), command=lambda shape=shape: self.create_shape(shape))
 
         menu.add_cascade(self._("My Gallery"), command=self.show_gallery)
 
@@ -155,36 +154,62 @@ class Brushshe(ctk.CTk):
         tools_frame = ctk.CTkFrame(self)
         tools_frame.pack(side=ctk.TOP, fill=ctk.X)
 
+        brush_icon = ctk.CTkImage(
+            light_image=Image.open(path.join(PATH, "icons/brush_light.png")),
+            dark_image=Image.open(path.join(PATH, "icons/brush_dark.png")),
+            size=(20, 20),
+        )
+        brush_button = ctk.CTkButton(tools_frame, text=None, width=30, image=brush_icon, command=self.brush)
+        brush_button.pack(side=ctk.LEFT, padx=1)
+        CTkToolTip(brush_button, message=self._("Brush"), text_color="gray14")
+
         eraser_icon = ctk.CTkImage(light_image=Image.open(path.join(PATH, "icons/eraser.png")), size=(20, 20))
-        eraser = ctk.CTkButton(tools_frame, text=None, width=35, image=eraser_icon, command=self.eraser)
-        eraser.pack(side=ctk.LEFT, padx=1)
+        eraser_button = ctk.CTkButton(tools_frame, text=None, width=30, image=eraser_icon, command=self.eraser)
+        eraser_button.pack(side=ctk.LEFT, padx=1)
+        CTkToolTip(eraser_button, message=self._("Eraser"), text_color="gray14")
+
+        fill_icon = ctk.CTkImage(
+            light_image=Image.open(path.join(PATH, "icons/fill_light.png")),
+            dark_image=Image.open(path.join(PATH, "icons/fill_dark.png")),
+            size=(20, 20),
+        )
+        fill_button = ctk.CTkButton(tools_frame, text=None, width=30, image=fill_icon, command=self.start_fill)
+        fill_button.pack(side=ctk.LEFT, padx=1)
+        CTkToolTip(fill_button, message=self._("Fill"), text_color="gray14")
 
         undo_icon = ctk.CTkImage(
             light_image=Image.open(path.join(PATH, "icons/undo_light.png")),
             dark_image=Image.open(path.join(PATH, "icons/undo_dark.png")),
             size=(20, 20),
         )
-        undo_button = ctk.CTkButton(tools_frame, text=None, width=35, image=undo_icon, command=self.undo)
+        undo_button = ctk.CTkButton(tools_frame, text=None, width=30, image=undo_icon, command=self.undo)
         undo_button.pack(side=ctk.LEFT, padx=1)
+        CTkToolTip(undo_button, message=self._("Undo") + " (Ctrl+Z)", text_color="gray14")
 
-        self.tool_label = ctk.CTkLabel(tools_frame, text=self._("Brush:"))
+        redo_icon = ctk.CTkImage(
+            light_image=Image.open(path.join(PATH, "icons/redo_light.png")),
+            dark_image=Image.open(path.join(PATH, "icons/redo_dark.png")),
+            size=(20, 20),
+        )
+        redo_button = ctk.CTkButton(tools_frame, text=None, width=30, image=redo_icon, command=self.redo)
+        redo_button.pack(side=ctk.LEFT, padx=1)
+        CTkToolTip(redo_button, message=self._("Redo") + " (Ctrl+Y)", text_color="gray14")
+
+        self.tool_label = ctk.CTkLabel(tools_frame, text=None)
         self.tool_label.pack(side=ctk.LEFT, padx=1)
 
-        size_slider = ctk.CTkSlider(tools_frame, from_=2, to=50, command=self.change_brush_size)
+        self.size_slider = ctk.CTkSlider(tools_frame, from_=2, to=50, command=self.change_brush_size)
         self.brush_size = 2
-        size_slider.set(self.brush_size)
-        size_slider.pack(side=ctk.LEFT, padx=1)
+        self.size_slider.set(self.brush_size)
+        self.size_slider.pack(side=ctk.LEFT, padx=1)
+        self.size_tooltip = CTkToolTip(self.size_slider, message=self.brush_size, text_color="gray14")
 
-        self.brush_size_label = ctk.CTkLabel(tools_frame, text="2")
+        self.brush_size_label = ctk.CTkLabel(tools_frame, text=self.brush_size)
         self.brush_size_label.pack(side=ctk.LEFT, padx=1)
 
-        save_to_gallery_btn = ctk.CTkButton(
-            tools_frame,
-            text=self._("Save to gallery"),
-            width=70,
-            command=self.save_to_gallery,
-        )
+        save_to_gallery_btn = ctk.CTkButton(tools_frame, text=self._("Save to gallery"), command=self.save_to_gallery)
         save_to_gallery_btn.pack(side=ctk.RIGHT, padx=1)
+        CTkToolTip(save_to_gallery_btn, message=self._("Save to gallery") + " (Ctrl+S)", text_color="gray14")
 
         """Canvas"""
         self.canvas_frame = ctk.CTkFrame(self)
@@ -223,7 +248,7 @@ class Brushshe(ctk.CTk):
                 self.palette,
                 fg_color=color,
                 text=None,
-                width=35,
+                width=30,
                 border_width=2,
                 command=lambda c=color: self.change_color(c),
             )
@@ -232,7 +257,6 @@ class Brushshe(ctk.CTk):
         choice_other_color = ctk.CTkButton(
             self.palette,
             text=self._("Other"),
-            width=70,
             command=self.other_color_choice,
         )
         choice_other_color.pack(side=ctk.RIGHT, padx=1)
@@ -240,18 +264,21 @@ class Brushshe(ctk.CTk):
         self.other_color_btn = ctk.CTkButton(
             self.palette,
             text=None,
-            width=35,
+            width=30,
             border_width=2,
             command=self.select_other_color_btn,
         )
+        self.other_color_tooltip = CTkToolTip(self.other_color_btn, message=None, text_color="gray14")
 
         """ Initialization """
-        self.color = "black"
+        self.brush_color = "black"
         self.bg_color = "white"
         self.undo_stack = deque(maxlen=10)
+        self.redo_stack = deque(maxlen=10)
 
         self.update()  # update interface before calculate picture size
-        self.new_picture("white")
+        self.brush()
+        self.new_picture(self.bg_color)
 
         self.prev_x, self.prev_y = (None, None)
 
@@ -259,14 +286,11 @@ class Brushshe(ctk.CTk):
         self.font_path = path.join(PATH, "fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
         self.sticker_size = 100
 
-        self.canvas.bind("<B1-Motion>", self.paint)
         self.canvas.bind("<Button-3>", self.eyedropper)
-        self.canvas.bind("<Double-1>", self.fill)
 
         self.bind("<Control-z>", lambda e: self.undo())
+        self.bind("<Control-y>", lambda e: self.redo())
         self.bind("<Control-s>", lambda e: self.save_to_gallery())
-
-        self.canvas.configure(cursor="pencil")
 
         """Defining the Gallery Folder Path"""
         if name == "nt":  # For Windows
@@ -320,7 +344,6 @@ class Brushshe(ctk.CTk):
             pass
 
     def paint(self, event):
-        self.canvas.bind("<ButtonRelease-1>", self.stop_paint)
         if self.prev_x is not None and self.prev_y is not None:
             self.draw_line(self.prev_x, self.prev_y, event.x, event.y)
             self.update_canvas()
@@ -329,9 +352,13 @@ class Brushshe(ctk.CTk):
     def stop_paint(self, event):
         self.prev_x, self.prev_y = (None, None)
         self.undo_stack.append(self.image.copy())
-        self.canvas.unbind("<ButtonRelease-1>")
 
     def draw_line(self, x1, y1, x2, y2):
+        if self.current_tool == "brush":
+            color = self.brush_color
+        elif self.current_tool == "eraser":
+            color = self.bg_color
+
         steps = max(abs(x2 - x1), abs(y2 - y1))
 
         for i in range(steps):
@@ -346,8 +373,8 @@ class Brushshe(ctk.CTk):
                     x + self.brush_size // 2,
                     y + self.brush_size // 2,
                 ],
-                fill=self.color,
-                outline=self.color,
+                fill=color,
+                outline=color,
             )
 
     def update_canvas(self):
@@ -362,6 +389,7 @@ class Brushshe(ctk.CTk):
         self.image = new_image
         self.draw = ImageDraw.Draw(self.image)
         self.update_canvas()
+        self.undo_stack.append(self.image.copy())
 
     def eyedropper(self, event):
         # Get the coordinates of the click event
@@ -370,15 +398,25 @@ class Brushshe(ctk.CTk):
         color = self.image.getpixel((x, y))
         self.obtained_color = "#{:02x}{:02x}{:02x}".format(*color)
 
-        self.color = self.obtained_color
+        self.brush_color = self.obtained_color
         self.other_color_btn.pack(side=ctk.RIGHT, padx=1)
         self.other_color_btn.configure(fg_color=self.obtained_color)
-        self.tool_label.configure(text=self._("Brush:"))
-        self.canvas.configure(cursor="pencil")
+        self.other_color_tooltip.configure(message=self.obtained_color)
 
-    def fill(self, event):  # beta
+    def start_fill(self):  # beta
+        self.canvas.bind("<Button-1>", self.fill)
+
+        self.current_tool = "fill"
+        self.tool_label.configure(text=self._("Fill"))
+        self.size_slider.pack_forget()
+        self.brush_size_label.pack_forget()
+        self.canvas.configure(cursor="spraycan")
+        self.canvas.unbind("<B1-Motion>")
+        self.canvas.unbind("<ButtonRelease-1>")
+
+    def fill(self, event):
         x, y = event.x, event.y
-        ImageDraw.floodfill(self.image, (x, y), ImageColor.getrgb(self.color))
+        ImageDraw.floodfill(self.image, (x, y), ImageColor.getrgb(self.brush_color))
         self.update_canvas()
         self.undo_stack.append(self.image.copy())
 
@@ -462,8 +500,11 @@ class Brushshe(ctk.CTk):
         tabview.set(self._("Choose a sticker"))
         tabview.pack(fill=ctk.BOTH, expand=True)
 
-        stickers_frame = ctk.CTkScrollableFrame(tabview.tab(self._("Choose a sticker")))
-        stickers_frame.pack(fill=ctk.BOTH, expand=True)
+        stickers_scrollable_frame = ctk.CTkScrollableFrame(tabview.tab(self._("Choose a sticker")))
+        stickers_scrollable_frame.pack(fill=ctk.BOTH, expand=True)
+
+        stickers_frame = ctk.CTkFrame(stickers_scrollable_frame)
+        stickers_frame.pack()
 
         self.st_size_label = ctk.CTkLabel(tabview.tab(self._("Sticker size")), text=self.sticker_size)
         self.st_size_label.pack(padx=10, pady=10)
@@ -492,8 +533,15 @@ class Brushshe(ctk.CTk):
         update_btn()
 
     def set_current_sticker(self, sticker_image):  # Choose a sticker
-        self.canvas.bind("<Button-1>", lambda event: self.add_sticker(event, sticker_image))
+        self.current_tool = "sticker"
+        self.tool_label.configure(text=self._("Stickers"))
+        self.size_slider.pack_forget()
+        self.brush_size_label.pack_forget()
         self.canvas.configure(cursor="")
+        self.canvas.unbind("<B1-Motion>")
+        self.canvas.unbind("<ButtonRelease-1>")
+
+        self.canvas.bind("<Button-1>", lambda event: self.add_sticker(event, sticker_image))
 
     def add_sticker(self, event, sticker_image):  # Add a sticker
         if sticker_image.mode == "RGBA":
@@ -505,8 +553,6 @@ class Brushshe(ctk.CTk):
 
         self.update_canvas()
 
-        self.canvas.unbind("<Button-1>")
-        self.canvas.configure(cursor="pencil")
         self.undo_stack.append(self.image.copy())
 
     def change_sticker_size(self, value):
@@ -527,12 +573,12 @@ class Brushshe(ctk.CTk):
         text_width = bbox[2] - bbox[0]
         text_height = bbox[3] - bbox[1]
 
-        self.draw.text((event.x - text_width // 2, event.y - text_height // 2), text, fill=self.color, font=imagefont)
+        self.draw.text(
+            (event.x - text_width // 2, event.y - text_height // 2), text, fill=self.brush_color, font=imagefont
+        )
 
         self.update_canvas()
         self.undo_stack.append(self.image.copy())
-        self.canvas.unbind("<Button-1>")
-        self.canvas.configure(cursor="pencil")
         if self.tx_message_label.winfo_exists():
             self.tx_message_label.configure(text="\n")
 
@@ -548,8 +594,16 @@ class Brushshe(ctk.CTk):
         def add_text_ready():
             self.tx_message_label.configure(text=self._("Now click where you\nwant it on the picture"))
             text = tx_entry.get()
-            self.canvas.bind("<Button-1>", lambda event, t=text: self.add_text(event, text))
+
+            self.current_tool = "text"
+            self.tool_label.configure(text=self._("Text"))
+            self.size_slider.pack_forget()
+            self.brush_size_label.pack_forget()
             self.canvas.configure(cursor="")
+            self.canvas.unbind("<B1-Motion>")
+            self.canvas.unbind("<ButtonRelease-1>")
+
+            self.canvas.bind("<Button-1>", lambda event, t=text: self.add_text(event, text))
 
         text_win = ctk.CTkToplevel(app)
         text_win.title(self._("Add text to a picture"))
@@ -637,73 +691,73 @@ class Brushshe(ctk.CTk):
         def start_shape(event):
             self.shape_start_x = event.x
             self.shape_start_y = event.y
-            if self.shape == "rectangle":
+            if self.shape == "Rectangle":
                 self.shape_id = self.canvas.create_rectangle(
                     self.shape_start_x,
                     self.shape_start_y,
                     self.shape_start_x,
                     self.shape_start_y,
                     width=self.brush_size,
-                    outline=self.color,
+                    outline=self.brush_color,
                 )
-            elif self.shape == "oval":
+            elif self.shape == "Oval":
                 self.shape_id = self.canvas.create_oval(
                     self.shape_start_x,
                     self.shape_start_y,
                     self.shape_start_x,
                     self.shape_start_y,
                     width=self.brush_size,
-                    outline=self.color,
+                    outline=self.brush_color,
                 )
-            elif self.shape == "line":
+            elif self.shape == "Line":
                 self.shape_id = self.canvas.create_line(
                     self.shape_start_x,
                     self.shape_start_y,
                     self.shape_start_x,
                     self.shape_start_y,
                     width=self.brush_size,
-                    fill=self.color,
+                    fill=self.brush_color,
                     capstyle=ctk.ROUND,
                 )
-            elif self.shape == "fill rectangle":
+            elif self.shape == "Fill rectangle":
                 self.shape_id = self.canvas.create_rectangle(
                     self.shape_start_x,
                     self.shape_start_y,
                     self.shape_start_x,
                     self.shape_start_y,
-                    fill=self.color,
-                    outline=self.color,
+                    fill=self.brush_color,
+                    outline=self.brush_color,
                 )
-            elif self.shape == "fill oval":
+            elif self.shape == "Fill oval":
                 self.shape_id = self.canvas.create_oval(
                     self.shape_start_x,
                     self.shape_start_y,
                     self.shape_start_x,
                     self.shape_start_y,
-                    fill=self.color,
-                    outline=self.color,
+                    fill=self.brush_color,
+                    outline=self.brush_color,
                 )
 
         def draw_shape(event):
             self.canvas.coords(self.shape_id, self.shape_start_x, self.shape_start_y, event.x, event.y)
 
         def end_shape(event):
-            if self.shape == "rectangle":
+            if self.shape == "Rectangle":
                 self.draw.rectangle(
                     [self.shape_start_x, self.shape_start_y, event.x, event.y],
-                    outline=self.color,
+                    outline=self.brush_color,
                     width=self.brush_size,
                 )
-            elif self.shape == "oval":
+            elif self.shape == "Oval":
                 self.draw.ellipse(
                     [self.shape_start_x, self.shape_start_y, event.x, event.y],
-                    outline=self.color,
+                    outline=self.brush_color,
                     width=self.brush_size,
                 )
-            elif self.shape == "line":
+            elif self.shape == "Line":
                 self.draw.line(
                     [self.shape_start_x, self.shape_start_y, event.x, event.y],
-                    fill=self.color,
+                    fill=self.brush_color,
                     width=self.brush_size,
                 )
                 # for rounded ends
@@ -714,7 +768,7 @@ class Brushshe(ctk.CTk):
                         self.shape_start_x + self.brush_size / 2,
                         self.shape_start_y + self.brush_size / 2,
                     ],
-                    fill=self.color,
+                    fill=self.brush_color,
                 )
                 self.draw.ellipse(
                     [
@@ -723,32 +777,37 @@ class Brushshe(ctk.CTk):
                         event.x + self.brush_size / 2,
                         event.y + self.brush_size / 2,
                     ],
-                    fill=self.color,
+                    fill=self.brush_color,
                 )
-            elif self.shape == "fill rectangle":
+            elif self.shape == "Fill rectangle":
                 self.draw.rectangle(
                     [self.shape_start_x, self.shape_start_y, event.x, event.y],
-                    fill=self.color,
+                    fill=self.brush_color,
                 )
-            elif self.shape == "fill oval":
+            elif self.shape == "Fill oval":
                 self.draw.ellipse(
                     [self.shape_start_x, self.shape_start_y, event.x, event.y],
-                    fill=self.color,
+                    fill=self.brush_color,
                 )
             self.update_canvas()
             self.undo_stack.append(self.image.copy())
-            self.canvas.unbind("<ButtonPress-1>")
-            self.canvas.unbind("<ButtonRelease-1>")
 
-            self.canvas.bind("<B1-Motion>", self.paint)
-            self.canvas.configure(cursor="pencil")
+        self.current_tool = "shape"
+        if shape == "Fill rectangle" or shape == "Fill oval":
+            self.tool_label.configure(text=self._(shape))
+            self.size_slider.pack_forget()
+            self.brush_size_label.pack_forget()
+        else:
+            self.tool_label.configure(text=self._(shape) + ":")
+            self.size_slider.pack(side=ctk.LEFT, padx=1)
+            self.brush_size_label.pack(side=ctk.LEFT, padx=1)
+        self.canvas.configure(cursor="plus")
 
         self.shape = shape
+        self.canvas.unbind("<Button-1>")
         self.canvas.bind("<ButtonPress-1>", start_shape)
         self.canvas.bind("<B1-Motion>", draw_shape)
         self.canvas.bind("<ButtonRelease-1>", end_shape)
-
-        self.canvas.configure(cursor="plus")
 
         self.after(200)  # A little delay, otherwise it doesn't work
 
@@ -900,7 +959,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v1.3.0",
+            message=about_text + "v1.4.0 codename Jasmin",
             icon=path.join(PATH, "icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
@@ -926,15 +985,37 @@ class Brushshe(ctk.CTk):
     def change_brush_size(self, size):
         self.brush_size = int(size)
         self.brush_size_label.configure(text=self.brush_size)
+        self.size_tooltip.configure(message=self.brush_size)
+
+    def brush(self):
+        self.current_tool = "brush"
+        self.tool_label.configure(text=self._("Brush") + ":")
+        self.size_slider.pack(side=ctk.LEFT, padx=1)
+        self.brush_size_label.pack(side=ctk.LEFT, padx=1)
+        self.canvas.configure(cursor="pencil")
+
+        self.canvas.unbind("<Button-1>")
+        self.canvas.unbind("<ButtonPress-1>")
+        self.canvas.unbind("<ButtonRelease-1>")
+        self.canvas.bind("<B1-Motion>", self.paint)
+        self.canvas.bind("<ButtonRelease-1>", self.stop_paint)
 
     def eraser(self):
-        self.color = self.bg_color
-        self.tool_label.configure(text=self._("Eraser:"))
+        self.current_tool = "eraser"
+        self.tool_label.configure(text=self._("Eraser") + ":")
+        self.size_slider.pack(side=ctk.LEFT, padx=1)
+        self.brush_size_label.pack(side=ctk.LEFT, padx=1)
         self.canvas.configure(cursor="plus")
+
+        self.canvas.unbind("<Button-1>")
+        self.canvas.unbind("<ButtonPress-1>")
+        self.canvas.unbind("<ButtonRelease-1>")
+        self.canvas.bind("<B1-Motion>", self.paint)
+        self.canvas.bind("<ButtonRelease-1>", self.stop_paint)
 
     def undo(self):
         if len(self.undo_stack) > 1:
-            self.undo_stack.pop()
+            self.redo_stack.append(self.undo_stack.pop())
             self.image = self.undo_stack[-1].copy()
             self.draw = ImageDraw.Draw(self.image)
             if self.image.width != self.canvas.winfo_width() or self.image.height != self.canvas.winfo_height():
@@ -943,8 +1024,22 @@ class Brushshe(ctk.CTk):
                 self.height_slider.set(self.image.height)
             self.update_canvas()
 
+    def redo(self):
+        if len(self.redo_stack) > 0:
+            self.image = self.redo_stack.pop().copy()
+            self.undo_stack.append(self.image.copy())
+            self.draw = ImageDraw.Draw(self.image)
+            if self.image.width != self.canvas.winfo_width() or self.image.height != self.canvas.winfo_height():
+                self.canvas.configure(width=self.image.width, height=self.image.height)
+                self.width_slider.set(self.image.width)
+                self.height_slider.set(self.image.height)
+            self.update_canvas()
+
     def save_to_gallery(self):
-        self.image.save(f"{self.gallery_folder}/{uuid4()}.png")
+        file_path = self.gallery_folder / f"{uuid4()}.png"
+        while file_path.exists():
+            file_path = self.gallery_folder / f"{uuid4()}.png"
+        self.image.save(file_path)
 
         CTkMessagebox(
             title=self._("Saved"),
@@ -956,27 +1051,22 @@ class Brushshe(ctk.CTk):
         )
 
     def change_color(self, new_color):
-        self.color = new_color
-        self.tool_label.configure(text=self._("Brush:"))
-        self.canvas.configure(cursor="pencil")
+        self.brush_color = new_color
 
     def other_color_choice(self):
         try:
             askcolor = AskColor(title=self._("Choose a different brush color"))
             self.obtained_color = askcolor.get()
             if self.obtained_color:
-                self.color = self.obtained_color
+                self.brush_color = self.obtained_color
                 self.other_color_btn.pack(side=ctk.RIGHT, padx=1)
                 self.other_color_btn.configure(fg_color=self.obtained_color)
-                self.tool_label.configure(text=self._("Brush:"))
-                self.canvas.configure(cursor="pencil")
+                self.other_color_tooltip.configure(message=self.obtained_color)
         except:  # noqa: E722
             pass
 
     def select_other_color_btn(self):
-        self.color = self.obtained_color
-        self.tool_label.configure(text=self._("Brush:"))
-        self.canvas.configure(cursor="pencil")
+        self.brush_color = self.obtained_color
 
     def open_image(self, openimage):
         self.bg_color = "white"
