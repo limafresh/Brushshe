@@ -12,7 +12,7 @@ from brushshe_color_picker import AskColor
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
 from CTkToolTip import CTkToolTip
-from PIL import Image, ImageColor, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps, ImageTk
+from PIL import Image, ImageColor, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps, ImageStat, ImageTk
 
 PATH = path.dirname(path.realpath(__file__))
 
@@ -132,7 +132,9 @@ class Brushshe(ctk.CTk):
             "Fill oval",
         ]
         for shape in shape_options:
-            shapes_dropdown.add_option(option=self._(shape), command=lambda shape=shape: self.create_shape(shape))
+            shapes_dropdown.add_option(
+                option=self._(shape), command=lambda shape=shape: self.after(200, self.create_shape(shape))
+            )
 
         menu.add_cascade(self._("My Gallery"), command=self.show_gallery)
 
@@ -689,84 +691,57 @@ class Brushshe(ctk.CTk):
     # Shape creation functions
     def create_shape(self, shape):
         def start_shape(event):
-            self.shape_start_x = event.x
-            self.shape_start_y = event.y
-            if self.shape == "Rectangle":
-                self.shape_id = self.canvas.create_rectangle(
-                    self.shape_start_x,
-                    self.shape_start_y,
-                    self.shape_start_x,
-                    self.shape_start_y,
-                    width=self.brush_size,
-                    outline=self.brush_color,
-                )
-            elif self.shape == "Oval":
-                self.shape_id = self.canvas.create_oval(
-                    self.shape_start_x,
-                    self.shape_start_y,
-                    self.shape_start_x,
-                    self.shape_start_y,
-                    width=self.brush_size,
-                    outline=self.brush_color,
-                )
-            elif self.shape == "Line":
-                self.shape_id = self.canvas.create_line(
-                    self.shape_start_x,
-                    self.shape_start_y,
-                    self.shape_start_x,
-                    self.shape_start_y,
-                    width=self.brush_size,
-                    fill=self.brush_color,
-                    capstyle=ctk.ROUND,
-                )
-            elif self.shape == "Fill rectangle":
-                self.shape_id = self.canvas.create_rectangle(
-                    self.shape_start_x,
-                    self.shape_start_y,
-                    self.shape_start_x,
-                    self.shape_start_y,
-                    fill=self.brush_color,
-                    outline=self.brush_color,
-                )
-            elif self.shape == "Fill oval":
-                self.shape_id = self.canvas.create_oval(
-                    self.shape_start_x,
-                    self.shape_start_y,
-                    self.shape_start_x,
-                    self.shape_start_y,
-                    fill=self.brush_color,
-                    outline=self.brush_color,
+            self.shape_x, self.shape_y = (event.x, event.y)
+
+            self.get_contrast_color()
+
+            shape_methods = {
+                "Rectangle": self.canvas.create_rectangle,
+                "Oval": self.canvas.create_oval,
+                "Line": self.canvas.create_line,
+                "Fill rectangle": self.canvas.create_rectangle,
+                "Fill oval": self.canvas.create_oval,
+            }
+
+            create_method = shape_methods.get(shape)
+            if create_method:
+                param = "fill" if shape == "Line" else "outline"
+                self.shape_id = create_method(
+                    self.shape_x, self.shape_y, self.shape_x, self.shape_y, **{param: self.contrast_color}
                 )
 
         def draw_shape(event):
-            self.canvas.coords(self.shape_id, self.shape_start_x, self.shape_start_y, event.x, event.y)
+            if hasattr(self, "shape_x"):
+                self.canvas.coords(self.shape_id, self.shape_x, self.shape_y, event.x, event.y)
 
         def end_shape(event):
-            if self.shape == "Rectangle":
+            if not hasattr(self, "shape_x"):
+                return
+            if shape == "Rectangle":
                 self.draw.rectangle(
-                    [self.shape_start_x, self.shape_start_y, event.x, event.y],
+                    [self.shape_x, self.shape_y, event.x, event.y],
                     outline=self.brush_color,
                     width=self.brush_size,
                 )
-            elif self.shape == "Oval":
+            elif shape == "Oval":
                 self.draw.ellipse(
-                    [self.shape_start_x, self.shape_start_y, event.x, event.y],
+                    [self.shape_x, self.shape_y, event.x, event.y],
                     outline=self.brush_color,
                     width=self.brush_size,
                 )
-            elif self.shape == "Line":
+            elif shape == "Line":
                 self.draw.line(
-                    [self.shape_start_x, self.shape_start_y, event.x, event.y],
+                    [self.shape_x, self.shape_y, event.x, event.y],
                     fill=self.brush_color,
                     width=self.brush_size,
                 )
                 # for rounded ends
                 self.draw.ellipse(
                     [
-                        self.shape_start_x - self.brush_size / 2,
-                        self.shape_start_y - self.brush_size / 2,
-                        self.shape_start_x + self.brush_size / 2,
-                        self.shape_start_y + self.brush_size / 2,
+                        self.shape_x - self.brush_size / 2,
+                        self.shape_y - self.brush_size / 2,
+                        self.shape_x + self.brush_size / 2,
+                        self.shape_y + self.brush_size / 2,
                     ],
                     fill=self.brush_color,
                 )
@@ -779,16 +754,10 @@ class Brushshe(ctk.CTk):
                     ],
                     fill=self.brush_color,
                 )
-            elif self.shape == "Fill rectangle":
-                self.draw.rectangle(
-                    [self.shape_start_x, self.shape_start_y, event.x, event.y],
-                    fill=self.brush_color,
-                )
-            elif self.shape == "Fill oval":
-                self.draw.ellipse(
-                    [self.shape_start_x, self.shape_start_y, event.x, event.y],
-                    fill=self.brush_color,
-                )
+            elif shape == "Fill rectangle":
+                self.draw.rectangle([self.shape_x, self.shape_y, event.x, event.y], fill=self.brush_color)
+            elif shape == "Fill oval":
+                self.draw.ellipse([self.shape_x, self.shape_y, event.x, event.y], fill=self.brush_color)
             self.update_canvas()
             self.undo_stack.append(self.image.copy())
 
@@ -803,13 +772,10 @@ class Brushshe(ctk.CTk):
             self.brush_size_label.pack(side=ctk.LEFT, padx=1)
         self.canvas.configure(cursor="plus")
 
-        self.shape = shape
         self.canvas.unbind("<Button-1>")
         self.canvas.bind("<ButtonPress-1>", start_shape)
         self.canvas.bind("<B1-Motion>", draw_shape)
         self.canvas.bind("<ButtonRelease-1>", end_shape)
-
-        self.after(200)  # A little delay, otherwise it doesn't work
 
     def effects(self):
         def post_actions():
@@ -959,7 +925,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v1.4.0 codename Jasmin",
+            message=about_text + "v1.5.0",
             icon=path.join(PATH, "icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
@@ -1057,6 +1023,8 @@ class Brushshe(ctk.CTk):
         try:
             askcolor = AskColor(title=self._("Choose a different brush color"))
             self.obtained_color = askcolor.get()
+            if self.current_tool == "shape":
+                self.after(200)
             if self.obtained_color:
                 self.brush_color = self.obtained_color
                 self.other_color_btn.pack(side=ctk.RIGHT, padx=1)
@@ -1090,6 +1058,11 @@ class Brushshe(ctk.CTk):
             icon_size=(100, 100),
             sound=True,
         )
+
+    def get_contrast_color(self):
+        stat = ImageStat.Stat(self.image)
+        r, g, b = stat.mean[:3]
+        self.contrast_color = "#232323" if (r + g + b) / 3 > 127 else "#e8e8e8"
 
 
 app = Brushshe()
