@@ -62,5 +62,8 @@
 	"Choose sticker from file\nthen click where you want\nit on the picture": "Виберіть наліпку з файла,\nа потім клацніть на потрібне\nмісце на малюнку",
 	"Brushshe Gallery (loading...)": "Галерея Брашше (завантаження...)",
 	"Undo": "Скасувати",
-	"Redo": "Повернути"
+	"Redo": "Повернути",
+	"Rotate right": "Повернути ліворуч",
+	"Rotate left": "Повернути ліворуч",
+	"Create screenshot": "Створити знімок екрана"
 }

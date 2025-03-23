@@ -1,4 +1,5 @@
 import json
+import sys
 import webbrowser
 from collections import deque
 from locale import getlocale
@@ -12,9 +13,23 @@ from brushshe_color_picker import AskColor
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
 from CTkToolTip import CTkToolTip
-from PIL import Image, ImageColor, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps, ImageStat, ImageTk
+from PIL import (
+    Image,
+    ImageColor,
+    ImageDraw,
+    ImageEnhance,
+    ImageFilter,
+    ImageFont,
+    ImageGrab,
+    ImageOps,
+    ImageStat,
+    ImageTk,
+)
 
-PATH = path.dirname(path.realpath(__file__))
+
+def resource(relative_path):
+    base_path = getattr(sys, "_MEIPASS", path.dirname(path.abspath(__file__)))
+    return path.join(base_path, relative_path)
 
 
 class Brushshe(ctk.CTk):
@@ -22,10 +37,10 @@ class Brushshe(ctk.CTk):
         super().__init__()
         self.geometry("680x600")
         if name == "nt":
-            self.iconbitmap(path.join(PATH, "icons/icon.ico"))
+            self.iconbitmap(resource("icons/icon.ico"))
         else:
-            self.iconphoto(True, PhotoImage(file=path.join(PATH, "icons/icon.png")))
-        ctk.set_default_color_theme(path.join(PATH, "brushshe_theme.json"))
+            self.iconphoto(True, PhotoImage(file=resource("icons/icon.png")))
+        ctk.set_default_color_theme(resource("brushshe_theme.json"))
         ctk.set_appearance_mode("system")
         self.protocol("WM_DELETE_WINDOW", self.when_closing)
 
@@ -53,7 +68,7 @@ class Brushshe(ctk.CTk):
         else:
             try:
                 with open(
-                    path.join(PATH, f"locales/{language_code}.json"),
+                    resource(f"locales/{language_code}.json"),
                     "r",
                     encoding="utf-8",
                 ) as f:
@@ -64,7 +79,7 @@ class Brushshe(ctk.CTk):
                 CTkMessagebox(
                     title="Oh, unfortunately, it happened",
                     message="Localization file is corrupted. Brushshe will be in English.",
-                    icon=path.join(PATH, "icons/cry.png"),
+                    icon=resource("icons/cry.png"),
                     icon_size=(100, 100),
                     sound=True,
                 )
@@ -98,6 +113,9 @@ class Brushshe(ctk.CTk):
         formats = ["PNG", "JPG", "GIF", "BMP", "TIFF", "WEBP", "ICO", "PPM", "PGM", "PBM"]
         for fmt in formats:
             save_submenu.add_option(option=fmt, command=lambda fmt=fmt: self.save_to_device(f".{fmt.lower()}"))
+        file_dropdown.add_separator()
+        file_dropdown.add_option(option=self._("Rotate right"), command=lambda: self.rotate(-90))
+        file_dropdown.add_option(option=self._("Rotate left"), command=lambda: self.rotate(90))
 
         new_menu = menu.add_cascade(self._("New"))
         new_dropdown = CustomDropdownMenu(widget=new_menu)
@@ -106,20 +124,21 @@ class Brushshe(ctk.CTk):
             new_dropdown.add_option(option=None, bg_color=color, command=lambda c=color: self.new_picture(c))
         new_dropdown.add_separator()
         new_dropdown.add_option(option=self._("Other color"), command=self.other_bg_color)
+        new_dropdown.add_option(option=self._("Create screenshot"), command=self.create_screenshot)
 
         add_menu = menu.add_cascade(self._("Add"))
         add_dropdown = CustomDropdownMenu(widget=add_menu)
-        smile_icon = ctk.CTkImage(light_image=Image.open(path.join(PATH, "icons/smile.png")), size=(50, 50))
+        smile_icon = ctk.CTkImage(light_image=Image.open(resource("icons/smile.png")), size=(50, 50))
         add_dropdown.add_option(
             option=self._("Stickers"),
             image=smile_icon,
             command=self.show_stickers_choice,
         )
-        text_icon = ctk.CTkImage(light_image=Image.open(path.join(PATH, "icons/text.png")), size=(50, 50))
+        text_icon = ctk.CTkImage(light_image=Image.open(resource("icons/text.png")), size=(50, 50))
         add_dropdown.add_option(self._("Text"), image=text_icon, command=self.show_text_window)
-        frame_icon = ctk.CTkImage(light_image=Image.open(path.join(PATH, "icons/frame.png")), size=(50, 50))
+        frame_icon = ctk.CTkImage(light_image=Image.open(resource("icons/frame.png")), size=(50, 50))
         add_dropdown.add_option(option=self._("Frames"), image=frame_icon, command=self.show_frame_choice)
-        effects_icon = ctk.CTkImage(light_image=Image.open(path.join(PATH, "icons/effects.png")), size=(50, 50))
+        effects_icon = ctk.CTkImage(light_image=Image.open(resource("icons/effects.png")), size=(50, 50))
         add_dropdown.add_option(option=self._("Effects"), image=effects_icon, command=self.effects)
 
         shapes_menu = menu.add_cascade(self._("Shapes"))
@@ -157,22 +176,22 @@ class Brushshe(ctk.CTk):
         tools_frame.pack(side=ctk.TOP, fill=ctk.X)
 
         brush_icon = ctk.CTkImage(
-            light_image=Image.open(path.join(PATH, "icons/brush_light.png")),
-            dark_image=Image.open(path.join(PATH, "icons/brush_dark.png")),
+            light_image=Image.open(resource("icons/brush_light.png")),
+            dark_image=Image.open(resource("icons/brush_dark.png")),
             size=(20, 20),
         )
         brush_button = ctk.CTkButton(tools_frame, text=None, width=30, image=brush_icon, command=self.brush)
         brush_button.pack(side=ctk.LEFT, padx=1)
         CTkToolTip(brush_button, message=self._("Brush"), text_color="gray14")
 
-        eraser_icon = ctk.CTkImage(light_image=Image.open(path.join(PATH, "icons/eraser.png")), size=(20, 20))
+        eraser_icon = ctk.CTkImage(light_image=Image.open(resource("icons/eraser.png")), size=(20, 20))
         eraser_button = ctk.CTkButton(tools_frame, text=None, width=30, image=eraser_icon, command=self.eraser)
         eraser_button.pack(side=ctk.LEFT, padx=1)
         CTkToolTip(eraser_button, message=self._("Eraser"), text_color="gray14")
 
         fill_icon = ctk.CTkImage(
-            light_image=Image.open(path.join(PATH, "icons/fill_light.png")),
-            dark_image=Image.open(path.join(PATH, "icons/fill_dark.png")),
+            light_image=Image.open(resource("icons/fill_light.png")),
+            dark_image=Image.open(resource("icons/fill_dark.png")),
             size=(20, 20),
         )
         fill_button = ctk.CTkButton(tools_frame, text=None, width=30, image=fill_icon, command=self.start_fill)
@@ -180,8 +199,8 @@ class Brushshe(ctk.CTk):
         CTkToolTip(fill_button, message=self._("Fill"), text_color="gray14")
 
         undo_icon = ctk.CTkImage(
-            light_image=Image.open(path.join(PATH, "icons/undo_light.png")),
-            dark_image=Image.open(path.join(PATH, "icons/undo_dark.png")),
+            light_image=Image.open(resource("icons/undo_light.png")),
+            dark_image=Image.open(resource("icons/undo_dark.png")),
             size=(20, 20),
         )
         undo_button = ctk.CTkButton(tools_frame, text=None, width=30, image=undo_icon, command=self.undo)
@@ -189,8 +208,8 @@ class Brushshe(ctk.CTk):
         CTkToolTip(undo_button, message=self._("Undo") + " (Ctrl+Z)", text_color="gray14")
 
         redo_icon = ctk.CTkImage(
-            light_image=Image.open(path.join(PATH, "icons/redo_light.png")),
-            dark_image=Image.open(path.join(PATH, "icons/redo_dark.png")),
+            light_image=Image.open(resource("icons/redo_light.png")),
+            dark_image=Image.open(resource("icons/redo_dark.png")),
             size=(20, 20),
         )
         redo_button = ctk.CTkButton(tools_frame, text=None, width=30, image=redo_icon, command=self.redo)
@@ -238,8 +257,19 @@ class Brushshe(ctk.CTk):
         self.height_slider.pack(side=ctk.LEFT, fill=ctk.Y)
         self.height_slider.bind("<ButtonRelease-1>", self.crop_picture)
 
-        self.canvas = ctk.CTkCanvas(self.canvas_frame)
+        self.v_scrollbar = ctk.CTkScrollbar(self.canvas_frame, orientation="vertical")
+        self.v_scrollbar.pack(side=ctk.RIGHT, fill=ctk.Y)
+
+        self.h_scrollbar = ctk.CTkScrollbar(self.canvas_frame, orientation="horizontal")
+        self.h_scrollbar.pack(side=ctk.BOTTOM, fill=ctk.X)
+
+        self.canvas = ctk.CTkCanvas(
+            self.canvas_frame, yscrollcommand=self.v_scrollbar.set, xscrollcommand=self.h_scrollbar.set
+        )
         self.canvas.pack()
+
+        self.v_scrollbar.configure(command=self.canvas.yview)
+        self.h_scrollbar.configure(command=self.canvas.xview)
 
         """Palette"""
         self.palette = ctk.CTkFrame(self)
@@ -285,7 +315,7 @@ class Brushshe(ctk.CTk):
         self.prev_x, self.prev_y = (None, None)
 
         self.font_size = 24
-        self.font_path = path.join(PATH, "fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
+        self.font_path = resource("fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
         self.sticker_size = 100
 
         self.canvas.bind("<Button-3>", self.eyedropper)
@@ -326,7 +356,7 @@ class Brushshe(ctk.CTk):
             "butterfly",
             "flower2",
         ]
-        self.stickers = [Image.open(path.join(PATH, f"stickers/{name}.png")) for name in stickers_names]
+        self.stickers = [Image.open(resource(f"stickers/{name}.png")) for name in stickers_names]
 
     """ Functionality """
 
@@ -336,7 +366,7 @@ class Brushshe(ctk.CTk):
             message=self._("Continue?"),
             option_1=self._("Yes"),
             option_2=self._("No"),
-            icon=path.join(PATH, "icons/question.png"),
+            icon=resource("icons/question.png"),
             icon_size=(100, 100),
             sound=True,
         )
@@ -346,10 +376,11 @@ class Brushshe(ctk.CTk):
             pass
 
     def paint(self, event):
+        x, y = (int(self.canvas.canvasx(event.x)), int(self.canvas.canvasy(event.y)))
         if self.prev_x is not None and self.prev_y is not None:
-            self.draw_line(self.prev_x, self.prev_y, event.x, event.y)
+            self.draw_line(self.prev_x, self.prev_y, x, y)
             self.update_canvas()
-        self.prev_x, self.prev_y = event.x, event.y
+        self.prev_x, self.prev_y = x, y
 
     def stop_paint(self, event):
         self.prev_x, self.prev_y = (None, None)
@@ -392,10 +423,11 @@ class Brushshe(ctk.CTk):
         self.draw = ImageDraw.Draw(self.image)
         self.update_canvas()
         self.undo_stack.append(self.image.copy())
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
     def eyedropper(self, event):
         # Get the coordinates of the click event
-        x, y = event.x, event.y
+        x, y = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
 
         color = self.image.getpixel((x, y))
         self.obtained_color = "#{:02x}{:02x}{:02x}".format(*color)
@@ -417,7 +449,7 @@ class Brushshe(ctk.CTk):
         self.canvas.unbind("<ButtonRelease-1>")
 
     def fill(self, event):
-        x, y = event.x, event.y
+        x, y = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
         ImageDraw.floodfill(self.image, (x, y), ImageColor.getrgb(self.brush_color))
         self.update_canvas()
         self.undo_stack.append(self.image.copy())
@@ -445,7 +477,7 @@ class Brushshe(ctk.CTk):
             CTkMessagebox(
                 title=self._("Saved"),
                 message=self._("The picture has been successfully saved to your device in format") + f" {extension}!",
-                icon=path.join(PATH, "icons/saved.png"),
+                icon=resource("icons/saved.png"),
                 icon_size=(100, 100),
             )
 
@@ -539,19 +571,20 @@ class Brushshe(ctk.CTk):
         self.tool_label.configure(text=self._("Stickers"))
         self.size_slider.pack_forget()
         self.brush_size_label.pack_forget()
-        self.canvas.configure(cursor="")
+        self.canvas.configure(cursor="cross")
         self.canvas.unbind("<B1-Motion>")
         self.canvas.unbind("<ButtonRelease-1>")
 
         self.canvas.bind("<Button-1>", lambda event: self.add_sticker(event, sticker_image))
 
     def add_sticker(self, event, sticker_image):  # Add a sticker
+        x, y = (int(self.canvas.canvasx(event.x)), int(self.canvas.canvasy(event.y)))
         if sticker_image.mode == "RGBA":
             self.image.paste(
-                sticker_image, (event.x - sticker_image.width // 2, event.y - sticker_image.height // 2), sticker_image
+                sticker_image, (x - sticker_image.width // 2, y - sticker_image.height // 2), sticker_image
             )
         else:
-            self.image.paste(sticker_image, (event.x - sticker_image.width // 2, event.y - sticker_image.height // 2))
+            self.image.paste(sticker_image, (x - sticker_image.width // 2, y - sticker_image.height // 2))
 
         self.update_canvas()
 
@@ -567,17 +600,16 @@ class Brushshe(ctk.CTk):
         self.st_slider.set(self.sticker_size)
 
     def add_text(self, event, text):  # Add text
+        x, y = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
         imagefont = ImageFont.truetype(self.font_path, self.font_size)
 
-        bbox = self.draw.textbbox((event.x, event.y), text, font=imagefont)
+        bbox = self.draw.textbbox((x, y), text, font=imagefont)
 
         # Text size
         text_width = bbox[2] - bbox[0]
         text_height = bbox[3] - bbox[1]
 
-        self.draw.text(
-            (event.x - text_width // 2, event.y - text_height // 2), text, fill=self.brush_color, font=imagefont
-        )
+        self.draw.text((x - text_width // 2, y - text_height // 2), text, fill=self.brush_color, font=imagefont)
 
         self.update_canvas()
         self.undo_stack.append(self.image.copy())
@@ -590,7 +622,7 @@ class Brushshe(ctk.CTk):
             self.tx_size_label.configure(text=self.font_size)
 
         def optionmenu_callback(value):
-            self.font_path = fonts_dict.get(value)
+            self.font_path = resource(fonts_dict.get(value))
             self.imagefont = ImageFont.truetype(self.font_path, self.font_size)
 
         def add_text_ready():
@@ -601,7 +633,7 @@ class Brushshe(ctk.CTk):
             self.tool_label.configure(text=self._("Text"))
             self.size_slider.pack_forget()
             self.brush_size_label.pack_forget()
-            self.canvas.configure(cursor="")
+            self.canvas.configure(cursor="cross")
             self.canvas.unbind("<B1-Motion>")
             self.canvas.unbind("<ButtonRelease-1>")
 
@@ -624,12 +656,10 @@ class Brushshe(ctk.CTk):
         fonts_label.pack(padx=10, pady=10)
 
         fonts_dict = {
-            "Open Sans": path.join(PATH, "fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf"),
-            "Sigmar": path.join(PATH, "fonts/Sigmar/Sigmar-Regular.ttf"),
-            "Playwrite IT Moderna": path.join(
-                PATH, "fonts/Playwrite_IT_Moderna/PlaywriteITModerna-VariableFont_wght.ttf"
-            ),
-            "Monomakh": path.join(PATH, "fonts/Monomakh/Monomakh-Regular.ttf"),
+            "Open Sans": "fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf",
+            "Sigmar": "fonts/Sigmar/Sigmar-Regular.ttf",
+            "Playwrite IT Moderna": "fonts/Playwrite_IT_Moderna/PlaywriteITModerna-VariableFont_wght.ttf",
+            "Monomakh": "fonts/Monomakh/Monomakh-Regular.ttf",
         }
         fonts = list(fonts_dict.keys())
 
@@ -665,11 +695,11 @@ class Brushshe(ctk.CTk):
             "frame7",
         ]
         frames_thumbnails = [
-            ctk.CTkImage(light_image=Image.open(path.join(PATH, f"frames_preview/{name}.png")), size=(100, 100))
+            ctk.CTkImage(light_image=Image.open(resource(f"frames_preview/{name}.png")), size=(100, 100))
             for name in frames_names
         ]
 
-        frames = [Image.open(path.join(PATH, f"frames/{name}.png")) for name in frames_names]
+        frames = [Image.open(resource(f"frames/{name}.png")) for name in frames_names]
 
         row = 0
         column = 0
@@ -691,8 +721,7 @@ class Brushshe(ctk.CTk):
     # Shape creation functions
     def create_shape(self, shape):
         def start_shape(event):
-            self.shape_x, self.shape_y = (event.x, event.y)
-
+            self.shape_x, self.shape_y = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
             self.get_contrast_color()
 
             shape_methods = {
@@ -711,30 +740,21 @@ class Brushshe(ctk.CTk):
                 )
 
         def draw_shape(event):
-            if hasattr(self, "shape_x"):
-                self.canvas.coords(self.shape_id, self.shape_x, self.shape_y, event.x, event.y)
+            if not hasattr(self, "shape_x"):
+                return
+            x, y = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
+            self.canvas.coords(self.shape_id, self.shape_x, self.shape_y, x, y)
 
         def end_shape(event):
             if not hasattr(self, "shape_x"):
                 return
+            x, y = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
             if shape == "Rectangle":
-                self.draw.rectangle(
-                    [self.shape_x, self.shape_y, event.x, event.y],
-                    outline=self.brush_color,
-                    width=self.brush_size,
-                )
+                self.draw.rectangle([self.shape_x, self.shape_y, x, y], outline=self.brush_color, width=self.brush_size)
             elif shape == "Oval":
-                self.draw.ellipse(
-                    [self.shape_x, self.shape_y, event.x, event.y],
-                    outline=self.brush_color,
-                    width=self.brush_size,
-                )
+                self.draw.ellipse([self.shape_x, self.shape_y, x, y], outline=self.brush_color, width=self.brush_size)
             elif shape == "Line":
-                self.draw.line(
-                    [self.shape_x, self.shape_y, event.x, event.y],
-                    fill=self.brush_color,
-                    width=self.brush_size,
-                )
+                self.draw.line([self.shape_x, self.shape_y, x, y], fill=self.brush_color, width=self.brush_size)
                 # for rounded ends
                 self.draw.ellipse(
                     [
@@ -747,17 +767,17 @@ class Brushshe(ctk.CTk):
                 )
                 self.draw.ellipse(
                     [
-                        event.x - self.brush_size / 2,
-                        event.y - self.brush_size / 2,
-                        event.x + self.brush_size / 2,
-                        event.y + self.brush_size / 2,
+                        x - self.brush_size / 2,
+                        y - self.brush_size / 2,
+                        x + self.brush_size / 2,
+                        y + self.brush_size / 2,
                     ],
                     fill=self.brush_color,
                 )
             elif shape == "Fill rectangle":
-                self.draw.rectangle([self.shape_x, self.shape_y, event.x, event.y], fill=self.brush_color)
+                self.draw.rectangle([self.shape_x, self.shape_y, x, y], fill=self.brush_color)
             elif shape == "Fill oval":
-                self.draw.ellipse([self.shape_x, self.shape_y, event.x, event.y], fill=self.brush_color)
+                self.draw.ellipse([self.shape_x, self.shape_y, x, y], fill=self.brush_color)
             self.update_canvas()
             self.undo_stack.append(self.image.copy())
 
@@ -925,8 +945,8 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v1.5.0",
-            icon=path.join(PATH, "icons/brucklin.png"),
+            message=about_text + 'v1.6.0 "Ivanko"',
+            icon=resource("icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
             option_2="GitHub",
@@ -937,14 +957,18 @@ class Brushshe(ctk.CTk):
 
     def new_picture(self, color):
         self.bg_color = color
-        img_width = self.canvas_frame.winfo_width() - self.width_slider.winfo_height()
-        img_height = self.canvas_frame.winfo_height() - self.height_slider.winfo_width()
+        img_width = self.canvas_frame.winfo_width() - self.width_slider.winfo_height() - self.h_scrollbar.winfo_height()
+        img_height = (
+            self.canvas_frame.winfo_height() - self.height_slider.winfo_width() - self.v_scrollbar.winfo_width()
+        )
         self.width_slider.set(img_width)
         self.height_slider.set(img_height)
 
         self.image = Image.new("RGB", (img_width, img_height), color)
         self.draw = ImageDraw.Draw(self.image)
-        self.canvas.configure(width=img_width, height=img_height)
+        self.canvas.configure(width=img_width, height=img_height, scrollregion=self.canvas.bbox("all"))
+        self.canvas.xview_moveto(0)
+        self.canvas.yview_moveto(0)
         self.update_canvas()
         self.undo_stack.append(self.image.copy())
 
@@ -971,7 +995,7 @@ class Brushshe(ctk.CTk):
         self.tool_label.configure(text=self._("Eraser") + ":")
         self.size_slider.pack(side=ctk.LEFT, padx=1)
         self.brush_size_label.pack(side=ctk.LEFT, padx=1)
-        self.canvas.configure(cursor="plus")
+        self.canvas.configure(cursor="target")
 
         self.canvas.unbind("<Button-1>")
         self.canvas.unbind("<ButtonPress-1>")
@@ -985,7 +1009,9 @@ class Brushshe(ctk.CTk):
             self.image = self.undo_stack[-1].copy()
             self.draw = ImageDraw.Draw(self.image)
             if self.image.width != self.canvas.winfo_width() or self.image.height != self.canvas.winfo_height():
-                self.canvas.configure(width=self.image.width, height=self.image.height)
+                self.canvas.configure(
+                    width=self.image.width, height=self.image.height, scrollregion=self.canvas.bbox("all")
+                )
                 self.width_slider.set(self.image.width)
                 self.height_slider.set(self.image.height)
             self.update_canvas()
@@ -996,7 +1022,9 @@ class Brushshe(ctk.CTk):
             self.undo_stack.append(self.image.copy())
             self.draw = ImageDraw.Draw(self.image)
             if self.image.width != self.canvas.winfo_width() or self.image.height != self.canvas.winfo_height():
-                self.canvas.configure(width=self.image.width, height=self.image.height)
+                self.canvas.configure(
+                    width=self.image.width, height=self.image.height, scrollregion=self.canvas.bbox("all")
+                )
                 self.width_slider.set(self.image.width)
                 self.height_slider.set(self.image.height)
             self.update_canvas()
@@ -1012,7 +1040,7 @@ class Brushshe(ctk.CTk):
             message=self._(
                 'The picture has been successfully saved to the gallery ("My Gallery" in the menu at the top)!'
             ),
-            icon=path.join(PATH, "icons/saved.png"),
+            icon=resource("icons/saved.png"),
             icon_size=(100, 100),
         )
 
@@ -1040,21 +1068,14 @@ class Brushshe(ctk.CTk):
         self.bg_color = "white"
         self.image = Image.open(openimage)
         self.draw = ImageDraw.Draw(self.image)
-
-        img_width, img_height = self.image.size
-        self.canvas.configure(width=img_width, height=img_height)
-        self.width_slider.set(img_width)
-        self.height_slider.set(img_height)
-
-        self.update_canvas()
-        self.undo_stack.append(self.image.copy())
+        self.picture_postconfigure()
 
     def open_file_error(self, e):
         message_text = self._("Error - cannot open file:")
         CTkMessagebox(
             title=self._("Oh, unfortunately, it happened"),
             message=f"{message_text} {e}",
-            icon=path.join(PATH, "icons/cry.png"),
+            icon=resource("icons/cry.png"),
             icon_size=(100, 100),
             sound=True,
         )
@@ -1063,6 +1084,31 @@ class Brushshe(ctk.CTk):
         stat = ImageStat.Stat(self.image)
         r, g, b = stat.mean[:3]
         self.contrast_color = "#232323" if (r + g + b) / 3 > 127 else "#e8e8e8"
+
+    def rotate(self, degree):
+        rotated_image = self.image.rotate(degree, expand=True)
+        self.image = rotated_image
+        self.picture_postconfigure()
+
+    def create_screenshot(self):
+        self.withdraw()
+        self.iconify()
+        self.after(200)
+        self.image = ImageGrab.grab()
+        self.deiconify()
+        self.picture_postconfigure()
+
+    def picture_postconfigure(self):
+        self.canvas.configure(width=self.image.width, height=self.image.height)
+        self.width_slider.set(self.image.width)
+        self.height_slider.set(self.image.height)
+
+        self.update_canvas()
+        self.draw = ImageDraw.Draw(self.image)
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        self.canvas.xview_moveto(0)
+        self.canvas.yview_moveto(0)
+        self.undo_stack.append(self.image.copy())
 
 
 app = Brushshe()

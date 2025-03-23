@@ -61,6 +61,10 @@ Blur, detail, contour and grayscale with adjustment slider.
 Window showing images drawn in Brushshe and "saved to gallery". Images from the gallery are stored in `<user_home_folder>/Pictures/Brushshe Images` or `<user_home_folder>/Brushshe Images` on some minimalistic Linux distributions. For saving there is a button "Save to gallery" in toolbar and hotkey Ctrl+S.
 ### Dark theme
 There is a system, light and dark theme.
+### Rotate
+Rotate right, rotate left.
+### Create screenshot
+You can take a screenshot and draw on it.
 
 ## Credits
 Thanks [Akascape](https://github.com/Akascape) for libraries [CTkColorPicker](https://github.com/Akascape/CTkColorPicker), [CTkMenuBar](https://github.com/Akascape/CTkMenuBar), [CTkMessagebox](https://github.com/Akascape/CTkMessagebox) and [CTkToolTip](https://github.com/Akascape/CTkToolTip).
