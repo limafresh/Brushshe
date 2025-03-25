@@ -219,7 +219,7 @@ class Brushshe(ctk.CTk):
         self.tool_label = ctk.CTkLabel(tools_frame, text=None)
         self.tool_label.pack(side=ctk.LEFT, padx=1)
 
-        self.size_slider = ctk.CTkSlider(tools_frame, from_=2, to=50, command=self.change_brush_size)
+        self.size_slider = ctk.CTkSlider(tools_frame, from_=1, to=50, command=self.change_brush_size)
         self.brush_size = 2
         self.size_slider.set(self.brush_size)
         self.size_slider.pack(side=ctk.LEFT, padx=1)
@@ -376,7 +376,7 @@ class Brushshe(ctk.CTk):
             pass
 
     def paint(self, event):
-        x, y = (int(self.canvas.canvasx(event.x)), int(self.canvas.canvasy(event.y)))
+        x, y = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
         if self.prev_x is not None and self.prev_y is not None:
             self.draw_line(self.prev_x, self.prev_y, x, y)
             self.update_canvas()
@@ -392,23 +392,32 @@ class Brushshe(ctk.CTk):
         elif self.current_tool == "eraser":
             color = self.bg_color
 
-        steps = max(abs(x2 - x1), abs(y2 - y1))
+        dx = abs(x2 - x1)
+        dy = abs(y2 - y1)
+        sx = 1 if x1 < x2 else -1
+        sy = 1 if y1 < y2 else -1
+        err = dx - dy
 
-        for i in range(steps):
-            t = i / steps
-            x = int(x1 + (x2 - x1) * t)
-            y = int(y1 + (y2 - y1) * t)
-
+        while True:
             self.draw.ellipse(
                 [
-                    x - self.brush_size // 2,
-                    y - self.brush_size // 2,
-                    x + self.brush_size // 2,
-                    y + self.brush_size // 2,
+                    x1 - self.brush_size / 2,
+                    y1 - self.brush_size / 2,
+                    x1 + self.brush_size / 2,
+                    y1 + self.brush_size / 2,
                 ],
                 fill=color,
                 outline=color,
             )
+            if x1 == x2 and y1 == y2:
+                break
+            e2 = err * 2
+            if e2 > -dy:
+                err -= dy
+                x1 += sx
+            if e2 < dx:
+                err += dx
+                y1 += sy
 
     def update_canvas(self):
         self.canvas.delete("all")
@@ -945,7 +954,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + 'v1.6.0 "Ivanko"',
+            message=about_text + "v1.6.1",
             icon=resource("icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
