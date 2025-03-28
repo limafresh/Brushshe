@@ -757,11 +757,20 @@ class Brushshe(ctk.CTk):
         def end_shape(event):
             if not hasattr(self, "shape_x"):
                 return
-            x, y = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
+            x, y = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
+            if self.shape_x < x:
+                x0, x1 = self.shape_x, x
+            else:
+                x0, x1 = x, self.shape_x
+            if self.shape_y < y:
+                y0, y1 = self.shape_y, y
+            else:
+                y0, y1 = y, self.shape_y
+
             if shape == "Rectangle":
-                self.draw.rectangle([self.shape_x, self.shape_y, x, y], outline=self.brush_color, width=self.brush_size)
+                self.draw.rectangle([x0, y0, x1, y1], outline=self.brush_color, width=self.brush_size)
             elif shape == "Oval":
-                self.draw.ellipse([self.shape_x, self.shape_y, x, y], outline=self.brush_color, width=self.brush_size)
+                self.draw.ellipse([x0, y0, x1, y1], outline=self.brush_color, width=self.brush_size)
             elif shape == "Line":
                 self.draw.line([self.shape_x, self.shape_y, x, y], fill=self.brush_color, width=self.brush_size)
                 # for rounded ends
@@ -784,9 +793,9 @@ class Brushshe(ctk.CTk):
                     fill=self.brush_color,
                 )
             elif shape == "Fill rectangle":
-                self.draw.rectangle([self.shape_x, self.shape_y, x, y], fill=self.brush_color)
+                self.draw.rectangle([x0, y0, x1, y1], fill=self.brush_color)
             elif shape == "Fill oval":
-                self.draw.ellipse([self.shape_x, self.shape_y, x, y], fill=self.brush_color)
+                self.draw.ellipse([x0, y0, x1, y1], fill=self.brush_color)
             self.update_canvas()
             self.undo_stack.append(self.image.copy())
 
