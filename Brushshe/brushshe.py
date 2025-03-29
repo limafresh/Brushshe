@@ -379,7 +379,9 @@ class Brushshe(ctk.CTk):
         x, y = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
         if self.prev_x is not None and self.prev_y is not None:
             self.draw_line(self.prev_x, self.prev_y, x, y)
-            self.update_canvas()
+        else:
+            self.draw_line(x, y, x, y)
+        self.update_canvas()
         self.prev_x, self.prev_y = x, y
 
     def stop_paint(self, event):
@@ -399,18 +401,24 @@ class Brushshe(ctk.CTk):
         err = dx - dy
 
         while True:
-            self.draw.ellipse(
-                [
-                    x1 - self.brush_size / 2,
-                    y1 - self.brush_size / 2,
-                    x1 + self.brush_size / 2,
-                    y1 + self.brush_size / 2,
-                ],
-                fill=color,
-                outline=color,
-            )
-            if x1 == x2 and y1 == y2:
+            # Better variant for pixel compatible.
+            if self.brush_size <= 1:
+                self.draw.point([x1, y1], fill=color)
+            else:
+                self.draw.ellipse(
+                    [
+                        x1 - (self.brush_size - 1) // 2,
+                        y1 - (self.brush_size - 1) // 2,
+                        x1 + self.brush_size // 2,
+                        y1 + self.brush_size // 2,
+                    ],
+                    fill=color,
+                    outline=color,
+                )
+
+            if abs(x1 - x2) < 1 and abs(y1 - y2) < 1:
                 break
+
             e2 = err * 2
             if e2 > -dy:
                 err -= dy
@@ -1005,6 +1013,8 @@ class Brushshe(ctk.CTk):
         self.canvas.unbind("<Button-1>")
         self.canvas.unbind("<ButtonPress-1>")
         self.canvas.unbind("<ButtonRelease-1>")
+        
+        self.canvas.bind("<Button-1>", self.paint)
         self.canvas.bind("<B1-Motion>", self.paint)
         self.canvas.bind("<ButtonRelease-1>", self.stop_paint)
 
@@ -1018,6 +1028,8 @@ class Brushshe(ctk.CTk):
         self.canvas.unbind("<Button-1>")
         self.canvas.unbind("<ButtonPress-1>")
         self.canvas.unbind("<ButtonRelease-1>")
+
+        self.canvas.bind("<Button-1>", self.paint)
         self.canvas.bind("<B1-Motion>", self.paint)
         self.canvas.bind("<ButtonRelease-1>", self.stop_paint)
 
