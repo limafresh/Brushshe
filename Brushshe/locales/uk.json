@@ -65,5 +65,8 @@
 	"Redo": "Повернути",
 	"Rotate right": "Повернути ліворуч",
 	"Rotate left": "Повернути ліворуч",
-	"Create screenshot": "Створити знімок екрана"
+	"Create screenshot": "Створити знімок екрана",
+	"Delete": "Видалити",
+	"Confirm delete": "Підтвердити видалення",
+	"Are you sure you want to delete the picture?": "Ви впевнені, що дійсно бажаєте видалити малюнок?"
 }

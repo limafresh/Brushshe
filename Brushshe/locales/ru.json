@@ -65,5 +65,8 @@
 	"Redo": "Вернуть",
 	"Rotate right": "Повернуть вправо",
 	"Rotate left": "Повернуть влево",
-	"Create screenshot": "Создать снимок экрана"
+	"Create screenshot": "Создать снимок экрана",
+	"Delete": "Удалить",
+	"Confirm delete": "Подтвердить удаление",
+	"Are you sure you want to delete the picture?": "Вы уверены, что хотите удалить рисунок?"
 }

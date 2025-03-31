@@ -3,7 +3,7 @@ import sys
 import webbrowser
 from collections import deque
 from locale import getlocale
-from os import environ, listdir, name, path
+from os import environ, listdir, name, path, remove
 from pathlib import Path
 from tkinter import PhotoImage
 from uuid import uuid4
@@ -151,9 +151,7 @@ class Brushshe(ctk.CTk):
             "Fill oval",
         ]
         for shape in shape_options:
-            shapes_dropdown.add_option(
-                option=self._(shape), command=lambda shape=shape: self.after(200, self.create_shape(shape))
-            )
+            shapes_dropdown.add_option(option=self._(shape), command=lambda shape=shape: self.create_shape(shape))
 
         menu.add_cascade(self._("My Gallery"), command=self.show_gallery)
 
@@ -372,8 +370,6 @@ class Brushshe(ctk.CTk):
         )
         if closing_msg.get() == self._("Yes"):
             app.destroy()
-        else:
-            pass
 
     def paint(self, event):
         x, y = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
@@ -860,11 +856,11 @@ class Brushshe(ctk.CTk):
         effects_win.grab_set()  # Disable main window
 
     def show_gallery(self):
-        my_gallery = ctk.CTkToplevel(app)
-        my_gallery.title(self._("Brushshe Gallery (loading...)"))
-        my_gallery.geometry("650x580")
+        self.my_gallery = ctk.CTkToplevel(app)
+        self.my_gallery.title(self._("Brushshe Gallery (loading...)"))
+        self.my_gallery.geometry("650x580")
 
-        gallery_scrollable_frame = ctk.CTkScrollableFrame(my_gallery, label_text=self._("My Gallery"))
+        gallery_scrollable_frame = ctk.CTkScrollableFrame(self.my_gallery, label_text=self._("My Gallery"))
         gallery_scrollable_frame.pack(fill=ctk.BOTH, expand=True)
 
         gallery_frame = ctk.CTkFrame(gallery_scrollable_frame)
@@ -890,6 +886,17 @@ class Brushshe(ctk.CTk):
                 )
                 image_button.grid(row=row, column=column, padx=10, pady=10)
 
+                delete_image_button = ctk.CTkButton(
+                    image_button,
+                    text="x",
+                    fg_color="red",
+                    text_color="white",
+                    width=30,
+                    command=lambda img_path=img_path: self.delete_image(img_path),
+                )
+                delete_image_button.place(x=5, y=5)
+                CTkToolTip(delete_image_button, message=self._("Delete"))
+
                 column += 1
                 if column == 2:
                     column = 0
@@ -898,7 +905,22 @@ class Brushshe(ctk.CTk):
         if not is_image_found:
             gallery_frame.configure(label_text=self._("My gallery (empty)"))
 
-        my_gallery.title(self._("Brushshe Gallery"))
+        self.my_gallery.title(self._("Brushshe Gallery"))
+
+    def delete_image(self, img_path):
+        confirm_delete = CTkMessagebox(
+            title=self._("Confirm delete"),
+            message=self._("Are you sure you want to delete the picture?"),
+            icon=resource("icons/question.png"),
+            icon_size=(100, 100),
+            option_1=self._("Yes"),
+            option_2=self._("No"),
+            sound=True,
+        )
+        if confirm_delete.get() == self._("Yes") and path.exists(str(img_path)):
+            remove(str(img_path))
+            self.my_gallery.destroy()
+            self.show_gallery()
 
     def about_program(self):
         about_text = self._(
@@ -1016,18 +1038,13 @@ class Brushshe(ctk.CTk):
         self.brush_color = new_color
 
     def other_color_choice(self):
-        try:
-            askcolor = AskColor(title=self._("Choose a different brush color"))
-            self.obtained_color = askcolor.get()
-            if self.current_tool == "shape":
-                self.after(200)
-            if self.obtained_color:
-                self.brush_color = self.obtained_color
-                self.other_color_btn.pack(side=ctk.RIGHT, padx=1)
-                self.other_color_btn.configure(fg_color=self.obtained_color)
-                self.other_color_tooltip.configure(message=self.obtained_color)
-        except:  # noqa: E722
-            pass
+        askcolor = AskColor(title=self._("Choose a different brush color"))
+        self.obtained_color = askcolor.get()
+        if self.obtained_color:
+            self.brush_color = self.obtained_color
+            self.other_color_btn.pack(side=ctk.RIGHT, padx=1)
+            self.other_color_btn.configure(fg_color=self.obtained_color)
+            self.other_color_tooltip.configure(message=self.obtained_color)
 
     def select_other_color_btn(self):
         self.brush_color = self.obtained_color
