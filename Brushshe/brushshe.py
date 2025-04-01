@@ -128,17 +128,17 @@ class Brushshe(ctk.CTk):
 
         add_menu = menu.add_cascade(self._("Add"))
         add_dropdown = CustomDropdownMenu(widget=add_menu)
-        smile_icon = ctk.CTkImage(light_image=Image.open(resource("icons/smile.png")), size=(50, 50))
+        smile_icon = ctk.CTkImage(Image.open(resource("icons/smile.png")), size=(50, 50))
         add_dropdown.add_option(
             option=self._("Stickers"),
             image=smile_icon,
             command=self.show_stickers_choice,
         )
-        text_icon = ctk.CTkImage(light_image=Image.open(resource("icons/text.png")), size=(50, 50))
+        text_icon = ctk.CTkImage(Image.open(resource("icons/text.png")), size=(50, 50))
         add_dropdown.add_option(option=self._("Text"), image=text_icon, command=self.show_text_window)
-        frame_icon = ctk.CTkImage(light_image=Image.open(resource("icons/frame.png")), size=(50, 50))
+        frame_icon = ctk.CTkImage(Image.open(resource("icons/frame.png")), size=(50, 50))
         add_dropdown.add_option(option=self._("Frames"), image=frame_icon, command=self.show_frame_choice)
-        effects_icon = ctk.CTkImage(light_image=Image.open(resource("icons/effects.png")), size=(50, 50))
+        effects_icon = ctk.CTkImage(Image.open(resource("icons/effects.png")), size=(50, 50))
         add_dropdown.add_option(option=self._("Effects"), image=effects_icon, command=self.effects)
 
         shapes_menu = menu.add_cascade(self._("Shapes"))
@@ -182,7 +182,7 @@ class Brushshe(ctk.CTk):
         brush_button.pack(side=ctk.LEFT, padx=1)
         CTkToolTip(brush_button, message=self._("Brush"), text_color="gray14")
 
-        eraser_icon = ctk.CTkImage(light_image=Image.open(resource("icons/eraser.png")), size=(20, 20))
+        eraser_icon = ctk.CTkImage(Image.open(resource("icons/eraser.png")), size=(20, 20))
         eraser_button = ctk.CTkButton(tools_frame, text=None, width=30, image=eraser_icon, command=self.eraser)
         eraser_button.pack(side=ctk.LEFT, padx=1)
         CTkToolTip(eraser_button, message=self._("Eraser"), text_color="gray14")
@@ -270,22 +270,16 @@ class Brushshe(ctk.CTk):
         self.palette.pack(side=ctk.BOTTOM, fill=ctk.X)
 
         for color in self.colors:
-            color_btn = ctk.CTkButton(
+            ctk.CTkButton(
                 self.palette,
                 fg_color=color,
                 text=None,
                 width=30,
                 border_width=2,
                 command=lambda c=color: self.change_color(c),
-            )
-            color_btn.pack(side=ctk.LEFT, padx=1)
+            ).pack(side=ctk.LEFT, padx=1)
 
-        choice_other_color = ctk.CTkButton(
-            self.palette,
-            text=self._("Other"),
-            command=self.other_color_choice,
-        )
-        choice_other_color.pack(side=ctk.RIGHT, padx=1)
+        ctk.CTkButton(self.palette, text=self._("Other"), command=self.other_color_choice).pack(side=ctk.RIGHT, padx=1)
 
         self.other_color_btn = ctk.CTkButton(
             self.palette,
@@ -528,24 +522,22 @@ class Brushshe(ctk.CTk):
         column = 0
         for sticker_image in self.stickers:
             sticker_ctkimage = ctk.CTkImage(light_image=sticker_image, size=(100, 100))
-            sticker_btn = ctk.CTkButton(
+            ctk.CTkButton(
                 stickers_frame,
                 text=None,
                 image=sticker_ctkimage,
                 command=lambda img=sticker_image: self.set_current_sticker(img),
-            )
-            sticker_btn.grid(row=row, column=column, padx=10, pady=10)
+            ).grid(row=row, column=column, padx=10, pady=10)
             column += 1
             if column == 2:
                 column = 0
                 row += 1
 
-        self.sticker_from_file_btn = ctk.CTkButton(
+        ctk.CTkButton(
             tabview.tab(self._("Sticker from file")),
             text=self._("Choose sticker from file\nthen click where you want\nit on the picture"),
             command=sticker_from_file,
-        )
-        self.sticker_from_file_btn.pack(padx=10, pady=10)
+        ).pack(padx=10, pady=10)
 
     def set_current_sticker(self, sticker_image):  # Choose a sticker
         self.set_tool("sticker", "Stickers", self.sticker_size, 10, 175, "cross")
@@ -605,8 +597,7 @@ class Brushshe(ctk.CTk):
         tx_entry = ctk.CTkEntry(text_win, placeholder_text=self._("Enter text..."))
         tx_entry.pack(padx=10, pady=10)
 
-        fonts_label = ctk.CTkLabel(text_win, text=self._("Fonts:"))
-        fonts_label.pack(padx=10, pady=10)
+        ctk.CTkLabel(text_win, text=self._("Fonts:")).pack(padx=10, pady=10)
 
         fonts_dict = {
             "Open Sans": "fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf",
@@ -616,11 +607,8 @@ class Brushshe(ctk.CTk):
         }
         fonts = list(fonts_dict.keys())
 
-        fonts_optionmenu = ctk.CTkOptionMenu(text_win, values=fonts, command=optionmenu_callback)
-        fonts_optionmenu.pack(padx=10, pady=10)
-
-        tx_ok_btn = ctk.CTkButton(text_win, text="OK", command=add_text_ready)
-        tx_ok_btn.pack(padx=10, pady=10)
+        ctk.CTkOptionMenu(text_win, values=fonts, command=optionmenu_callback).pack(padx=10, pady=10)
+        ctk.CTkButton(text_win, text="OK", command=add_text_ready).pack(padx=10, pady=10)
 
         self.tx_message_label = ctk.CTkLabel(text_win, text="\n")
         self.tx_message_label.pack(padx=10, pady=10)
@@ -658,14 +646,9 @@ class Brushshe(ctk.CTk):
         column = 0
 
         for i, image in enumerate(frames_thumbnails):
-            frames_btn = ctk.CTkButton(
-                frames_win,
-                text=None,
-                image=image,
-                command=lambda i=i: on_frames_click(i),
+            ctk.CTkButton(frames_win, text=None, image=image, command=lambda i=i: on_frames_click(i)).grid(
+                column=column, row=row, padx=10, pady=10
             )
-            frames_btn.grid(column=column, row=row, padx=10, pady=10)
-
             column += 1
             if column == 2:
                 column = 0
@@ -801,40 +784,35 @@ class Brushshe(ctk.CTk):
         effects_frame = ctk.CTkScrollableFrame(effects_win)
         effects_frame.pack(fill=ctk.BOTH, expand=True)
 
-        remove_all_effects_button = ctk.CTkButton(
+        ctk.CTkButton(
             effects_win,
             text=self._("Remove all effects"),
             command=remove_all_effects,
             fg_color="red",
             text_color="white",
-        )
-        remove_all_effects_button.pack(padx=10, pady=10)
+        ).pack(padx=10, pady=10)
 
         # Blur
         blur_frame = ctk.CTkFrame(effects_frame)
         blur_frame.pack(padx=10, pady=10)
 
-        blur_label = ctk.CTkLabel(blur_frame, text=self._("Blur"))
-        blur_label.pack(padx=10, pady=10)
+        ctk.CTkLabel(blur_frame, text=self._("Blur")).pack(padx=10, pady=10)
 
         blur_slider = ctk.CTkSlider(blur_frame, from_=0, to=20)
         blur_slider.pack(padx=10, pady=10)
 
-        blur_button = ctk.CTkButton(blur_frame, text=self._("Apply to picture"), command=blur)
-        blur_button.pack(padx=10, pady=10)
+        ctk.CTkButton(blur_frame, text=self._("Apply to picture"), command=blur).pack(padx=10, pady=10)
 
         # Detail
         detail_frame = ctk.CTkFrame(effects_frame)
         detail_frame.pack(padx=10, pady=10)
 
-        detail_label = ctk.CTkLabel(detail_frame, text=self._("Detail"))
-        detail_label.pack(padx=10, pady=10)
+        ctk.CTkLabel(detail_frame, text=self._("Detail")).pack(padx=10, pady=10)
 
         detail_slider = ctk.CTkSlider(detail_frame, from_=1, to=20)
         detail_slider.pack(padx=10, pady=10)
 
-        detail_button = ctk.CTkButton(detail_frame, text=self._("Apply to picture"), command=detail)
-        detail_button.pack(padx=10, pady=10)
+        ctk.CTkButton(detail_frame, text=self._("Apply to picture"), command=detail).pack(padx=10, pady=10)
 
         effects_dict = {  # dictionary for effects which without slider
             "Contour": contour,
@@ -848,11 +826,9 @@ class Brushshe(ctk.CTk):
             effect_frame = ctk.CTkFrame(effects_frame)
             effect_frame.pack(padx=10, pady=10)
 
-            effect_label = ctk.CTkLabel(effect_frame, text=self._(effect_name))
-            effect_label.pack(padx=10, pady=10)
+            ctk.CTkLabel(effect_frame, text=self._(effect_name)).pack(padx=10, pady=10)
 
-            effect_button = ctk.CTkButton(effect_frame, text=self._("Apply to picture"), command=effect_command)
-            effect_button.pack(padx=10, pady=10)
+            ctk.CTkButton(effect_frame, text=self._("Apply to picture"), command=effect_command).pack(padx=10, pady=10)
 
         image_copy = self.image.copy()
 
@@ -878,12 +854,10 @@ class Brushshe(ctk.CTk):
             if filename.endswith(".png"):
                 is_image_found = True
                 img_path = self.gallery_folder / filename
-                img = Image.open(img_path)
 
-                button_image = ctk.CTkImage(img, size=(250, 250))
                 image_button = ctk.CTkButton(
                     gallery_frame,
-                    image=button_image,
+                    image=ctk.CTkImage(Image.open(img_path), size=(250, 250)),
                     text=None,
                     command=lambda img_path=img_path: self.open_image(img_path),
                 )
