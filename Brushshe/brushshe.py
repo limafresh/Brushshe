@@ -906,7 +906,7 @@ class Brushshe(ctk.CTk):
                     row += 1
 
         if not is_image_found:
-            gallery_frame.configure(label_text=self._("My gallery (empty)"))
+            gallery_scrollable_frame.configure(label_text=self._("My gallery (empty)"))
 
         self.my_gallery.title(self._("Brushshe Gallery"))
 
