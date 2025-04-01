@@ -240,6 +240,7 @@ class Brushshe(ctk.CTk):
         )
         self.width_slider.pack(side=ctk.BOTTOM, fill=ctk.X)
         self.width_slider.bind("<ButtonRelease-1>", self.crop_picture)
+        self.width_tooltip = CTkToolTip(self.width_slider, text_color="gray14")
 
         self.height_slider = ctk.CTkSlider(
             self.canvas_frame,
@@ -250,6 +251,7 @@ class Brushshe(ctk.CTk):
         )
         self.height_slider.pack(side=ctk.LEFT, fill=ctk.Y)
         self.height_slider.bind("<ButtonRelease-1>", self.crop_picture)
+        self.height_tooltip = CTkToolTip(self.height_slider, text_color="gray14")
 
         self.v_scrollbar = ctk.CTkScrollbar(self.canvas_frame, orientation="vertical")
         self.v_scrollbar.pack(side=ctk.RIGHT, fill=ctk.Y)
@@ -361,7 +363,7 @@ class Brushshe(ctk.CTk):
             sound=True,
         )
         if closing_msg.get() == self._("Yes"):
-            app.destroy()
+            self.destroy()
 
     def paint(self, event):
         x, y = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
@@ -429,6 +431,8 @@ class Brushshe(ctk.CTk):
         self.update_canvas()
         self.undo_stack.append(self.image.copy())
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        self.width_tooltip.configure(message=self.image.width)
+        self.height_tooltip.configure(message=self.image.height)
 
     def eyedropper(self, event):
         # Get the coordinates of the click event
@@ -502,7 +506,7 @@ class Brushshe(ctk.CTk):
                 except Exception as e:
                     self.open_file_error(e)
 
-        sticker_choose = ctk.CTkToplevel(app)
+        sticker_choose = ctk.CTkToplevel(self)
         sticker_choose.geometry("350x420")
         sticker_choose.title(self._("Choose a sticker"))
 
@@ -591,7 +595,7 @@ class Brushshe(ctk.CTk):
 
             self.canvas.bind("<Button-1>", lambda event, t=text: self.add_text(event, text))
 
-        text_win = ctk.CTkToplevel(app)
+        text_win = ctk.CTkToplevel(self)
         text_win.title(self._("Add text to a picture"))
 
         tx_entry = ctk.CTkEntry(text_win, placeholder_text=self._("Enter text..."))
@@ -623,7 +627,7 @@ class Brushshe(ctk.CTk):
             self.update_canvas()
             self.undo_stack.append(self.image.copy())
 
-        frames_win = ctk.CTkToplevel(app)
+        frames_win = ctk.CTkToplevel(self)
         frames_win.title(self._("Frames"))
 
         frames_names = [
@@ -777,7 +781,7 @@ class Brushshe(ctk.CTk):
             self.image = ImageOps.invert(image_copy)
             post_actions()
 
-        effects_win = ctk.CTkToplevel(app)
+        effects_win = ctk.CTkToplevel(self)
         effects_win.title(self._("Effects"))
         effects_win.geometry("250x500")
 
@@ -835,7 +839,7 @@ class Brushshe(ctk.CTk):
         effects_win.grab_set()  # Disable main window
 
     def show_gallery(self):
-        self.my_gallery = ctk.CTkToplevel(app)
+        self.my_gallery = ctk.CTkToplevel(self)
         self.my_gallery.title(self._("Brushshe Gallery (loading...)"))
         self.my_gallery.geometry("650x580")
 
@@ -924,6 +928,8 @@ class Brushshe(ctk.CTk):
         )
         self.width_slider.set(img_width)
         self.height_slider.set(img_height)
+        self.width_tooltip.configure(message=img_width)
+        self.height_tooltip.configure(message=img_height)
 
         self.image = Image.new("RGB", (img_width, img_height), color)
         self.draw = ImageDraw.Draw(self.image)
@@ -1064,6 +1070,8 @@ class Brushshe(ctk.CTk):
         self.canvas.configure(width=self.image.width, height=self.image.height)
         self.width_slider.set(self.image.width)
         self.height_slider.set(self.image.height)
+        self.width_tooltip.configure(message=self.image.width)
+        self.height_tooltip.configure(message=self.image.height)
 
         self.update_canvas()
         self.draw = ImageDraw.Draw(self.image)
