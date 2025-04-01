@@ -135,7 +135,7 @@ class Brushshe(ctk.CTk):
             command=self.show_stickers_choice,
         )
         text_icon = ctk.CTkImage(light_image=Image.open(resource("icons/text.png")), size=(50, 50))
-        add_dropdown.add_option(self._("Text"), image=text_icon, command=self.show_text_window)
+        add_dropdown.add_option(option=self._("Text"), image=text_icon, command=self.show_text_window)
         frame_icon = ctk.CTkImage(light_image=Image.open(resource("icons/frame.png")), size=(50, 50))
         add_dropdown.add_option(option=self._("Frames"), image=frame_icon, command=self.show_frame_choice)
         effects_icon = ctk.CTkImage(light_image=Image.open(resource("icons/effects.png")), size=(50, 50))
@@ -218,11 +218,9 @@ class Brushshe(ctk.CTk):
         self.tool_label.pack(side=ctk.LEFT, padx=1)
 
         self.tool_size_slider = ctk.CTkSlider(tools_frame, command=self.change_tool_size)
-        self.tool_size_slider.pack(side=ctk.LEFT, padx=1)
         self.tool_size_tooltip = CTkToolTip(self.tool_size_slider, text_color="gray14")
 
         self.tool_size_label = ctk.CTkLabel(tools_frame, text=None)
-        self.tool_size_label.pack(side=ctk.LEFT, padx=1)
 
         save_to_gallery_btn = ctk.CTkButton(tools_frame, text=self._("Save to gallery"), command=self.save_to_gallery)
         save_to_gallery_btn.pack(side=ctk.RIGHT, padx=1)
@@ -792,6 +790,10 @@ class Brushshe(ctk.CTk):
             self.image = image_copy.filter(ImageFilter.EMBOSS)
             post_actions()
 
+        def inversion():
+            self.image = ImageOps.invert(image_copy)
+            post_actions()
+
         effects_win = ctk.CTkToplevel(app)
         effects_win.title(self._("Effects"))
         effects_win.geometry("250x500")
@@ -839,6 +841,7 @@ class Brushshe(ctk.CTk):
             "Grayscale": grayscale,
             "Mirror": mirror,
             "Metal": metal,
+            "Inversion": inversion,
         }
 
         for effect_name, effect_command in effects_dict.items():

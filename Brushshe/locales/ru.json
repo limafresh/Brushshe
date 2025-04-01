@@ -68,5 +68,6 @@
 	"Create screenshot": "Создать снимок экрана",
 	"Delete": "Удалить",
 	"Confirm delete": "Подтвердить удаление",
-	"Are you sure you want to delete the picture?": "Вы уверены, что хотите удалить рисунок?"
+	"Are you sure you want to delete the picture?": "Вы уверены, что хотите удалить рисунок?",
+	"Inversion": "Инверсия"
 }
