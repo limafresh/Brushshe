@@ -709,6 +709,10 @@ class Brushshe(ctk.CTk):
             self.update_canvas()
             self.undo_stack.append(self.image.copy())
 
+            # Removing unnecessary variables for normal selection of the next shape in the menu 
+            #   and disabling other side effects.
+            del self.shape_x, self.shape_y
+
         if shape == "Fill rectangle" or shape == "Fill oval":
             self.set_tool("shape", shape, None, None, None, "plus")
         else:
