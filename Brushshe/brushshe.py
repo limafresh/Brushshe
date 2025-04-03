@@ -1,9 +1,9 @@
 import json
+import os
 import sys
 import webbrowser
 from collections import deque
 from locale import getlocale
-from os import environ, listdir, name, path, remove
 from pathlib import Path
 from tkinter import PhotoImage
 from uuid import uuid4
@@ -28,15 +28,15 @@ from PIL import (
 
 
 def resource(relative_path):
-    base_path = getattr(sys, "_MEIPASS", path.dirname(path.abspath(__file__)))
-    return path.join(base_path, relative_path)
+    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
 
 
 class Brushshe(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.geometry("680x600")
-        if name == "nt":
+        if os.name == "nt":
             self.iconbitmap(resource("icons/icon.ico"))
         else:
             self.iconphoto(True, PhotoImage(file=resource("icons/icon.png")))
@@ -306,10 +306,10 @@ class Brushshe(ctk.CTk):
         self.bind("<Control-s>", lambda e: self.save_to_gallery())
 
         """Defining the Gallery Folder Path"""
-        if name == "nt":  # For Windows
-            images_folder = Path(environ["USERPROFILE"]) / "Pictures"
+        if os.name == "nt":  # For Windows
+            images_folder = Path(os.environ["USERPROFILE"]) / "Pictures"
         else:  # For macOS and Linux
-            images_folder = Path(environ.get("XDG_PICTURES_DIR", str(Path.home())))
+            images_folder = Path(os.environ.get("XDG_PICTURES_DIR", str(Path.home())))
 
         self.gallery_folder = images_folder / "Brushshe Images"
 
@@ -832,7 +832,7 @@ class Brushshe(ctk.CTk):
 
         is_image_found = False
 
-        for filename in listdir(self.gallery_folder):
+        for filename in os.listdir(self.gallery_folder):
             if filename.endswith(".png"):
                 is_image_found = True
                 img_path = self.gallery_folder / filename
@@ -876,8 +876,8 @@ class Brushshe(ctk.CTk):
             option_2=self._("No"),
             sound=True,
         )
-        if confirm_delete.get() == self._("Yes") and path.exists(str(img_path)):
-            remove(str(img_path))
+        if confirm_delete.get() == self._("Yes") and os.path.exists(str(img_path)):
+            os.remove(str(img_path))
             self.my_gallery.destroy()
             self.show_gallery()
 
