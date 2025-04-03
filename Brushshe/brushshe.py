@@ -372,6 +372,9 @@ class Brushshe(ctk.CTk):
             color = self.brush_color
         elif self.current_tool == "eraser":
             color = self.bg_color
+        else:
+            # For shape, etc.
+            color = self.brush_color
 
         dx = abs(x2 - x1)
         dy = abs(y2 - y1)
@@ -682,26 +685,8 @@ class Brushshe(ctk.CTk):
             elif shape == "Oval":
                 self.draw.ellipse([x0, y0, x1, y1], outline=self.brush_color, width=self.tool_size)
             elif shape == "Line":
-                self.draw.line([self.shape_x, self.shape_y, x, y], fill=self.brush_color, width=self.tool_size)
-                # for rounded ends
-                self.draw.ellipse(
-                    [
-                        self.shape_x - self.tool_size / 2,
-                        self.shape_y - self.tool_size / 2,
-                        self.shape_x + self.tool_size / 2,
-                        self.shape_y + self.tool_size / 2,
-                    ],
-                    fill=self.brush_color,
-                )
-                self.draw.ellipse(
-                    [
-                        x - self.tool_size / 2,
-                        y - self.tool_size / 2,
-                        x + self.tool_size / 2,
-                        y + self.tool_size / 2,
-                    ],
-                    fill=self.brush_color,
-                )
+                # self.draw.line([self.shape_x, self.shape_y, x, y], fill=self.brush_color, width=self.tool_size)
+                self.draw_line(self.shape_x, self.shape_y, x, y)
             elif shape == "Fill rectangle":
                 self.draw.rectangle([x0, y0, x1, y1], fill=self.brush_color)
             elif shape == "Fill oval":
