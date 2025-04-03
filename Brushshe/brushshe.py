@@ -437,8 +437,6 @@ class Brushshe(ctk.CTk):
 
     def start_fill(self):  # beta
         self.set_tool("fill", "Fill", None, None, None, "spraycan")
-        self.canvas.unbind("<B1-Motion>")
-        self.canvas.unbind("<ButtonRelease-1>")
         self.canvas.bind("<Button-1>", self.fill)
 
     def fill(self, event):
@@ -534,9 +532,6 @@ class Brushshe(ctk.CTk):
 
     def set_current_sticker(self, sticker_image):  # Choose a sticker
         self.set_tool("sticker", "Stickers", self.sticker_size, 10, 175, "cross")
-        self.canvas.unbind("<B1-Motion>")
-        self.canvas.unbind("<ButtonRelease-1>")
-
         self.canvas.bind("<Button-1>", lambda event: self.add_sticker(event, sticker_image))
 
     def add_sticker(self, event, sticker_image):  # Add a sticker
@@ -578,10 +573,6 @@ class Brushshe(ctk.CTk):
             self.tx_message_label.configure(text=self._("Now click where you\nwant it on the picture"))
             text = tx_entry.get()
             self.set_tool("text", "Text", self.font_size, 11, 96, "cross")
-
-            self.canvas.unbind("<B1-Motion>")
-            self.canvas.unbind("<ButtonRelease-1>")
-
             self.canvas.bind("<Button-1>", lambda event, t=text: self.add_text(event, text))
 
         text_win = ctk.CTkToplevel(self)
@@ -723,7 +714,6 @@ class Brushshe(ctk.CTk):
         else:
             self.set_tool("shape", shape, self.shape_size, 1, 50, "plus")
 
-        self.canvas.unbind("<Button-1>")
         self.canvas.bind("<ButtonPress-1>", start_shape)
         self.canvas.bind("<B1-Motion>", draw_shape)
         self.canvas.bind("<ButtonRelease-1>", end_shape)
@@ -945,20 +935,12 @@ class Brushshe(ctk.CTk):
     def brush(self):
         self.set_tool("brush", "Brush", self.brush_size, 1, 50, "pencil")
 
-        self.canvas.unbind("<Button-1>")
-        self.canvas.unbind("<ButtonPress-1>")
-        self.canvas.unbind("<ButtonRelease-1>")
-
         self.canvas.bind("<Button-1>", self.paint)
         self.canvas.bind("<B1-Motion>", self.paint)
         self.canvas.bind("<ButtonRelease-1>", self.stop_paint)
 
     def eraser(self):
         self.set_tool("eraser", "Eraser", self.eraser_size, 1, 50, "target")
-
-        self.canvas.unbind("<Button-1>")
-        self.canvas.unbind("<ButtonPress-1>")
-        self.canvas.unbind("<ButtonRelease-1>")
 
         self.canvas.bind("<Button-1>", self.paint)
         self.canvas.bind("<B1-Motion>", self.paint)
@@ -1069,6 +1051,10 @@ class Brushshe(ctk.CTk):
 
     def set_tool(self, tool, tool_name, tool_size, from_, to, cursor):
         self.current_tool = tool
+        self.canvas.unbind("<Button-1>")
+        self.canvas.unbind("<ButtonPress-1>")
+        self.canvas.unbind("<ButtonRelease-1>")
+        self.canvas.unbind("<B1-Motion>")
         if tool_size is None and from_ is None and to is None:
             self.tool_label.configure(text=self._(tool_name))
             self.tool_size_slider.pack_forget()
