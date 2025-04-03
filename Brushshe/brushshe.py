@@ -129,11 +129,7 @@ class Brushshe(ctk.CTk):
         add_menu = menu.add_cascade(self._("Add"))
         add_dropdown = CustomDropdownMenu(widget=add_menu)
         smile_icon = ctk.CTkImage(Image.open(resource("icons/smile.png")), size=(50, 50))
-        add_dropdown.add_option(
-            option=self._("Stickers"),
-            image=smile_icon,
-            command=self.show_stickers_choice,
-        )
+        add_dropdown.add_option(option=self._("Stickers"), image=smile_icon, command=self.show_stickers_choice)
         text_icon = ctk.CTkImage(Image.open(resource("icons/text.png")), size=(50, 50))
         add_dropdown.add_option(option=self._("Text"), image=text_icon, command=self.show_text_window)
         frame_icon = ctk.CTkImage(Image.open(resource("icons/frame.png")), size=(50, 50))
@@ -143,13 +139,7 @@ class Brushshe(ctk.CTk):
 
         shapes_menu = menu.add_cascade(self._("Shapes"))
         shapes_dropdown = CustomDropdownMenu(widget=shapes_menu)
-        shape_options = [
-            "Rectangle",
-            "Oval",
-            "Line",
-            "Fill rectangle",
-            "Fill oval",
-        ]
+        shape_options = ["Rectangle", "Oval", "Line", "Fill rectangle", "Fill oval"]
         for shape in shape_options:
             shapes_dropdown.add_option(option=self._(shape), command=lambda shape=shape: self.create_shape(shape))
 
@@ -158,15 +148,14 @@ class Brushshe(ctk.CTk):
         other_menu = menu.add_cascade(self._("More"))
         other_dropdown = CustomDropdownMenu(widget=other_menu)
         theme_var = ctk.StringVar(value=ctk.get_appearance_mode())
-        theme_checkbox = ctk.CTkCheckBox(
+        ctk.CTkCheckBox(
             other_dropdown,
             text=self._("Dark theme"),
             variable=theme_var,
             onvalue="Dark",
             offvalue="Light",
             command=lambda: ctk.set_appearance_mode(theme_var.get()),
-        )
-        theme_checkbox.pack(padx=10, pady=10)
+        ).pack(padx=10, pady=10)
         other_dropdown.add_option(option=self._("About program"), command=self.about_program)
 
         """Toolbar"""
@@ -525,7 +514,7 @@ class Brushshe(ctk.CTk):
         row = 0
         column = 0
         for sticker_image in self.stickers:
-            sticker_ctkimage = ctk.CTkImage(light_image=sticker_image, size=(100, 100))
+            sticker_ctkimage = ctk.CTkImage(sticker_image, size=(100, 100))
             ctk.CTkButton(
                 stickers_frame,
                 text=None,
@@ -640,8 +629,7 @@ class Brushshe(ctk.CTk):
             "frame7",
         ]
         frames_thumbnails = [
-            ctk.CTkImage(light_image=Image.open(resource(f"frames_preview/{name}.png")), size=(100, 100))
-            for name in frames_names
+            ctk.CTkImage(Image.open(resource(f"frames_preview/{name}.png")), size=(100, 100)) for name in frames_names
         ]
 
         frames = [Image.open(resource(f"frames/{name}.png")) for name in frames_names]
@@ -910,7 +898,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v1.7.0",
+            message=about_text + "v1.7.1",
             icon=resource("icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
@@ -1035,7 +1023,6 @@ class Brushshe(ctk.CTk):
     def open_image(self, openimage):
         self.bg_color = "white"
         self.image = Image.open(openimage)
-        self.draw = ImageDraw.Draw(self.image)
         self.picture_postconfigure()
 
     def open_file_error(self, e):
