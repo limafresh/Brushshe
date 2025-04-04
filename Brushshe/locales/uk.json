@@ -66,5 +66,8 @@
 	"Delete": "Видалити",
 	"Confirm delete": "Підтвердити видалення",
 	"Are you sure you want to delete the picture?": "Ви впевнені, що дійсно бажаєте видалити малюнок?",
-	"Inversion": "Інверсія"
+	"Inversion": "Інверсія",
+	"View": "Вигляд",
+	"Zoom In": "Збільшити",
+	"Zoom Out": "Зменьшити"
 }

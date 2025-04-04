@@ -126,6 +126,11 @@ class Brushshe(ctk.CTk):
         new_dropdown.add_option(option=self._("Other color"), command=self.other_bg_color)
         new_dropdown.add_option(option=self._("Create screenshot"), command=self.create_screenshot)
 
+        view_menu = menu.add_cascade(self._("View"))
+        view_dropdown = CustomDropdownMenu(widget=view_menu)
+        view_dropdown.add_option(option=self._("Zoom In"), command=self.zoom_in)
+        view_dropdown.add_option(option=self._("Zoom Out"), command=self.zoom_out)
+
         add_menu = menu.add_cascade(self._("Add"))
         add_dropdown = CustomDropdownMenu(widget=add_menu)
         smile_icon = ctk.CTkImage(Image.open(resource("icons/smile.png")), size=(50, 50))
@@ -292,6 +297,7 @@ class Brushshe(ctk.CTk):
         self.shape_size = 2
         self.sticker_size = 100
         self.font_size = 24
+        self.zoom = 1
 
         self.update()  # update interface before calculate picture size
         self.brush()
@@ -304,6 +310,10 @@ class Brushshe(ctk.CTk):
         self.bind("<Control-z>", lambda e: self.undo())
         self.bind("<Control-y>", lambda e: self.redo())
         self.bind("<Control-s>", lambda e: self.save_to_gallery())
+
+        # Default zooming keys for mani painting programs.
+        self.bind("<Key-equal>", lambda e: self.zoom_in(e))     # Key "=" -> ("+" without Shift)
+        self.bind("<Key-minus>", lambda e: self.zoom_out(e))
 
         """Defining the Gallery Folder Path"""
         if os.name == "nt":  # For Windows
@@ -339,6 +349,9 @@ class Brushshe(ctk.CTk):
         ]
         self.stickers = [Image.open(resource(f"stickers/{name}.png")) for name in stickers_names]
 
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+
+
     """ Functionality """
 
     def when_closing(self):
@@ -353,9 +366,30 @@ class Brushshe(ctk.CTk):
         )
         if closing_msg.get() == self._("Yes"):
             self.destroy()
+    
+    def zoom_in(self, event = None):
+        # Zooming: integer only and limited by 6. More value has optimization problems.
+        if self.zoom < 6:
+            self.zoom += 1
+        self.update_canvas()
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+
+    def zoom_out(self, event = None):
+        if self.zoom > 1:
+            self.zoom -= 1
+        else:
+            self.zoom = 1
+        self.update_canvas()
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+
+    def canvas_to_pict_xy(self, x, y):
+        return self.canvas.canvasx(x) // self.zoom, self.canvas.canvasy(y) // self.zoom
 
     def paint(self, event):
-        x, y = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
+        # The paint tool has optimization problem with big zoom on running update_canvas().
+        # TODO: Need optimization.
+
+        x, y = self.canvas_to_pict_xy(event.x, event.y)
         if self.prev_x is not None and self.prev_y is not None:
             self.draw_line(self.prev_x, self.prev_y, x, y)
         else:
@@ -411,8 +445,14 @@ class Brushshe(ctk.CTk):
 
     def update_canvas(self):
         self.canvas.delete("all")
+        if self.zoom == 1:
+            canvas_image = self.image
+        else:
+            canvas_image = self.image.resize((self.image.width * self.zoom, self.image.height * self.zoom), Image.NEAREST) 
+        self.img_tk = ImageTk.PhotoImage(canvas_image)
 
-        self.img_tk = ImageTk.PhotoImage(self.image)
+        #TODO: Add resizing canvas to free space with zooming (after checking).
+
         self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.img_tk)
 
     def crop_picture(self, event):
@@ -428,7 +468,7 @@ class Brushshe(ctk.CTk):
 
     def eyedropper(self, event):
         # Get the coordinates of the click event
-        x, y = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
+        x, y = self.canvas_to_pict_xy(event.x, event.y)
 
         color = self.image.getpixel((x, y))
         self.obtained_color = "#{:02x}{:02x}{:02x}".format(*color)
@@ -443,7 +483,7 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<Button-1>", self.fill)
 
     def fill(self, event):
-        x, y = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
+        x, y = self.canvas_to_pict_xy(event.x, event.y)
         ImageDraw.floodfill(self.image, (x, y), ImageColor.getrgb(self.brush_color))
         self.update_canvas()
         self.undo_stack.append(self.image.copy())
@@ -539,7 +579,8 @@ class Brushshe(ctk.CTk):
 
     def add_sticker(self, event, sticker_image):  # Add a sticker
         sticker_image = sticker_image.resize((self.tool_size, self.tool_size))
-        x, y = (int(self.canvas.canvasx(event.x)), int(self.canvas.canvasy(event.y)))
+        x, y = self.canvas_to_pict_xy(event.x, event.y)
+        x, y = int(x), int(y)
         if sticker_image.mode == "RGBA":
             self.image.paste(
                 sticker_image, (x - sticker_image.width // 2, y - sticker_image.height // 2), sticker_image
@@ -551,7 +592,7 @@ class Brushshe(ctk.CTk):
         self.undo_stack.append(self.image.copy())
 
     def add_text(self, event, text):  # Add text
-        x, y = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
+        x, y = self.canvas_to_pict_xy(event.x, event.y)
         imagefont = ImageFont.truetype(self.font_path, self.tool_size)
 
         bbox = self.draw.textbbox((x, y), text, font=imagefont)
@@ -642,8 +683,13 @@ class Brushshe(ctk.CTk):
 
     # Shape creation functions
     def create_shape(self, shape):
+        x_begin, y_begin = None, None
+
         def start_shape(event):
-            self.shape_x, self.shape_y = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
+            nonlocal x_begin, y_begin
+
+            self.shape_x, self.shape_y = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
+            x_begin, y_begin = self.canvas_to_pict_xy(event.x, event.y)
             self.get_contrast_color()
 
             shape_methods = {
@@ -664,33 +710,38 @@ class Brushshe(ctk.CTk):
         def draw_shape(event):
             if not hasattr(self, "shape_x"):
                 return
-            x, y = (self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
+            x, y = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
             self.canvas.coords(self.shape_id, self.shape_x, self.shape_y, x, y)
 
         def end_shape(event):
+            nonlocal x_begin, y_begin
+
             if not hasattr(self, "shape_x"):
                 return
-            x, y = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
-            if self.shape_x < x:
-                x0, x1 = self.shape_x, x
+
+            x_end, y_end = self.canvas_to_pict_xy(event.x, event.y)
+            
+            if x_begin < x_end:
+                x0, x1 = x_begin, x_end
             else:
-                x0, x1 = x, self.shape_x
-            if self.shape_y < y:
-                y0, y1 = self.shape_y, y
+                x0, x1 = x_end, x_begin
+            if y_begin < y_end:
+                y0, y1 = y_begin, y_end
             else:
-                y0, y1 = y, self.shape_y
+                y0, y1 = y_end, y_begin
 
             if shape == "Rectangle":
                 self.draw.rectangle([x0, y0, x1, y1], outline=self.brush_color, width=self.tool_size)
             elif shape == "Oval":
                 self.draw.ellipse([x0, y0, x1, y1], outline=self.brush_color, width=self.tool_size)
             elif shape == "Line":
-                # self.draw.line([self.shape_x, self.shape_y, x, y], fill=self.brush_color, width=self.tool_size)
-                self.draw_line(self.shape_x, self.shape_y, x, y)
+                # self.draw.line([x_begin, y_begin, x_end, y_end], fill=self.brush_color, width=self.tool_size)
+                self.draw_line(x_begin, y_begin, x_end, y_end)
             elif shape == "Fill rectangle":
                 self.draw.rectangle([x0, y0, x1, y1], fill=self.brush_color)
             elif shape == "Fill oval":
                 self.draw.ellipse([x0, y0, x1, y1], fill=self.brush_color)
+
             self.update_canvas()
             self.undo_stack.append(self.image.copy())
 
