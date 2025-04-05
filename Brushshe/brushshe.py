@@ -312,7 +312,7 @@ class Brushshe(ctk.CTk):
         self.bind("<Control-s>", lambda e: self.save_to_gallery())
 
         # Default zooming keys for mani painting programs.
-        self.bind("<Key-equal>", lambda e: self.zoom_in(e))     # Key "=" -> ("+" without Shift)
+        self.bind("<Key-equal>", lambda e: self.zoom_in(e))  # Key "=" -> ("+" without Shift)
         self.bind("<Key-minus>", lambda e: self.zoom_out(e))
 
         """Defining the Gallery Folder Path"""
@@ -351,7 +351,6 @@ class Brushshe(ctk.CTk):
 
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
-
     """ Functionality """
 
     def when_closing(self):
@@ -366,15 +365,15 @@ class Brushshe(ctk.CTk):
         )
         if closing_msg.get() == self._("Yes"):
             self.destroy()
-    
-    def zoom_in(self, event = None):
+
+    def zoom_in(self, event=None):
         # Zooming: integer only and limited by 6. More value has optimization problems.
         if self.zoom < 6:
             self.zoom += 1
         self.update_canvas()
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
-    def zoom_out(self, event = None):
+    def zoom_out(self, event=None):
         if self.zoom > 1:
             self.zoom -= 1
         else:
@@ -448,10 +447,12 @@ class Brushshe(ctk.CTk):
         if self.zoom == 1:
             canvas_image = self.image
         else:
-            canvas_image = self.image.resize((self.image.width * self.zoom, self.image.height * self.zoom), Image.NEAREST) 
+            canvas_image = self.image.resize(
+                (self.image.width * self.zoom, self.image.height * self.zoom), Image.NEAREST
+            )
         self.img_tk = ImageTk.PhotoImage(canvas_image)
 
-        #TODO: Add resizing canvas to free space with zooming (after checking).
+        # TODO: Add resizing canvas to free space with zooming (after checking).
 
         self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.img_tk)
 
@@ -644,7 +645,7 @@ class Brushshe(ctk.CTk):
     def show_frame_choice(self):
         def on_frames_click(index):
             selected_frame = frames[index]
-            resized_frame = selected_frame.resize((self.canvas.winfo_width(), self.canvas.winfo_height()))
+            resized_frame = selected_frame.resize((self.image.width, self.image.height))
 
             self.image.paste(resized_frame, (0, 0), resized_frame)
 
@@ -720,7 +721,7 @@ class Brushshe(ctk.CTk):
                 return
 
             x_end, y_end = self.canvas_to_pict_xy(event.x, event.y)
-            
+
             if x_begin < x_end:
                 x0, x1 = x_begin, x_end
             else:
@@ -745,7 +746,7 @@ class Brushshe(ctk.CTk):
             self.update_canvas()
             self.undo_stack.append(self.image.copy())
 
-            # Removing unnecessary variables for normal selection of the next shape in the menu 
+            # Removing unnecessary variables for normal selection of the next shape in the menu
             #   and disabling other side effects.
             del self.shape_x, self.shape_y
 
