@@ -22,7 +22,7 @@
 1. Install [Python 3](https://www.python.org/downloads/), if not installed;
 2. Download the code and unpack downloaded archive:
 
-[![Download the code](https://img.shields.io/badge/Download_the_code-ZIP-orange?style=for-the-badge&logo=Python&logoColor=white)](https://github.com/limafresh/Brushshe/archive/refs/heads/main.zip)
+[![Download the code](https://img.shields.io/badge/Download_the_code-ZIP-orange?style=for-the-badge&logo=Python&logoColor=white)](https://github.com/limafresh/Brushshe/tags)
 
 3. Install *CustomTkinter* and *Pillow* - open terminal or command line and enter:
 ```bash
@@ -38,7 +38,7 @@ You can choose a color, change the brush thickness, and paint. You can change ca
 ### Save to device
 You can save picture to your PC in different formats (PNG, JPG, GIF, BMP, TIFF, WEBP, ICO, PPM, PGM, PBM).
 ### Undo and redo
-You can undo and redo (beta) 10 last actions. There are buttons on toolbar and hotkeys (Ctrl+Z - undo, Ctrl+Y - redo).
+You can undo and redo 10 last actions. There are buttons on toolbar and hotkeys (Ctrl+Z - undo, Ctrl+Y - redo).
 ### Eraser
 Removing excess with an eraser.
 ### Fill
@@ -56,7 +56,7 @@ You can decorate the picture with frames.
 ### Shapes
 Rectangle, oval (with or without fill); line.
 ### Effects
-Blur, detail, contour and grayscale with adjustment slider.
+Blur, detail, contour, grayscale, inversion and other. Not work on GIF images.
 ### My Gallery
 Window showing images drawn in Brushshe and "saved to gallery". Images from the gallery are stored in `<user_home_folder>/Pictures/Brushshe Images` or `<user_home_folder>/Brushshe Images` on some minimalistic Linux distributions. For saving there is a button "Save to gallery" in toolbar and hotkey Ctrl+S.
 ### Dark theme
@@ -64,10 +64,13 @@ There is a system, light and dark theme.
 ### Rotate
 Rotate right, rotate left.
 ### Create screenshot
-You can take a screenshot and draw on it.
+You can take a screenshot and draw on it. Not work on Linux with Wayland.
+### View (beta)
+Zoom in, zoom out.
 
 ## Credits
-Thanks [Akascape](https://github.com/Akascape) for libraries [CTkColorPicker](https://github.com/Akascape/CTkColorPicker), [CTkMenuBar](https://github.com/Akascape/CTkMenuBar), [CTkMessagebox](https://github.com/Akascape/CTkMessagebox) and [CTkToolTip](https://github.com/Akascape/CTkToolTip).
++ Thanks [Akascape](https://github.com/Akascape) for libraries [CTkColorPicker](https://github.com/Akascape/CTkColorPicker), [CTkMenuBar](https://github.com/Akascape/CTkMenuBar), [CTkMessagebox](https://github.com/Akascape/CTkMessagebox) and [CTkToolTip](https://github.com/Akascape/CTkToolTip).
++ Thanks [Chip Viled](https://github.com/chipviled) for conributing.
 
 ## Translations
 The internationalization of this program has a simple principle - it determines what the computer's localization is (for example, *en*, *ru*, etc.), and then applies the `Brushshe/locales/{localization}.json` file, where *localization* is the computer's localization.
