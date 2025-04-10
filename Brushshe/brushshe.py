@@ -25,6 +25,7 @@ from PIL import (
     ImageStat,
     ImageTk,
 )
+from tools import bezier
 
 
 def resource(relative_path):
@@ -147,6 +148,8 @@ class Brushshe(ctk.CTk):
         shape_options = ["Rectangle", "Oval", "Line", "Fill rectangle", "Fill oval"]
         for shape in shape_options:
             shapes_dropdown.add_option(option=self._(shape), command=lambda shape=shape: self.create_shape(shape))
+        shapes_dropdown.add_separator()
+        shapes_dropdown.add_option(option=self._('Bezier curve'), command=self.bezier_shape)
 
         menu.add_cascade(self._("My Gallery"), command=self.show_gallery)
 
@@ -758,6 +761,129 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<ButtonPress-1>", start_shape)
         self.canvas.bind("<B1-Motion>", draw_shape)
         self.canvas.bind("<ButtonRelease-1>", end_shape)
+
+    def bezier_shape(self):
+        # Simple 4th point (cubic) Bezier curve.
+
+        canvas_points = []
+        image_points = []
+        bezier_id = None
+
+        # Clear canvas.
+        self.update_canvas()
+
+        def start(event):
+            nonlocal canvas_points, image_points, bezier_id
+
+            if len(canvas_points) == 0:
+                self.get_contrast_color()
+
+                cx, cy = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
+
+                canvas_points.append((cx, cy))
+                image_points.append(self.canvas_to_pict_xy(event.x, event.y))
+
+                bezier_id = self.canvas.create_line(cx, cy, cx, cy, fill=self.contrast_color) #smooth="bezier"
+
+        def drawing(event):
+            nonlocal canvas_points, bezier_id
+
+            if bezier_id is None or len(canvas_points) == 0:
+                return
+
+            cx, cy = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
+            len_p = len(canvas_points)
+            canvas_points_tmp = canvas_points.copy()
+
+            if len_p <= 1:
+                canvas_points_tmp.append((cx, cy))
+            else:
+                canvas_points_tmp.append(canvas_points_tmp[len_p - 1])
+                canvas_points_tmp[len_p - 1] = (cx, cy)
+
+            ts = [t/32.0 for t in range(33)]   # 32 lines for preview.
+            b = bezier.make_bezier(canvas_points_tmp)
+            points = b(ts)
+
+            # Do 2d array flat for canvas.coords
+            points_flat = [j for sub in points for j in sub]
+
+            self.canvas.coords(bezier_id, *points_flat)
+
+        def end(event):
+            nonlocal canvas_points, image_points, bezier_id
+
+            if bezier_id is None or len(canvas_points) == 0:
+                return
+
+            cx, cy = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
+            px, py = self.canvas_to_pict_xy(event.x, event.y)
+            len_p = len(canvas_points)
+            stop = False
+
+            if len_p <= 1:
+                canvas_points.append((cx, cy))
+                image_points.append((px, py))
+            else:
+                tx = canvas_points[len_p - 2][0]
+                ty = canvas_points[len_p - 2][1]
+
+                if cx == tx and cy == ty:
+                    stop = True
+                else:
+                    canvas_points.append(canvas_points[len_p - 1])
+                    canvas_points[len_p - 1] = (cx, cy)
+
+                    len_ip = len(image_points)
+                    image_points.append(image_points[len_ip - 1])
+                    image_points[len_ip - 1] = (px, py)
+
+            # Finish
+            if len(canvas_points) >= 4 or stop:
+
+                # Calculate segments count.
+                max_segments = 0
+                points_len = len(image_points)
+                for ii, ip in enumerate(image_points):
+                    if ii < points_len - 1:
+                        max_segments += max(
+                            abs(image_points[ii][0] - image_points[ii + 1][0]),
+                            abs(image_points[ii][1] - image_points[ii + 1][1])
+                        )
+                max_segments = max_segments // 2
+                if max_segments < 32:
+                    max_segments = 32
+
+                # Draw on picture.
+                ts = [t/max_segments for t in range(int(max_segments + 1))]
+                b = bezier.make_bezier(image_points)
+                points = b(ts)
+                points_len = len(points)
+                for it, tt in enumerate(points):
+                    if it < points_len - 1:
+                        # It's can work with float too, but with more artifacts.
+                        self.draw_line(
+                            int(points[it][0]),
+                            int(points[it][1]),
+                            int(points[it + 1][0]),
+                            int(points[it + 1][1])
+                        )
+
+                self.canvas.delete(bezier_id)
+                self.update_canvas()
+                self.undo_stack.append(self.image.copy())
+
+                # Reset nonlocal variables.
+                canvas_points = []
+                image_points = []
+                bezier_id = None
+
+        self.set_tool("shape", "Bezier", self.shape_size, 1, 50, "plus")
+
+        self.canvas.bind("<ButtonPress-1>", start)
+        self.canvas.bind("<B1-Motion>", drawing)
+        self.canvas.bind("<ButtonRelease-1>", end)
+        self.canvas.bind("<Motion>", drawing)
 
     def effects(self):
         def post_actions():
