@@ -149,7 +149,7 @@ class Brushshe(ctk.CTk):
         for shape in shape_options:
             shapes_dropdown.add_option(option=self._(shape), command=lambda shape=shape: self.create_shape(shape))
         shapes_dropdown.add_separator()
-        shapes_dropdown.add_option(option=self._('Bezier curve'), command=self.bezier_shape)
+        shapes_dropdown.add_option(option=self._("Bezier curve"), command=self.bezier_shape)
 
         menu.add_cascade(self._("My Gallery"), command=self.show_gallery)
 
@@ -783,7 +783,7 @@ class Brushshe(ctk.CTk):
                 canvas_points.append((cx, cy))
                 image_points.append(self.canvas_to_pict_xy(event.x, event.y))
 
-                bezier_id = self.canvas.create_line(cx, cy, cx, cy, fill=self.contrast_color) #smooth="bezier"
+                bezier_id = self.canvas.create_line(cx, cy, cx, cy, fill=self.contrast_color)  # smooth="bezier"
 
         def drawing(event):
             nonlocal canvas_points, bezier_id
@@ -801,7 +801,7 @@ class Brushshe(ctk.CTk):
                 canvas_points_tmp.append(canvas_points_tmp[len_p - 1])
                 canvas_points_tmp[len_p - 1] = (cx, cy)
 
-            ts = [t/32.0 for t in range(33)]   # 32 lines for preview.
+            ts = [t / 32.0 for t in range(33)]  # 32 lines for preview.
             b = bezier.make_bezier(canvas_points_tmp)
             points = b(ts)
 
@@ -840,7 +840,6 @@ class Brushshe(ctk.CTk):
 
             # Finish
             if len(canvas_points) >= 4 or stop:
-
                 # Calculate segments count.
                 max_segments = 0
                 points_len = len(image_points)
@@ -848,14 +847,14 @@ class Brushshe(ctk.CTk):
                     if ii < points_len - 1:
                         max_segments += max(
                             abs(image_points[ii][0] - image_points[ii + 1][0]),
-                            abs(image_points[ii][1] - image_points[ii + 1][1])
+                            abs(image_points[ii][1] - image_points[ii + 1][1]),
                         )
                 max_segments = max_segments // 2
                 if max_segments < 32:
                     max_segments = 32
 
                 # Draw on picture.
-                ts = [t/max_segments for t in range(int(max_segments + 1))]
+                ts = [t / max_segments for t in range(int(max_segments + 1))]
                 b = bezier.make_bezier(image_points)
                 points = b(ts)
                 points_len = len(points)
@@ -863,10 +862,7 @@ class Brushshe(ctk.CTk):
                     if it < points_len - 1:
                         # It's can work with float too, but with more artifacts.
                         self.draw_line(
-                            int(points[it][0]),
-                            int(points[it][1]),
-                            int(points[it + 1][0]),
-                            int(points[it + 1][1])
+                            int(points[it][0]), int(points[it][1]), int(points[it + 1][0]), int(points[it + 1][1])
                         )
 
                 self.canvas.delete(bezier_id)
