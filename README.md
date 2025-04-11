@@ -13,7 +13,7 @@
 
 [View more screenshots](https://github.com/limafresh/Brushshe/discussions/2)
 
-## Usage
+## ⬇️ Installation
 ### Download Brushshe for Windows 64bit
 [![Static Badge](https://img.shields.io/badge/Download-portable_.exe_file-blue?style=for-the-badge)](https://github.com/limafresh/Brushshe/releases)
 
@@ -30,7 +30,7 @@ pip install customtkinter Pillow
 ```
 4. Run file `Brushshe/brushshe.py`.
 
-## Functionality
+## 🚀 Functionality
 ### Open
 You can open a picture from a file.
 ### Painting
@@ -54,7 +54,7 @@ You can place text and change its size.
 ### Frames
 You can decorate the picture with frames.
 ### Shapes
-Rectangle, oval (with or without fill); line.
+Rectangle and oval (with or without fill), line, bezier curve.
 ### Effects
 Blur, detail, contour, grayscale, inversion and other. Not work on GIF images.
 ### My Gallery
@@ -68,8 +68,11 @@ You can take a screenshot and draw on it. Not work on Linux with Wayland.
 ### View (beta)
 Zoom in, zoom out.
 
+## Goal of project
+The goal of the project is to provide a open-source, convenient, beautiful and multifunctional painting app using the CustomTkinter toolkit.
+
 ## Credits
-+ Thanks [Akascape](https://github.com/Akascape) for libraries [CTkColorPicker](https://github.com/Akascape/CTkColorPicker), [CTkMenuBar](https://github.com/Akascape/CTkMenuBar), [CTkMessagebox](https://github.com/Akascape/CTkMessagebox) and [CTkToolTip](https://github.com/Akascape/CTkToolTip).
++ Thanks [Akascape](https://github.com/Akascape) for CTkColorPicker, CTkMenuBar, CTkMessagebox and CTkToolTip.
 + Thanks [Chip Viled](https://github.com/chipviled) for conributing.
 
 ## Translations
@@ -77,8 +80,8 @@ The internationalization of this program has a simple principle - it determines 
 
 ## License
 + Project license - *GNU GPL v3*
-+ CTkColorPicker, CTkMenuBar and CTkToolTip license - *CC0*
-+ License for program translations (`Brushshe/locales/*.json`) - *CC0*
++ CTkColorPicker, CTkMenuBar and CTkToolTip license - *CC0 1.0*
++ License for program translations (`Brushshe/locales/*.json`) - *CC0 1.0*
 + Fonts - *OFL*
 
 ## For developers
