@@ -26,7 +26,7 @@ from PIL import (
     ImageTk,
 )
 from tools.bezier import make_bezier
-from tools.BrushPalette import BrashPalette
+from tools.BrushPalette import BrushPalette
 
 
 def resource(relative_path):
@@ -269,13 +269,13 @@ class Brushshe(ctk.CTk):
         self.bottom_docker = ctk.CTkFrame(self, corner_radius=0)
         self.bottom_docker.pack(side=ctk.BOTTOM, fill=ctk.X)
 
-        self.brash_palette = BrashPalette(
+        self.brush_palette = BrushPalette(
             self.bottom_docker,
             click_main_btn=self.main_color_choice,
             click_second_btn=self.second_color_choice,
-            click_flip_btn=self.flip_brash_colors
-            )
-        self.brash_palette.pack(side=ctk.LEFT, padx=2)
+            click_flip_btn=self.flip_brash_colors,
+        )
+        self.brush_palette.pack(side=ctk.LEFT, padx=2)
 
         self.palette_widget = ctk.CTkFrame(
             self.bottom_docker,
@@ -295,9 +295,11 @@ class Brushshe(ctk.CTk):
                 command=lambda c=color: self.change_color(c),
             )
             tmp_btn.pack(side=ctk.LEFT, padx=1, pady=1)
-            tmp_btn.bind('<Button-3>', lambda event, obj=tmp_btn: self.color_choice_bth(event, obj))
+            tmp_btn.bind("<Button-3>", lambda event, obj=tmp_btn: self.color_choice_bth(event, obj))
 
-        ctk.CTkButton(self.bottom_docker, text=self._("Other"), command=self.main_color_choice).pack(side=ctk.RIGHT, padx=1)
+        ctk.CTkButton(self.bottom_docker, text=self._("Other"), command=self.main_color_choice).pack(
+            side=ctk.RIGHT, padx=1
+        )
 
         """ Initialization """
         self.brush_color = "black"
@@ -493,7 +495,7 @@ class Brushshe(ctk.CTk):
         self.obtained_color = "#{:02x}{:02x}{:02x}".format(*color)
 
         self.brush_color = self.obtained_color
-        self.brash_palette.main_color = self.obtained_color
+        self.brush_palette.main_color = self.obtained_color
 
     def start_fill(self):  # beta
         self.set_tool("fill", "Fill", None, None, None, "spraycan")
@@ -1165,28 +1167,28 @@ class Brushshe(ctk.CTk):
 
     def change_color(self, new_color):
         self.brush_color = new_color
-        self.brash_palette.main_color = self.brush_color
+        self.brush_palette.main_color = self.brush_color
 
     def main_color_choice(self):
         askcolor = AskColor(title=self._("Color select"))
         self.obtained_color = askcolor.get()
         if self.obtained_color:
             self.brush_color = self.obtained_color
-            self.brash_palette.main_color = self.obtained_color
+            self.brush_palette.main_color = self.obtained_color
 
     def second_color_choice(self):
         askcolor = AskColor(title=self._("Color select"))
         self.obtained_color = askcolor.get()
         if self.obtained_color:
             self.second_brush_color = self.obtained_color
-            self.brash_palette.second_color = self.obtained_color
+            self.brush_palette.second_color = self.obtained_color
 
     def color_choice_bth(self, event, btn):
         askcolor = AskColor(title=self._("Color select"))
         self.obtained_color = askcolor.get()
         if self.obtained_color:
-            #self.main_brush_color = self.obtained_color
-            #self.brash_palette.main_color = self.obtained_color
+            # self.main_brush_color = self.obtained_color
+            # self.brush_palette.main_color = self.obtained_color
             btn.configure(
                 fg_color=self.obtained_color,
                 hover_color=self.obtained_color,
@@ -1194,11 +1196,11 @@ class Brushshe(ctk.CTk):
             )
 
     def flip_brash_colors(self):
-        self.brush_color = self.brash_palette.second_color
-        self.second_brush_color = self.brash_palette.main_color
+        self.brush_color = self.brush_palette.second_color
+        self.second_brush_color = self.brush_palette.main_color
 
-        self.brash_palette.main_color = self.brush_color
-        self.brash_palette.second_color = self.second_brush_color
+        self.brush_palette.main_color = self.brush_color
+        self.brush_palette.second_color = self.second_brush_color
 
     def open_image(self, openimage):
         self.bg_color = "white"

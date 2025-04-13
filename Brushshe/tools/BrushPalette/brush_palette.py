@@ -7,12 +7,13 @@ Button hover effect can't has transparent color.
 
 import os
 import sys
+
 import customtkinter as ctk
+
 # from PIL import Image
 
 
-class BrashPalette(ctk.CTkFrame):
-
+class BrushPalette(ctk.CTkFrame):
     def __init__(
         self,
         master,
@@ -23,7 +24,7 @@ class BrashPalette(ctk.CTkFrame):
         width: int = 54,
         corner_radius: int = 0,
         bg_color: str = "transparent",
-        **kwargs
+        **kwargs,
     ):
         self._main_color = "#000000"
         self._second_color = "#FFFFFF"
@@ -48,7 +49,7 @@ class BrashPalette(ctk.CTkFrame):
             border_width=0,
             corner_radius=0,
             command=self.click_flip_btn,
-            fg_color="#707070",             # TODO: Change to image
+            fg_color="#707070",  # TODO: Change to image
             hover_color="#7f7f7f",
         ).place(x=32, y=0)
 
