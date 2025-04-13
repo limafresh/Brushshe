@@ -516,7 +516,7 @@ class Brushshe(ctk.CTk):
                 self.open_file_error(e)
 
     def save_to_device(self, extension):
-        dialog = FileDialog(self, title=self._("Open from file"), save=True, save_extension=extension)
+        dialog = FileDialog(self, title=self._("Save to device"), save=True, save_extension=extension)
         if dialog.path:
             self.image.save(dialog.path)
             CTkMessagebox(
