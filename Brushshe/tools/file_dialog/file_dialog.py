@@ -72,9 +72,8 @@ class FileDialog(ctk.CTkToplevel):
         style = ttk.Style()
         style.configure("Treeview", rowheight=30)
 
-        self.tree = ttk.Treeview(self.tree_frame, columns=("Item"), show="tree")
+        self.tree = ttk.Treeview(self.tree_frame, show="tree")
         self.tree.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-        self.tree.heading("Item")
         self.tree.bind("<Double-1>", self._on_click)
 
         self._populate_file_list()
