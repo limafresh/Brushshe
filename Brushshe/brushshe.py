@@ -9,7 +9,6 @@ from tkinter import PhotoImage
 from uuid import uuid4
 
 import customtkinter as ctk
-from brushshe_color_picker import AskColor
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
 from CTkToolTip import CTkToolTip
@@ -26,7 +25,9 @@ from PIL import (
     ImageTk,
 )
 from tools.bezier import make_bezier
-from tools.BrushPalette import BrushPalette
+from tools.brush_palette import BrushPalette
+from tools.color_picker import AskColor
+from tools.file_dialog import FileDialog
 
 
 def resource(relative_path):
@@ -291,7 +292,6 @@ class Brushshe(ctk.CTk):
                 width=30,
                 height=30,
                 border_width=2,
-                # corner_radius=0,
                 command=lambda c=color: self.change_color(c),
             )
             tmp_btn.pack(side=ctk.LEFT, padx=1, pady=1)
@@ -508,25 +508,17 @@ class Brushshe(ctk.CTk):
         self.undo_stack.append(self.image.copy())
 
     def open_from_file(self):
-        file_path = ctk.filedialog.askopenfilename(
-            filetypes=[
-                (self._("Images"), "*png* *jpg* *jpeg* *gif* *ico* *bmp* *webp* *tiff* *ppm* *pgm* *pbm*"),
-                (self._("All files"), "*.*"),
-            ]
-        )
-        if file_path:
+        dialog = FileDialog(self, title=self._("Open from file"), save=False)
+        if dialog.path:
             try:
-                self.open_image(file_path)
+                self.open_image(dialog.path)
             except Exception as e:
                 self.open_file_error(e)
 
     def save_to_device(self, extension):
-        file_path = ctk.filedialog.asksaveasfilename(
-            defaultextension=extension,
-            filetypes=[(self._("All files"), "*.*")],
-        )
-        if file_path:
-            self.image.save(file_path)
+        dialog = FileDialog(self, title=self._("Open from file"), save=True, save_extension=extension)
+        if dialog.path:
+            self.image.save(dialog.path)
             CTkMessagebox(
                 title=self._("Saved"),
                 message=self._("The picture has been successfully saved to your device in format") + f" {extension}!",
