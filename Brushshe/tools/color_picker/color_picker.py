@@ -253,8 +253,3 @@ class AskColor(customtkinter.CTkToplevel):
                         return
 
         self.canvas.create_image(self.image_dimension / 2, self.image_dimension / 2, image=self.target)
-
-
-if __name__ == "__main__":
-    app = AskColor()
-    app.mainloop()

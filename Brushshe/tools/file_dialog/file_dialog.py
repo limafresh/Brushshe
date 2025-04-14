@@ -8,24 +8,14 @@ PATH = os.path.dirname(os.path.realpath(__file__))
 
 
 class FileDialog(ctk.CTkToplevel):
-    def __init__(
-        self,
-        parent,
-        width=500,
-        height=400,
-        initialdir=".",
-        title=None,
-        save=False,
-        save_extension="",
-    ):
+    def __init__(self, parent, title, save=False, save_placeholder=""):
         super().__init__(parent)
-        self.geometry(f"{width}x{height}")
-
-        self.title("Save file" if save else "Open file") if title is None else self.title(title)
+        self.geometry("500x400")
+        self.title(title)
         self.save_mode = save
-        self.save_extension = save_extension
 
         self.path = None
+        self.extension = ".png"
 
         # Images by Vijay Verma from Wikimedia Commons, licensed under CC0 1.0
         self.folder_image = tk.PhotoImage(file=os.path.join(PATH, "folder.png"))
@@ -37,7 +27,7 @@ class FileDialog(ctk.CTkToplevel):
         self.path_frame = ctk.CTkFrame(self.frame)
         self.path_frame.pack(fill=ctk.X, padx=10, pady=10)
 
-        self.initialdir = ctk.StringVar(value=os.path.join(os.path.abspath(initialdir), ""))
+        self.initialdir = ctk.StringVar(value=os.path.join(os.path.abspath("."), ""))
         self.path_entry = ctk.CTkEntry(self.path_frame, textvariable=self.initialdir)
         self.path_entry.pack(expand=True, fill=ctk.X, side=ctk.LEFT, padx=10, pady=10)
         self.path_entry.bind("<Return>", self._populate_file_list)
@@ -45,9 +35,12 @@ class FileDialog(ctk.CTkToplevel):
         self.up_btn = ctk.CTkButton(self.path_frame, text="↑", width=30, command=self._up)
         self.up_btn.pack(side=ctk.RIGHT, padx=10, pady=10)
 
-        if save_extension:
-            extension_btn = ctk.CTkButton(self.path_frame, text=save_extension, width=50, hover=False)
-            extension_btn.pack(side=ctk.RIGHT, padx=10, pady=10)
+        if save:
+            extensions = [".png", ".jpg", ".gif", ".bmp", ".tiff", ".webp", ".ico", ".ppm", ".pgm", ".pbm"]
+            extension_combobox = ctk.CTkComboBox(
+                self.path_frame, values=extensions, width=80, command=self._combobox_callback
+            )
+            extension_combobox.pack(side=ctk.RIGHT, padx=10, pady=10)
 
         btn_frame = ctk.CTkFrame(self.frame)
         btn_frame.pack(side=ctk.BOTTOM, fill=ctk.X, padx=10, pady=10)
@@ -60,10 +53,10 @@ class FileDialog(ctk.CTkToplevel):
         else:
             ok_btn.configure(command=self._on_click)
 
-        ctk.CTkButton(btn_frame, text="Cancel", command=self.destroy).pack(side=ctk.RIGHT, padx=10)
+        ctk.CTkButton(btn_frame, text="x", command=self.destroy).pack(side=ctk.RIGHT, padx=10)
 
         if self.save_mode:
-            self.save_entry = ctk.CTkEntry(self.frame, placeholder_text="Enter name for save...")
+            self.save_entry = ctk.CTkEntry(self.frame, placeholder_text=save_placeholder)
             self.save_entry.pack(side=ctk.BOTTOM, fill=ctk.X, padx=10)
 
         self.tree_frame = ctk.CTkFrame(self.frame)
@@ -87,11 +80,13 @@ class FileDialog(ctk.CTkToplevel):
         try:
             for item in self.tree.get_children():
                 self.tree.delete(item)
-            for item in os.listdir(self.initialdir.get()):
-                if os.path.isdir(os.path.join(self.initialdir.get(), item)):
-                    self.tree.insert("", tk.END, text=item, image=self.folder_image)
-                else:
-                    self.tree.insert("", tk.END, text=item, image=self.file_image)
+            items = sorted(os.listdir(self.initialdir.get()))
+            for item in items:
+                if not item.startswith("."):
+                    if os.path.isdir(os.path.join(self.initialdir.get(), item)):
+                        self.tree.insert("", tk.END, text=item, image=self.folder_image)
+                    else:
+                        self.tree.insert("", tk.END, text=item, image=self.file_image)
         except Exception:
             pass
 
@@ -111,11 +106,14 @@ class FileDialog(ctk.CTkToplevel):
                 self.path = selected_path
                 self.destroy()
 
+    def _combobox_callback(self, choice):
+        self.extension = choice
+
     def _ok_save(self, event=None):
         if self.save_entry.get() == "" or self.save_entry.get().startswith(" ") or self.save_entry.get().endswith(" "):
             return
         selected_path = os.path.join(self.initialdir.get(), self.save_entry.get())
-        self.path = selected_path + self.save_extension
+        self.path = selected_path + self.extension
         self.destroy()
 
     def _up(self):

@@ -112,10 +112,7 @@ class Brushshe(ctk.CTk):
         file_menu = menu.add_cascade(self._("File"))
         file_dropdown = CustomDropdownMenu(widget=file_menu)
         file_dropdown.add_option(option=self._("Open from file"), command=self.open_from_file)
-        save_submenu = file_dropdown.add_submenu(self._("Save to device"))
-        formats = ["PNG", "JPG", "GIF", "BMP", "TIFF", "WEBP", "ICO", "PPM", "PGM", "PBM"]
-        for fmt in formats:
-            save_submenu.add_option(option=fmt, command=lambda fmt=fmt: self.save_to_device(f".{fmt.lower()}"))
+        file_dropdown.add_option(option=self._("Save to device"), command=self.save_to_device)
         file_dropdown.add_separator()
         file_dropdown.add_option(option=self._("Rotate right"), command=lambda: self.rotate(-90))
         file_dropdown.add_option(option=self._("Rotate left"), command=lambda: self.rotate(90))
@@ -274,7 +271,7 @@ class Brushshe(ctk.CTk):
             self.bottom_docker,
             click_main_btn=self.main_color_choice,
             click_second_btn=self.second_color_choice,
-            click_flip_btn=self.flip_brash_colors,
+            click_flip_btn=self.flip_brush_colors,
         )
         self.brush_palette.pack(side=ctk.LEFT, padx=2)
 
@@ -327,7 +324,7 @@ class Brushshe(ctk.CTk):
         self.bind("<Control-y>", lambda e: self.redo())
         self.bind("<Control-s>", lambda e: self.save_to_gallery())
 
-        self.bind("<Key-x>", lambda e: self.flip_brash_colors())
+        self.bind("<Key-x>", lambda e: self.flip_brush_colors())
         self.bind("<Key-b>", lambda e: self.brush())
         self.bind("<Key-e>", lambda e: self.eraser())
 
@@ -508,20 +505,21 @@ class Brushshe(ctk.CTk):
         self.undo_stack.append(self.image.copy())
 
     def open_from_file(self):
-        dialog = FileDialog(self, title=self._("Open from file"), save=False)
+        dialog = FileDialog(self, self._("Open from file"))
         if dialog.path:
             try:
                 self.open_image(dialog.path)
             except Exception as e:
                 self.open_file_error(e)
 
-    def save_to_device(self, extension):
-        dialog = FileDialog(self, title=self._("Save to device"), save=True, save_extension=extension)
+    def save_to_device(self):
+        dialog = FileDialog(self, self._("Save to device"), True, self._("Enter name for save..."))
         if dialog.path:
             self.image.save(dialog.path)
             CTkMessagebox(
                 title=self._("Saved"),
-                message=self._("The picture has been successfully saved to your device in format") + f" {extension}!",
+                message=self._("The picture has been successfully saved to your device in format")
+                + f" {dialog.extension}!",
                 icon=resource("icons/saved.png"),
                 icon_size=(100, 100),
             )
@@ -1058,7 +1056,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v1.10.0",
+            message=about_text + "v1.11.0",
             icon=resource("icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
@@ -1187,7 +1185,7 @@ class Brushshe(ctk.CTk):
                 command=lambda c=self.obtained_color: self.change_color(c),
             )
 
-    def flip_brash_colors(self):
+    def flip_brush_colors(self):
         self.brush_color = self.brush_palette.second_color
         self.second_brush_color = self.brush_palette.main_color
 
