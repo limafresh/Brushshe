@@ -232,7 +232,7 @@ class Brushshe(ctk.CTk):
             from_=100,
             to=2000,
             orientation="horizontal",
-            command=lambda val: self.canvas.configure(width=int(val)),
+            command=lambda val: self.canvas.configure(width=int(val * self.zoom)),
         )
         self.width_slider.pack(side=ctk.BOTTOM, fill=ctk.X)
         self.width_slider.bind("<ButtonRelease-1>", self.crop_picture)
@@ -243,7 +243,7 @@ class Brushshe(ctk.CTk):
             from_=100,
             to=2000,
             orientation="vertical",
-            command=lambda val: self.canvas.configure(height=int(val)),
+            command=lambda val: self.canvas.configure(height=int(val * self.zoom)),
         )
         self.height_slider.pack(side=ctk.LEFT, fill=ctk.Y)
         self.height_slider.bind("<ButtonRelease-1>", self.crop_picture)
@@ -388,7 +388,11 @@ class Brushshe(ctk.CTk):
         if self.zoom < 6:
             self.zoom += 1
         self.update_canvas()
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        self.canvas.configure(
+            scrollregion=self.canvas.bbox("all"),
+            width=int(self.image.width * self.zoom),
+            height=int(self.image.height * self.zoom),
+        )
 
     def zoom_out(self, event=None):
         if self.zoom > 1:
@@ -396,7 +400,11 @@ class Brushshe(ctk.CTk):
         else:
             self.zoom = 1
         self.update_canvas()
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        self.canvas.configure(
+            scrollregion=self.canvas.bbox("all"),
+            width=int(self.image.width * self.zoom),
+            height=int(self.image.height * self.zoom),
+        )
 
     def canvas_to_pict_xy(self, x, y):
         return self.canvas.canvasx(x) // self.zoom, self.canvas.canvasy(y) // self.zoom
@@ -480,7 +488,11 @@ class Brushshe(ctk.CTk):
         self.draw = ImageDraw.Draw(self.image)
         self.update_canvas()
         self.undo_stack.append(self.image.copy())
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        self.canvas.configure(
+            scrollregion=self.canvas.bbox("all"),
+            width=int(self.image.width * self.zoom),
+            height=int(self.image.height * self.zoom),
+            )
         self.width_tooltip.configure(message=self.image.width)
         self.height_tooltip.configure(message=self.image.height)
 
@@ -830,10 +842,9 @@ class Brushshe(ctk.CTk):
                 canvas_points.append((cx, cy))
                 image_points.append((px, py))
             else:
-                tx = canvas_points[len_p - 2][0]
-                ty = canvas_points[len_p - 2][1]
+                tx, ty = canvas_points[len_p - 2]
 
-                if cx == tx and cy == ty:
+                if cx == tx and cy == ty and len_p > 2:
                     stop = True
                 else:
                     canvas_points.append(canvas_points[len_p - 1])
@@ -854,7 +865,7 @@ class Brushshe(ctk.CTk):
                             abs(image_points[ii][0] - image_points[ii + 1][0]),
                             abs(image_points[ii][1] - image_points[ii + 1][1]),
                         )
-                max_segments = max_segments // 2
+                max_segments = max_segments // 3
                 if max_segments < 32:
                     max_segments = 32
 
@@ -1121,7 +1132,9 @@ class Brushshe(ctk.CTk):
             self.draw = ImageDraw.Draw(self.image)
             if self.image.width != self.canvas.winfo_width() or self.image.height != self.canvas.winfo_height():
                 self.canvas.configure(
-                    width=self.image.width, height=self.image.height, scrollregion=self.canvas.bbox("all")
+                    scrollregion=self.canvas.bbox("all"),
+                    width=int(self.image.width * self.zoom),
+                    height=int(self.image.height * self.zoom),
                 )
                 self.width_slider.set(self.image.width)
                 self.height_slider.set(self.image.height)
@@ -1134,7 +1147,9 @@ class Brushshe(ctk.CTk):
             self.draw = ImageDraw.Draw(self.image)
             if self.image.width != self.canvas.winfo_width() or self.image.height != self.canvas.winfo_height():
                 self.canvas.configure(
-                    width=self.image.width, height=self.image.height, scrollregion=self.canvas.bbox("all")
+                    scrollregion=self.canvas.bbox("all"),
+                    width=int(self.image.width * self.zoom),
+                    height=int(self.image.height * self.zoom),
                 )
                 self.width_slider.set(self.image.width)
                 self.height_slider.set(self.image.height)
@@ -1226,7 +1241,6 @@ class Brushshe(ctk.CTk):
         self.picture_postconfigure()
 
     def picture_postconfigure(self):
-        self.canvas.configure(width=self.image.width, height=self.image.height)
         self.width_slider.set(self.image.width)
         self.height_slider.set(self.image.height)
         self.width_tooltip.configure(message=self.image.width)
@@ -1234,7 +1248,11 @@ class Brushshe(ctk.CTk):
 
         self.update_canvas()
         self.draw = ImageDraw.Draw(self.image)
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        self.canvas.configure(
+            scrollregion=self.canvas.bbox("all"),
+            width=int(self.image.width * self.zoom),
+            height=int(self.image.height * self.zoom),
+        )
         self.canvas.xview_moveto(0)
         self.canvas.yview_moveto(0)
         self.undo_stack.append(self.image.copy())
