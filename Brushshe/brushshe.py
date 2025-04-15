@@ -311,7 +311,6 @@ class Brushshe(ctk.CTk):
         self.sticker_size = 100
         self.font_size = 24
         self.zoom = 1
-        self.old_zoom = self.zoom
 
         self.update()  # update interface before calculate picture size
         self.brush()
@@ -389,11 +388,7 @@ class Brushshe(ctk.CTk):
         if self.zoom < 6:
             self.zoom += 1
         self.update_canvas()
-        # self.canvas.configure(
-        #     scrollregion=self.canvas.bbox("all"),
-        #     width=int(self.image.width * self.zoom),
-        #     height=int(self.image.height * self.zoom),
-        # )
+        self.force_resize_canvas()
 
     def zoom_out(self, event=None):
         if self.zoom > 1:
@@ -401,11 +396,7 @@ class Brushshe(ctk.CTk):
         else:
             self.zoom = 1
         self.update_canvas()
-        # self.canvas.configure(
-        #     scrollregion=self.canvas.bbox("all"),
-        #     width=int(self.image.width * self.zoom),
-        #     height=int(self.image.height * self.zoom),
-        # )
+        self.force_resize_canvas()
 
     def canvas_to_pict_xy(self, x, y):
         return self.canvas.canvasx(x) // self.zoom, self.canvas.canvasy(y) // self.zoom
@@ -483,26 +474,22 @@ class Brushshe(ctk.CTk):
         self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.img_tk)
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
-        # If zoom was changed, then need to resize canvas too.
-        if self.old_zoom != self.zoom:
-            self.canvas.configure(
-                width=int(self.image.width * self.zoom),
-                height=int(self.image.height * self.zoom),
-            )
-            self.old_zoom = self.zoom
+    def force_resize_canvas(self):
+        self.canvas.configure(
+            width=int(self.image.width * self.zoom),
+            height=int(self.image.height * self.zoom),
+        )
 
     def crop_picture(self, event):
         new_image = Image.new("RGB", (int(self.width_slider.get()), int(self.height_slider.get())), self.bg_color)
         new_image.paste(self.image, (0, 0))
         self.image = new_image
         self.draw = ImageDraw.Draw(self.image)
+
         self.update_canvas()
+        self.force_resize_canvas()
+
         self.undo_stack.append(self.image.copy())
-        # self.canvas.configure(
-        #     scrollregion=self.canvas.bbox("all"),
-        #     width=int(self.image.width * self.zoom),
-        #     height=int(self.image.height * self.zoom),
-        #     )
         self.width_tooltip.configure(message=self.image.width)
         self.height_tooltip.configure(message=self.image.height)
 
@@ -1103,7 +1090,10 @@ class Brushshe(ctk.CTk):
         self.canvas.configure(width=img_width, height=img_height, scrollregion=self.canvas.bbox("all"))
         self.canvas.xview_moveto(0)
         self.canvas.yview_moveto(0)
+
         self.update_canvas()
+        self.force_resize_canvas()
+
         self.undo_stack.append(self.image.copy())
 
     def change_tool_size(self, value):
@@ -1141,13 +1131,9 @@ class Brushshe(ctk.CTk):
             self.image = self.undo_stack[-1].copy()
             self.draw = ImageDraw.Draw(self.image)
             if self.image.width != self.canvas.winfo_width() or self.image.height != self.canvas.winfo_height():
-                # self.canvas.configure(
-                #     scrollregion=self.canvas.bbox("all"),
-                #     width=int(self.image.width * self.zoom),
-                #     height=int(self.image.height * self.zoom),
-                # )
                 self.width_slider.set(self.image.width)
                 self.height_slider.set(self.image.height)
+                self.force_resize_canvas()
             self.update_canvas()
 
     def redo(self):
@@ -1156,13 +1142,9 @@ class Brushshe(ctk.CTk):
             self.undo_stack.append(self.image.copy())
             self.draw = ImageDraw.Draw(self.image)
             if self.image.width != self.canvas.winfo_width() or self.image.height != self.canvas.winfo_height():
-                # self.canvas.configure(
-                #     scrollregion=self.canvas.bbox("all"),
-                #     width=int(self.image.width * self.zoom),
-                #     height=int(self.image.height * self.zoom),
-                # )
                 self.width_slider.set(self.image.width)
                 self.height_slider.set(self.image.height)
+                self.force_resize_canvas()
             self.update_canvas()
 
     def save_to_gallery(self):
@@ -1257,12 +1239,9 @@ class Brushshe(ctk.CTk):
         self.height_tooltip.configure(message=self.image.height)
 
         self.update_canvas()
+        self.force_resize_canvas()
+
         self.draw = ImageDraw.Draw(self.image)
-        # self.canvas.configure(
-        #     scrollregion=self.canvas.bbox("all"),
-        #     width=int(self.image.width * self.zoom),
-        #     height=int(self.image.height * self.zoom),
-        # )
         self.canvas.xview_moveto(0)
         self.canvas.yview_moveto(0)
         self.undo_stack.append(self.image.copy())
