@@ -71,7 +71,7 @@ class FileDialog(ctk.CTkToplevel):
 
         self._populate_file_list()
 
-        self.wait_visibility() 
+        self.wait_visibility()
         self.grab_set()
         self.wait_window()
 

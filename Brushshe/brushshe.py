@@ -417,7 +417,7 @@ class Brushshe(ctk.CTk):
         else:
             self.draw_line(x, y, x, y)
 
-        # TODO: In this place need use some other method 
+        # TODO: In this place need use some other method
         #  without destroying and recreating all on canvas
         #  OR temporally drawing only on canvas.
         self.update_canvas()
@@ -1077,7 +1077,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v1.11.0",
+            message=about_text + "v1.11.1",
             icon=resource("icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
