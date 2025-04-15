@@ -332,6 +332,16 @@ class Brushshe(ctk.CTk):
         self.bind("<Key-equal>", lambda e: self.zoom_in(e))  # Key "=" -> ("+" without Shift)
         self.bind("<Key-minus>", lambda e: self.zoom_out(e))
 
+        # Scroll on mouse
+        # Windows OS
+        self.canvas.bind("<MouseWheel>", self.scroll_on_canvasy)
+        self.canvas.bind("<Shift-MouseWheel>", self.scroll_on_canvasx)
+        # Linux OS
+        self.canvas.bind("<Button-4>", self.scroll_on_canvasy)
+        self.canvas.bind("<Button-5>", self.scroll_on_canvasy)
+        self.canvas.bind("<Shift-Button-4>", self.scroll_on_canvasx)
+        self.canvas.bind("<Shift-Button-5>", self.scroll_on_canvasx)
+
         """Defining the Gallery Folder Path"""
         if os.name == "nt":  # For Windows
             images_folder = Path(os.environ["USERPROFILE"]) / "Pictures"
@@ -382,6 +392,20 @@ class Brushshe(ctk.CTk):
         )
         if closing_msg.get() == self._("Yes"):
             self.destroy()
+
+    def scroll_on_canvasy(self, event):
+        if event.num == 5 or event.delta < 0:
+            count = 1
+        if event.num == 4 or event.delta > 0:
+            count = -1
+        self.canvas.yview_scroll(count, "units")
+
+    def scroll_on_canvasx(self, event):
+        if event.num == 5 or event.delta < 0:
+            count = 1
+        if event.num == 4 or event.delta > 0:
+            count = -1
+        self.canvas.xview_scroll(count, "units")
 
     def zoom_in(self, event=None):
         # Zooming: integer only and limited by 6. More value has optimization problems.
