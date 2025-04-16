@@ -38,7 +38,7 @@ You can choose a color, change the brush thickness, and paint. You can change ca
 ### Save to device
 You can save picture to your PC in different formats (PNG, JPG, GIF, BMP, TIFF, WEBP, ICO, PPM, PGM, PBM).
 ### Undo and redo
-You can undo and redo 10 last actions. There are buttons on toolbar and hotkeys (Ctrl+Z - undo, Ctrl+Y - redo).
+You can undo and redo 10 last actions.
 ### Eraser
 Removing excess with an eraser.
 ### Fill
@@ -58,7 +58,7 @@ Rectangle and oval (with or without fill), line, bezier curve.
 ### Effects
 Blur, detail, contour, grayscale, inversion and other. Not work on GIF images.
 ### My Gallery
-Window showing images drawn in Brushshe and "saved to gallery". Images from the gallery are stored in `<user_home_folder>/Pictures/Brushshe Images` or `<user_home_folder>/Brushshe Images` on some minimalistic Linux distributions. For saving there is a button "Save to gallery" in toolbar and hotkey Ctrl+S.
+Window showing images drawn in Brushshe and "saved to gallery". Images from the gallery are stored in `<user_home_folder>/Pictures/Brushshe Images` or `<user_home_folder>/Brushshe Images` on some minimalistic Linux distributions.
 ### Dark theme
 There is a system, light and dark theme.
 ### Rotate
@@ -66,7 +66,18 @@ Rotate right, rotate left.
 ### Create screenshot
 You can take a screenshot and draw on it. Not work on Linux with Wayland.
 ### View (beta)
-Zoom in, zoom out.
+Zoom in, zoom out, reset zoom.
+
+## Hotkeys
++ *Ctrl+Z*: undo
++ *Ctrl+Y*: redo
++ *Ctrl+S*: save to gallery
++ *X*: flip colors
++ *B*: brush
++ *E*: eraser
++ *=*: zoom in
++ *-*: zoom out
++ *Shift + mouse scroll*: scrolling the canvas horizontally
 
 ## Goal of project
 The goal of the project is to provide a open-source, convenient, beautiful and multifunctional painting app using the CustomTkinter toolkit.

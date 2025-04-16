@@ -130,6 +130,8 @@ class Brushshe(ctk.CTk):
         view_dropdown = CustomDropdownMenu(widget=view_menu)
         view_dropdown.add_option(option=self._("Zoom In"), command=self.zoom_in)
         view_dropdown.add_option(option=self._("Zoom Out"), command=self.zoom_out)
+        view_dropdown.add_separator()
+        view_dropdown.add_option(option=self._("Reset"), command=self.reset_zoom)
 
         add_menu = menu.add_cascade(self._("Add"))
         add_dropdown = CustomDropdownMenu(widget=add_menu)
@@ -147,7 +149,6 @@ class Brushshe(ctk.CTk):
         shape_options = ["Rectangle", "Oval", "Line", "Fill rectangle", "Fill oval"]
         for shape in shape_options:
             shapes_dropdown.add_option(option=self._(shape), command=lambda shape=shape: self.create_shape(shape))
-        shapes_dropdown.add_separator()
         shapes_dropdown.add_option(option=self._("Bezier curve"), command=self.bezier_shape)
 
         menu.add_cascade(self._("My Gallery"), command=self.show_gallery)
@@ -284,11 +285,12 @@ class Brushshe(ctk.CTk):
             tmp_btn = ctk.CTkButton(
                 self.palette_widget,
                 fg_color=color,
-                hover_color=color,
+                hover=False,
                 text=None,
                 width=30,
                 height=30,
                 border_width=2,
+                corner_radius=100,
                 command=lambda c=color: self.change_color(c),
             )
             tmp_btn.pack(side=ctk.LEFT, padx=1, pady=1)
@@ -419,6 +421,11 @@ class Brushshe(ctk.CTk):
             self.zoom -= 1
         else:
             self.zoom = 1
+        self.update_canvas()
+        self.force_resize_canvas()
+
+    def reset_zoom(self, event=None):
+        self.zoom = 1
         self.update_canvas()
         self.force_resize_canvas()
 
@@ -1088,7 +1095,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v1.11.1",
+            message=about_text + "v1.12.0",
             icon=resource("icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
