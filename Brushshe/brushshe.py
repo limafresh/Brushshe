@@ -411,16 +411,15 @@ class Brushshe(ctk.CTk):
 
     def zoom_in(self, event=None):
         # Zooming: integer only and limited by 6. More value has optimization problems.
-        if self.zoom < 6:
+        if self.zoom < 6 and self.zoom >= 1:
             self.zoom += 1
+        elif self.zoom < 1:
+            self.zoom *= 2
         self.update_canvas()
         self.force_resize_canvas()
 
     def zoom_out(self, event=None):
-        if self.zoom > 1:
-            self.zoom -= 1
-        else:
-            self.zoom = 1
+        self.zoom /= 2
         self.update_canvas()
         self.force_resize_canvas()
 
@@ -499,7 +498,7 @@ class Brushshe(ctk.CTk):
             canvas_image = self.image
         else:
             canvas_image = self.image.resize(
-                (self.image.width * self.zoom, self.image.height * self.zoom), Image.NEAREST
+                (int(self.image.width * self.zoom), int(self.image.height * self.zoom)), Image.NEAREST
             )
         self.img_tk = ImageTk.PhotoImage(canvas_image)
         self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.img_tk)
