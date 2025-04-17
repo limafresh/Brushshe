@@ -561,6 +561,7 @@ class Brushshe(ctk.CTk):
                 + f" {dialog.extension}!",
                 icon=resource("icons/saved.png"),
                 icon_size=(100, 100),
+                sound=True,
             )
 
     def other_bg_color(self):
@@ -1190,6 +1191,7 @@ class Brushshe(ctk.CTk):
             ),
             icon=resource("icons/saved.png"),
             icon_size=(100, 100),
+            sound=True,
         )
 
     def change_color(self, new_color):
