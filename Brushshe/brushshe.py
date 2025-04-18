@@ -379,6 +379,7 @@ class Brushshe(ctk.CTk):
         self.stickers = [Image.open(resource(f"stickers/{name}.png")) for name in stickers_names]
 
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        self.update_canvas(force=True)
 
     """ Functionality """
 
@@ -410,8 +411,11 @@ class Brushshe(ctk.CTk):
         self.canvas.xview_scroll(count, "units")
 
     def zoom_in(self, event=None):
-        # Zooming: integer only and limited by 6. More value has optimization problems.
-        if self.zoom < 6 and self.zoom >= 1:
+        # This system is not good suitable for float values of the coefficient.
+        if 1 < self.zoom < 2:  # Need if zoom not integer but more 1 and less 2
+            self.zoom = 1
+
+        if 1 <= self.zoom < 6:  # Zooming limited up by 6. More value has optimization problems.
             self.zoom += 1
         elif self.zoom < 1:
             self.zoom *= 2
@@ -419,7 +423,10 @@ class Brushshe(ctk.CTk):
         self.force_resize_canvas()
 
     def zoom_out(self, event=None):
-        self.zoom /= 2
+        if 1 < self.zoom:
+            self.zoom -= 1
+        elif 0.05 < self.zoom <= 1:  # Zooming limited down by 0.05.
+            self.zoom /= 2
         self.update_canvas()
         self.force_resize_canvas()
 
@@ -492,16 +499,40 @@ class Brushshe(ctk.CTk):
                 err += dx
                 y1 += sy
 
-    def update_canvas(self):
-        self.canvas.delete("all")
+    def update_canvas(self, force=False):
+        tmp_main_canvas_img = None
+
+        if force:
+            self.canvas.delete("all")
+        else:
+            on_canvas = self.canvas.find_all()
+            for ii in on_canvas:
+                tmp = self.canvas.itemcget(ii, "tag")
+                if tmp == "main_canvas_img":
+                    tmp_main_canvas_img = ii
+                elif tmp == "tools":
+                    pass
+                else:
+                    self.canvas.delete(ii)
+
         if self.zoom == 1:
             canvas_image = self.image
-        else:
+        elif self.zoom > 1:
             canvas_image = self.image.resize(
                 (int(self.image.width * self.zoom), int(self.image.height * self.zoom)), Image.NEAREST
             )
+        else:  # self.zoom < 1
+            canvas_image = self.image.resize(
+                (int(self.image.width * self.zoom), int(self.image.height * self.zoom)), Image.BILINEAR
+            )
+
         self.img_tk = ImageTk.PhotoImage(canvas_image)
-        self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.img_tk)
+
+        if tmp_main_canvas_img is None:
+            self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.img_tk, tag="main_canvas_img")
+        else:
+            self.canvas.itemconfigure(tmp_main_canvas_img, image=self.img_tk)
+
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
     def force_resize_canvas(self):
