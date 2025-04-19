@@ -2,6 +2,7 @@ import json
 import os
 import sys
 import webbrowser
+import math
 from collections import deque
 from locale import getlocale
 from pathlib import Path
@@ -233,7 +234,7 @@ class Brushshe(ctk.CTk):
             from_=100,
             to=2000,
             orientation="horizontal",
-            command=lambda val: self.canvas.configure(width=int(val * self.zoom)),
+            command=lambda val: self.crop_picture(val),
         )
         self.width_slider.pack(side=ctk.BOTTOM, fill=ctk.X)
         self.width_slider.bind("<ButtonRelease-1>", self.crop_picture)
@@ -244,7 +245,7 @@ class Brushshe(ctk.CTk):
             from_=100,
             to=2000,
             orientation="vertical",
-            command=lambda val: self.canvas.configure(height=int(val * self.zoom)),
+            command=lambda val: self.crop_picture(val),
         )
         self.height_slider.pack(side=ctk.LEFT, fill=ctk.Y)
         self.height_slider.bind("<ButtonRelease-1>", self.crop_picture)
@@ -259,10 +260,10 @@ class Brushshe(ctk.CTk):
         self.canvas = ctk.CTkCanvas(
             self.canvas_frame, yscrollcommand=self.v_scrollbar.set, xscrollcommand=self.h_scrollbar.set
         )
-        self.canvas.pack()  # anchor='center'
+        self.canvas.pack(anchor=ctk.CENTER, expand=True)  # anchor='center'
 
-        self.v_scrollbar.configure(command=self.canvas.yview)
-        self.h_scrollbar.configure(command=self.canvas.xview)
+        self.v_scrollbar.configure(command=self.v_scrollbar_command)
+        self.h_scrollbar.configure(command=self.h_scrollbar_command)
 
         """Palette"""
         self.bottom_docker = ctk.CTkFrame(self, corner_radius=0)
@@ -344,6 +345,9 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<Shift-Button-4>", self.scroll_on_canvasx)
         self.canvas.bind("<Shift-Button-5>", self.scroll_on_canvasx)
 
+        # Resize window (and canvas)
+        self.bind("<Configure>", self.on_window_resize)
+
         """Defining the Gallery Folder Path"""
         if os.name == "nt":  # For Windows
             images_folder = Path(os.environ["USERPROFILE"]) / "Pictures"
@@ -378,10 +382,23 @@ class Brushshe(ctk.CTk):
         ]
         self.stickers = [Image.open(resource(f"stickers/{name}.png")) for name in stickers_names]
 
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        # self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         self.update_canvas(force=True)
 
     """ Functionality """
+
+    def v_scrollbar_command(self, a, b, c=None):
+        self.canvas.yview(a, b, c)
+        self.update_canvas()
+
+    def h_scrollbar_command(self, a, b, c=None):
+        self.canvas.xview(a, b, c)
+        self.update_canvas()
+
+    def on_window_resize(self, event):
+        # Update canvas after any resize window.
+        if hasattr(self, "canvas") and hasattr(self, "image"):
+            self.update_canvas()
 
     def when_closing(self):
         closing_msg = CTkMessagebox(
@@ -402,6 +419,7 @@ class Brushshe(ctk.CTk):
         if event.num == 4 or event.delta > 0:
             count = -1
         self.canvas.yview_scroll(count, "units")
+        self.update_canvas()
 
     def scroll_on_canvasx(self, event):
         if event.num == 5 or event.delta < 0:
@@ -409,18 +427,18 @@ class Brushshe(ctk.CTk):
         if event.num == 4 or event.delta > 0:
             count = -1
         self.canvas.xview_scroll(count, "units")
+        self.update_canvas()
 
     def zoom_in(self, event=None):
         # This system is not good suitable for float values of the coefficient.
         if 1 < self.zoom < 2:  # Need if zoom not integer but more 1 and less 2
             self.zoom = 1
 
-        if 1 <= self.zoom < 6:  # Zooming limited up by 6. More value has optimization problems.
+        if 1 <= self.zoom < 8:  # Zooming limited up by 8.
             self.zoom += 1
         elif self.zoom < 1:
             self.zoom *= 2
         self.update_canvas()
-        self.force_resize_canvas()
 
     def zoom_out(self, event=None):
         if 1 < self.zoom:
@@ -428,12 +446,10 @@ class Brushshe(ctk.CTk):
         elif 0.05 < self.zoom <= 1:  # Zooming limited down by 0.05.
             self.zoom /= 2
         self.update_canvas()
-        self.force_resize_canvas()
 
     def reset_zoom(self, event=None):
         self.zoom = 1
         self.update_canvas()
-        self.force_resize_canvas()
 
     def canvas_to_pict_xy(self, x, y):
         return self.canvas.canvasx(x) // self.zoom, self.canvas.canvasy(y) // self.zoom
@@ -445,9 +461,6 @@ class Brushshe(ctk.CTk):
         else:
             self.draw_line(x, y, x, y)
 
-        # TODO: In this place need use some other method
-        #  without destroying and recreating all on canvas
-        #  OR temporally drawing only on canvas.
         self.update_canvas()
 
         self.prev_x, self.prev_y = x, y
@@ -509,37 +522,64 @@ class Brushshe(ctk.CTk):
             for ii in on_canvas:
                 tmp = self.canvas.itemcget(ii, "tag")
                 if tmp == "main_canvas_img":
-                    tmp_main_canvas_img = ii
+                    # # Temporally disabled. Do not remove from code.
+                    # tmp_main_canvas_img = ii
+
+                    # Temporally deleted main_canvas_image.
+                    self.canvas.delete(ii)
                 elif tmp == "tools":
+                    # This need for future for do not deleted tools than scroll/resize canvas.
                     pass
                 else:
                     self.canvas.delete(ii)
 
+        cw_full, ch_full = int(self.image.width * self.zoom), int(self.image.height * self.zoom)
+
+        # Force resize canvas. Does in this place for correct calculate.
+        self.canvas.config(
+            scrollregion=(0, 0, cw_full, ch_full),
+            width=cw_full,
+            height=ch_full,
+        )
+
+        cw_real, ch_real = self.canvas.winfo_width(), self.canvas.winfo_height()
+        iw, ih = self.image.size
+
+        cx_frame_1, cx_frame_2 = self.canvas.xview()
+        cy_frame_1, cy_frame_2 = self.canvas.yview()
+
+        x1 = math.floor(cx_frame_1 * iw)
+        y1 = math.floor(cy_frame_1 * ih)
+        x2 = math.ceil(cx_frame_2 * iw)
+        y2 = math.ceil(cy_frame_2 * ih)
+
+        if x1 == 0 and y1 == 0 and x2 == 1 and y2 == 1:
+            tmp_canvas_image = self.image
+        else:
+            tmp_canvas_image = self.image.crop((x1, y1, x2, y2))
+
         if self.zoom == 1:
-            canvas_image = self.image
+            canvas_image = tmp_canvas_image
         elif self.zoom > 1:
-            canvas_image = self.image.resize(
-                (int(self.image.width * self.zoom), int(self.image.height * self.zoom)), Image.NEAREST
-            )
+            canvas_image = tmp_canvas_image.resize((cw_real, ch_real), Image.NEAREST)
         else:  # self.zoom < 1
-            canvas_image = self.image.resize(
-                (int(self.image.width * self.zoom), int(self.image.height * self.zoom)), Image.BILINEAR
-            )
+            canvas_image = tmp_canvas_image.resize((cw_real, ch_real), Image.BILINEAR)
 
         self.img_tk = ImageTk.PhotoImage(canvas_image)
 
         if tmp_main_canvas_img is None:
-            self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.img_tk, tag="main_canvas_img")
+            self.canvas.create_image(
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                anchor=ctk.NW,
+                image=self.img_tk,
+                tag="main_canvas_img",
+            )
         else:
-            self.canvas.itemconfigure(tmp_main_canvas_img, image=self.img_tk)
-
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
-
-    def force_resize_canvas(self):
-        self.canvas.configure(
-            width=int(self.image.width * self.zoom),
-            height=int(self.image.height * self.zoom),
-        )
+            pass
+            # # Temporally disabled. Do not remove from code.
+            # self.canvas.itemconfigure(tmp_main_canvas_img, image=self.img_tk)
+            # self.canvas.move(tmp_main_canvas_img, 10, 10)      # It's real move, but need absolute.
 
     def crop_picture(self, event):
         new_image = Image.new("RGB", (int(self.width_slider.get()), int(self.height_slider.get())), self.bg_color)
@@ -548,7 +588,6 @@ class Brushshe(ctk.CTk):
         self.draw = ImageDraw.Draw(self.image)
 
         self.update_canvas()
-        self.force_resize_canvas()
 
         self.undo_stack.append(self.image.copy())
         self.width_tooltip.configure(message=self.image.width)
@@ -1154,7 +1193,6 @@ class Brushshe(ctk.CTk):
         self.canvas.yview_moveto(0)
 
         self.update_canvas()
-        self.force_resize_canvas()
 
         self.undo_stack.append(self.image.copy())
 
@@ -1195,7 +1233,6 @@ class Brushshe(ctk.CTk):
             if self.image.width != self.canvas.winfo_width() or self.image.height != self.canvas.winfo_height():
                 self.width_slider.set(self.image.width)
                 self.height_slider.set(self.image.height)
-                self.force_resize_canvas()
             self.update_canvas()
 
     def redo(self):
@@ -1206,7 +1243,6 @@ class Brushshe(ctk.CTk):
             if self.image.width != self.canvas.winfo_width() or self.image.height != self.canvas.winfo_height():
                 self.width_slider.set(self.image.width)
                 self.height_slider.set(self.image.height)
-                self.force_resize_canvas()
             self.update_canvas()
 
     def save_to_gallery(self):
@@ -1302,7 +1338,6 @@ class Brushshe(ctk.CTk):
         self.height_tooltip.configure(message=self.image.height)
 
         self.update_canvas()
-        self.force_resize_canvas()
 
         self.draw = ImageDraw.Draw(self.image)
         self.canvas.xview_moveto(0)
