@@ -193,6 +193,21 @@ class Brushshe(ctk.CTk):
         fill_button.pack(side=ctk.LEFT, padx=1)
         CTkToolTip(fill_button, message=self._("Fill"), text_color="gray14")
 
+        # recoloring_brush_icon = ctk.CTkImage(
+        #     light_image=Image.open(resource("icons/recoloring_brush_light.png")),
+        #     dark_image=Image.open(resource("icons/recoloring_brush_dark.png")),
+        #     size=(20, 20),
+        # )
+        recoloring_brush_button = ctk.CTkButton(
+            tools_frame,
+            text=None,
+            width=30,
+            # image=recoloring_brush_icon,  # TODO: Add image for R.brush.
+            command=self.recoloring_brush,
+        )
+        recoloring_brush_button.pack(side=ctk.LEFT, padx=1)
+        CTkToolTip(recoloring_brush_button, message=self._("Recoloring Brush"), text_color="gray14")
+
         undo_icon = ctk.CTkImage(
             light_image=Image.open(resource("icons/undo_light.png")),
             dark_image=Image.open(resource("icons/undo_dark.png")),
@@ -410,8 +425,10 @@ class Brushshe(ctk.CTk):
         self.canvas.xview_scroll(count, "units")
 
     def zoom_in(self, event=None):
-        # Zooming: integer only and limited by 6. More value has optimization problems.
-        if self.zoom < 6 and self.zoom >= 1:
+        if 1 < self.zoom < 2:  # Need if zoom not integer but more 1 and less 2
+            self.zoom = 1
+
+        if 1 <= self.zoom < 6:  # Zooming limited up by 6. More value has optimization problems.
             self.zoom += 1
         elif self.zoom < 1:
             self.zoom *= 2
@@ -419,7 +436,10 @@ class Brushshe(ctk.CTk):
         self.force_resize_canvas()
 
     def zoom_out(self, event=None):
-        self.zoom /= 2
+        if 1 < self.zoom:
+            self.zoom -= 1
+        elif 0.05 < self.zoom <= 1:  # Zooming limited down by 0.05.
+            self.zoom /= 2
         self.update_canvas()
         self.force_resize_canvas()
 
@@ -493,6 +513,9 @@ class Brushshe(ctk.CTk):
                 y1 += sy
 
     def update_canvas(self):
+        if hasattr(self, 'canvas') is False or hasattr(self, 'image') is False:
+            return
+
         self.canvas.delete("all")
         if self.zoom == 1:
             canvas_image = self.image
@@ -925,6 +948,166 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<ButtonRelease-1>", end)
         self.canvas.bind("<Motion>", drawing)
 
+    def recoloring_brush(self):
+        self.set_tool("brush", "R. Brush", self.brush_size, 1, 50, "pencil")
+
+        prev_x = None
+        prev_y = None
+
+        def begin(event):
+            nonlocal prev_x, prev_y
+
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+            draw_recoloring_brush(x, y, x, y)
+            prev_x, prev_y = x, y
+
+            draw_brush_halo(x, y)
+
+        def drawing(event):
+            nonlocal prev_x, prev_y
+
+            if prev_x is None:
+                return
+
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+            draw_recoloring_brush(x, y, prev_x, prev_y)
+            prev_x, prev_y = x, y
+
+            self.update_canvas()  # force=False  # Do not delete tools shapes.
+
+            draw_brush_halo(x, y)
+
+        def end(event):
+            nonlocal prev_x, prev_y
+
+            if prev_x is None:
+                return
+
+            prev_x, prev_y = None, None
+
+            self.update_canvas()  # force=True
+            self.undo_stack.append(self.image.copy())
+
+        def move(event):
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+            draw_brush_halo(x, y)
+
+        def draw_recoloring_brush(x1, y1, x2, y2):
+            color = ImageColor.getrgb(self.brush_color)
+            color_from = ImageColor.getrgb(self.second_brush_color)
+
+            d1 = (self.tool_size - 1) // 2
+            d2 = self.tool_size // 2
+            # dd = (d2 - d1) / 2
+            max_x = self.image.width
+            max_y = self.image.height
+
+            x = x1
+            y = y1
+            dx = abs(x2 - x1)
+            dy = abs(y2 - y1)
+            sx = 1 if x1 < x2 else -1
+            sy = 1 if y1 < y2 else -1
+            err = dx - dy
+
+            # It's for circuit brush, but it work too slow.
+            # ((ii - x - dd) ** 2 + (jj - y - dd) ** 2 < ((d1 + d2 + .5)/2) ** 2
+
+            # buffer = set()
+            is_line = False
+
+            while True:
+
+                if self.tool_size <= 1:
+                    if self.image.getpixel((x, y)) == color_from:
+                        self.draw.point([x, y], fill=color)
+                else:
+                    if is_line is False:
+                        for ii in range(int(x - d1), int(x + d2 + 1)):
+                            for jj in range(int(y - d1), int(y + d2 + 1)):
+                                if (ii >= 0 and ii < max_x and jj >= 0 and jj < max_y
+                                        and self.image.getpixel((ii, jj)) == color_from):
+                                    self.image.putpixel((ii, jj), color)
+                                    # buffer.add((ii, jj))
+                    else:
+                        # Now we can check firsts or lasts lines only.
+
+                        # Checking horizontal movement.
+                        if sx > 0:
+                            ii = int(x + d2)
+                        else:
+                            ii = int(x - d1)
+
+                        for jj in range(int(y - d1), int(y + d2 + 1)):
+                            if (ii >= 0 and ii < max_x and jj >= 0 and jj < max_y
+                                    and self.image.getpixel((ii, jj)) == color_from):
+                                self.image.putpixel((ii, jj), color)
+                                # buffer.add((ii, jj))
+
+                        # Checking vertical movement.
+                        if sy > 0:
+                            jj = int(y + d2)
+                        else:
+                            jj = int(y - d1)
+
+                        for ii in range(int(x - d1), int(x + d2 + 1)):
+                            if (ii >= 0 and ii < max_x and jj >= 0 and jj < max_y
+                                    and self.image.getpixel((ii, jj)) == color_from):
+                                self.image.putpixel((ii, jj), color)
+                                # buffer.add((ii, jj))
+
+                if abs(x - x2) < 1 and abs(y - y2) < 1:
+                    # self.draw.point([*buffer], fill=color)
+                    break
+
+                e2 = err * 2
+                if e2 > -dy:
+                    err -= dy
+                    x += sx
+                if e2 < dx:
+                    err += dx
+                    y += sy
+
+                is_line = True
+
+        def draw_brush_halo(x, y):
+
+            on_canvas = self.canvas.find_all()
+            for ii in on_canvas:
+                tmp = self.canvas.itemcget(ii, "tag")
+                if tmp == "tools":
+                    self.canvas.delete(ii)
+
+            d1 = (self.tool_size - 1) // 2
+            d2 = self.tool_size // 2 + 1
+            # dd = (d2 - d1) / 2
+
+            self.canvas.create_rectangle(
+                int((x - d1) * self.zoom - 1),
+                int((y - d1) * self.zoom - 1),
+                int((x + d2) * self.zoom),
+                int((y + d2) * self.zoom),
+                outline='white',
+                width=1,
+                tag="tools",
+            )
+            self.canvas.create_rectangle(
+                int((x - d1) * self.zoom),
+                int((y - d1) * self.zoom),
+                int((x + d2) * self.zoom - 1),
+                int((y + d2) * self.zoom - 1),
+                outline='black',
+                width=1,
+                tag="tools",
+            )
+
+        self.update_canvas()  # force=True
+
+        self.canvas.bind("<Button-1>", begin)
+        self.canvas.bind("<B1-Motion>", drawing)
+        self.canvas.bind("<ButtonRelease-1>", end)
+        self.canvas.bind("<Motion>", move)
+
     def effects(self):
         def post_actions():
             self.update_canvas()
@@ -1280,10 +1463,13 @@ class Brushshe(ctk.CTk):
 
     def set_tool(self, tool, tool_name, tool_size, from_, to, cursor):
         self.current_tool = tool
+
         self.canvas.unbind("<Button-1>")
         self.canvas.unbind("<ButtonPress-1>")
         self.canvas.unbind("<ButtonRelease-1>")
         self.canvas.unbind("<B1-Motion>")
+        self.canvas.unbind("<Motion>")
+
         if tool_size is None and from_ is None and to is None:
             self.tool_label.configure(text=self._(tool_name))
             self.tool_size_slider.pack_forget()
@@ -1299,6 +1485,7 @@ class Brushshe(ctk.CTk):
             self.tool_size_tooltip.configure(message=self.tool_size)
         self.canvas.configure(cursor=cursor)
 
+        self.update_canvas()  # force = True
 
 app = Brushshe()
 app.mainloop()
