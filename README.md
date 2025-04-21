@@ -7,7 +7,7 @@
 </p>
 
 ## Description
-**Brushshe** is a simple raster graphical editor, written on Python 3, CustomTkinter and PIL.
+**Brushshe** is a raster graphical editor, written on Python 3, CustomTkinter and PIL.
 
 ![Screenshot](https://raw.githubusercontent.com/limafresh/Brushshe/main/screenshot.png)
 
@@ -30,11 +30,13 @@ pip install customtkinter Pillow
 ```
 4. Run file `Brushshe/brushshe.py`.
 
-## 🚀 Functionality
+## 🚀 Features
 ### Open
 You can open a picture from a file.
 ### Painting
 You can choose a color, change the brush thickness, and paint. You can change canvas size.
+### Recoloring brush (new!)
+Draws through contours.
 ### Save to device
 You can save picture to your PC in different formats (PNG, JPG, GIF, BMP, TIFF, WEBP, ICO, PPM, PGM, PBM).
 ### Undo and redo
@@ -67,6 +69,8 @@ Rotate right, rotate left.
 You can take a screenshot and draw on it. Not work on Linux with Wayland.
 ### View (beta)
 Zoom in, zoom out, reset zoom.
+### Change size
+You can change the size by cropping or scaling.
 
 ## Hotkeys
 + *Ctrl+Z*: undo
@@ -94,6 +98,7 @@ The internationalization of this program has a simple principle - it determines 
 + CTkColorPicker, CTkMenuBar and CTkToolTip license - *CC0 1.0*
 + License for program translations (`Brushshe/locales/*.json`) - *CC0 1.0*
 + Fonts - *OFL*
++ Picture on screenshot - *CC BY 4.0*, by Chip Viled, drawn in Brushshe
 
 ## For developers
 ### Linter

@@ -116,6 +116,8 @@ class Brushshe(ctk.CTk):
         file_dropdown.add_separator()
         file_dropdown.add_option(option=self._("Rotate right"), command=lambda: self.rotate(-90))
         file_dropdown.add_option(option=self._("Rotate left"), command=lambda: self.rotate(90))
+        file_dropdown.add_separator()
+        file_dropdown.add_option(option=self._("Change size..."), command=self.change_size)
 
         new_menu = menu.add_cascade(self._("New"))
         new_dropdown = CustomDropdownMenu(widget=new_menu)
@@ -170,16 +172,22 @@ class Brushshe(ctk.CTk):
         tools_frame = ctk.CTkFrame(self)
         tools_frame.pack(side=ctk.TOP, fill=ctk.X)
 
+        # Brush size used to paint all the icons in the toolbar: 50
+
         brush_icon = ctk.CTkImage(
             light_image=Image.open(resource("icons/brush_light.png")),
             dark_image=Image.open(resource("icons/brush_dark.png")),
-            size=(20, 20),
+            size=(22, 22),
         )
         brush_button = ctk.CTkButton(tools_frame, text=None, width=30, image=brush_icon, command=self.brush)
         brush_button.pack(side=ctk.LEFT, padx=1)
         CTkToolTip(brush_button, message=self._("Brush"), text_color="gray14")
 
-        eraser_icon = ctk.CTkImage(Image.open(resource("icons/eraser.png")), size=(20, 20))
+        eraser_icon = ctk.CTkImage(
+            light_image=Image.open(resource("icons/eraser_light.png")),
+            dark_image=Image.open(resource("icons/eraser_dark.png")),
+            size=(22, 22),
+        )
         eraser_button = ctk.CTkButton(tools_frame, text=None, width=30, image=eraser_icon, command=self.eraser)
         eraser_button.pack(side=ctk.LEFT, padx=1)
         CTkToolTip(eraser_button, message=self._("Eraser"), text_color="gray14")
@@ -187,22 +195,22 @@ class Brushshe(ctk.CTk):
         fill_icon = ctk.CTkImage(
             light_image=Image.open(resource("icons/fill_light.png")),
             dark_image=Image.open(resource("icons/fill_dark.png")),
-            size=(20, 20),
+            size=(22, 22),
         )
         fill_button = ctk.CTkButton(tools_frame, text=None, width=30, image=fill_icon, command=self.start_fill)
         fill_button.pack(side=ctk.LEFT, padx=1)
         CTkToolTip(fill_button, message=self._("Fill"), text_color="gray14")
 
-        # recoloring_brush_icon = ctk.CTkImage(
-        #     light_image=Image.open(resource("icons/recoloring_brush_light.png")),
-        #     dark_image=Image.open(resource("icons/recoloring_brush_dark.png")),
-        #     size=(20, 20),
-        # )
+        recoloring_brush_icon = ctk.CTkImage(
+            light_image=Image.open(resource("icons/recoloring_brush_light.png")),
+            dark_image=Image.open(resource("icons/recoloring_brush_dark.png")),
+            size=(22, 22),
+        )
         recoloring_brush_button = ctk.CTkButton(
             tools_frame,
             text=None,
             width=30,
-            # image=recoloring_brush_icon,  # TODO: Add image for R.brush.
+            image=recoloring_brush_icon,
             command=self.recoloring_brush,
         )
         recoloring_brush_button.pack(side=ctk.LEFT, padx=1)
@@ -211,18 +219,34 @@ class Brushshe(ctk.CTk):
         undo_icon = ctk.CTkImage(
             light_image=Image.open(resource("icons/undo_light.png")),
             dark_image=Image.open(resource("icons/undo_dark.png")),
-            size=(20, 20),
+            size=(22, 22),
         )
-        undo_button = ctk.CTkButton(tools_frame, text=None, width=30, image=undo_icon, command=self.undo)
+        undo_button = ctk.CTkButton(
+            tools_frame,
+            text=None,
+            width=30,
+            image=undo_icon,
+            fg_color=tools_frame.cget("fg_color"),
+            hover=False,
+            command=self.undo,
+        )
         undo_button.pack(side=ctk.LEFT, padx=1)
         CTkToolTip(undo_button, message=self._("Undo") + " (Ctrl+Z)", text_color="gray14")
 
         redo_icon = ctk.CTkImage(
             light_image=Image.open(resource("icons/redo_light.png")),
             dark_image=Image.open(resource("icons/redo_dark.png")),
-            size=(20, 20),
+            size=(22, 22),
         )
-        redo_button = ctk.CTkButton(tools_frame, text=None, width=30, image=redo_icon, command=self.redo)
+        redo_button = ctk.CTkButton(
+            tools_frame,
+            text=None,
+            width=30,
+            image=redo_icon,
+            fg_color=tools_frame.cget("fg_color"),
+            hover=False,
+            command=self.redo,
+        )
         redo_button.pack(side=ctk.LEFT, padx=1)
         CTkToolTip(redo_button, message=self._("Redo") + " (Ctrl+Y)", text_color="gray14")
 
@@ -274,7 +298,7 @@ class Brushshe(ctk.CTk):
         self.canvas = ctk.CTkCanvas(
             self.canvas_frame, yscrollcommand=self.v_scrollbar.set, xscrollcommand=self.h_scrollbar.set
         )
-        self.canvas.pack()  # anchor='center'
+        self.canvas.pack(anchor="nw")  # As in most drawing programs
 
         self.v_scrollbar.configure(command=self.canvas.yview)
         self.h_scrollbar.configure(command=self.canvas.xview)
@@ -305,7 +329,7 @@ class Brushshe(ctk.CTk):
                 width=30,
                 height=30,
                 border_width=2,
-                corner_radius=100,
+                corner_radius=15,
                 command=lambda c=color: self.change_color(c),
             )
             tmp_btn.pack(side=ctk.LEFT, padx=1, pady=1)
@@ -513,7 +537,7 @@ class Brushshe(ctk.CTk):
                 y1 += sy
 
     def update_canvas(self):
-        if hasattr(self, 'canvas') is False or hasattr(self, 'image') is False:
+        if hasattr(self, "canvas") is False or hasattr(self, "image") is False:
             return
 
         self.canvas.delete("all")
@@ -533,7 +557,7 @@ class Brushshe(ctk.CTk):
             height=int(self.image.height * self.zoom),
         )
 
-    def crop_picture(self, event):
+    def crop_picture(self, event=None):
         new_image = Image.new("RGB", (int(self.width_slider.get()), int(self.height_slider.get())), self.bg_color)
         new_image.paste(self.image, (0, 0))
         self.image = new_image
@@ -822,9 +846,9 @@ class Brushshe(ctk.CTk):
             del self.shape_x, self.shape_y
 
         if shape == "Fill rectangle" or shape == "Fill oval":
-            self.set_tool("shape", shape, None, None, None, "plus")
+            self.set_tool("shape", shape, None, None, None, "cross")
         else:
-            self.set_tool("shape", shape, self.shape_size, 1, 50, "plus")
+            self.set_tool("shape", shape, self.shape_size, 1, 50, "cross")
 
         self.canvas.bind("<ButtonPress-1>", start_shape)
         self.canvas.bind("<B1-Motion>", draw_shape)
@@ -941,7 +965,7 @@ class Brushshe(ctk.CTk):
                 image_points = []
                 bezier_id = None
 
-        self.set_tool("shape", "Bezier", self.shape_size, 1, 50, "plus")
+        self.set_tool("shape", "Bezier", self.shape_size, 1, 50, "cross")
 
         self.canvas.bind("<ButtonPress-1>", start)
         self.canvas.bind("<B1-Motion>", drawing)
@@ -1017,7 +1041,6 @@ class Brushshe(ctk.CTk):
             is_line = False
 
             while True:
-
                 if self.tool_size <= 1:
                     if self.image.getpixel((x, y)) == color_from:
                         self.draw.point([x, y], fill=color)
@@ -1025,8 +1048,13 @@ class Brushshe(ctk.CTk):
                     if is_line is False:
                         for ii in range(int(x - d1), int(x + d2 + 1)):
                             for jj in range(int(y - d1), int(y + d2 + 1)):
-                                if (ii >= 0 and ii < max_x and jj >= 0 and jj < max_y
-                                        and self.image.getpixel((ii, jj)) == color_from):
+                                if (
+                                    ii >= 0
+                                    and ii < max_x
+                                    and jj >= 0
+                                    and jj < max_y
+                                    and self.image.getpixel((ii, jj)) == color_from
+                                ):
                                     self.image.putpixel((ii, jj), color)
                                     # buffer.add((ii, jj))
                     else:
@@ -1039,8 +1067,13 @@ class Brushshe(ctk.CTk):
                             ii = int(x - d1)
 
                         for jj in range(int(y - d1), int(y + d2 + 1)):
-                            if (ii >= 0 and ii < max_x and jj >= 0 and jj < max_y
-                                    and self.image.getpixel((ii, jj)) == color_from):
+                            if (
+                                ii >= 0
+                                and ii < max_x
+                                and jj >= 0
+                                and jj < max_y
+                                and self.image.getpixel((ii, jj)) == color_from
+                            ):
                                 self.image.putpixel((ii, jj), color)
                                 # buffer.add((ii, jj))
 
@@ -1051,8 +1084,13 @@ class Brushshe(ctk.CTk):
                             jj = int(y - d1)
 
                         for ii in range(int(x - d1), int(x + d2 + 1)):
-                            if (ii >= 0 and ii < max_x and jj >= 0 and jj < max_y
-                                    and self.image.getpixel((ii, jj)) == color_from):
+                            if (
+                                ii >= 0
+                                and ii < max_x
+                                and jj >= 0
+                                and jj < max_y
+                                and self.image.getpixel((ii, jj)) == color_from
+                            ):
                                 self.image.putpixel((ii, jj), color)
                                 # buffer.add((ii, jj))
 
@@ -1071,7 +1109,6 @@ class Brushshe(ctk.CTk):
                 is_line = True
 
         def draw_brush_halo(x, y):
-
             on_canvas = self.canvas.find_all()
             for ii in on_canvas:
                 tmp = self.canvas.itemcget(ii, "tag")
@@ -1087,7 +1124,7 @@ class Brushshe(ctk.CTk):
                 int((y - d1) * self.zoom - 1),
                 int((x + d2) * self.zoom),
                 int((y + d2) * self.zoom),
-                outline='white',
+                outline="white",
                 width=1,
                 tag="tools",
             )
@@ -1096,7 +1133,7 @@ class Brushshe(ctk.CTk):
                 int((y - d1) * self.zoom),
                 int((x + d2) * self.zoom - 1),
                 int((y + d2) * self.zoom - 1),
-                outline='black',
+                outline="black",
                 width=1,
                 tag="tools",
             )
@@ -1278,7 +1315,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v1.13.0",
+            message=about_text + "v1.14.0",
             icon=resource("icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
@@ -1486,6 +1523,50 @@ class Brushshe(ctk.CTk):
         self.canvas.configure(cursor=cursor)
 
         self.update_canvas()  # force = True
+
+    def change_size(self):
+        def size_sb_callback(value):
+            if value == self._("Crop"):
+                ready_size_button.configure(command=crop)
+            elif value == self._("Scale"):
+                ready_size_button.configure(command=scale)
+
+        def crop():
+            try:
+                self.width_slider.set(int(width_entry.get()))
+                self.height_slider.set(int(height_entry.get()))
+                self.crop_picture()
+            except Exception:
+                pass
+
+        def scale():
+            try:
+                scaled_image = self.image.resize((int(width_entry.get()), int(height_entry.get())), Image.NEAREST)
+                self.image = scaled_image
+                self.picture_postconfigure()
+            except Exception:
+                pass
+
+        change_size_toplevel = ctk.CTkToplevel(self)
+        change_size_toplevel.title(self._("Change size..."))
+
+        size_sb = ctk.CTkSegmentedButton(
+            change_size_toplevel, values=[self._("Crop"), self._("Scale")], command=size_sb_callback
+        )
+        size_sb.pack(padx=10, pady=10)
+        size_sb.set(self._("Crop"))
+
+        width_height_frame = ctk.CTkFrame(change_size_toplevel)
+        width_height_frame.pack(padx=10, pady=10)
+
+        width_entry = ctk.CTkEntry(width_height_frame, placeholder_text=self._("Width"))
+        width_entry.pack(side="left", padx=10, pady=10)
+        height_entry = ctk.CTkEntry(width_height_frame, placeholder_text=self._("Height"))
+        height_entry.pack(side="right", padx=10, pady=10)
+
+        ready_size_button = ctk.CTkButton(change_size_toplevel, text="OK", command=crop)
+        ready_size_button.pack(padx=10, pady=10)
+
 
 app = Brushshe()
 app.mainloop()
