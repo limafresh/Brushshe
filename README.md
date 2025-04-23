@@ -98,7 +98,7 @@ The internationalization of this program has a simple principle - it determines 
 + CTkColorPicker, CTkMenuBar and CTkToolTip license - *CC0 1.0*
 + License for program translations (`Brushshe/locales/*.json`) - *CC0 1.0*
 + Fonts - *OFL*
-+ Picture on screenshot - *CC BY 4.0*, by Chip Viled, drawn in Brushshe
++ Picture on screenshot - [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), by Chip Viled, drawn in Brushshe
 
 ## For developers
 ### Linter
