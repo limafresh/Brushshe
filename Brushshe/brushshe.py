@@ -354,8 +354,14 @@ class Brushshe(ctk.CTk):
         self.zoom = 1
 
         self.update()  # update interface before calculate picture size
+        self.new_img_width = (
+            self.canvas_frame.winfo_width() - self.width_slider.winfo_height() - self.h_scrollbar.winfo_height()
+        )
+        self.new_img_height = (
+            self.canvas_frame.winfo_height() - self.height_slider.winfo_width() - self.v_scrollbar.winfo_width()
+        )
+        self.new_picture(self.bg_color, first_time=True)
         self.brush()
-        self.new_picture(self.bg_color)
 
         self.prev_x, self.prev_y = (None, None)
         self.font_path = resource("fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
@@ -482,9 +488,6 @@ class Brushshe(ctk.CTk):
         else:
             self.draw_line(x, y, x, y)
 
-        # TODO: In this place need use some other method
-        #  without destroying and recreating all on canvas
-        #  OR temporally drawing only on canvas.
         self.update_canvas()
 
         self.prev_x, self.prev_y = x, y
@@ -537,10 +540,8 @@ class Brushshe(ctk.CTk):
                 y1 += sy
 
     def update_canvas(self):
-        if hasattr(self, "canvas") is False or hasattr(self, "image") is False:
-            return
-
-        self.canvas.delete("all")
+        # Please try not to cram into this function what can be moved to others.
+        # This function is critical and its speed is important
         if self.zoom == 1:
             canvas_image = self.image
         else:
@@ -548,14 +549,14 @@ class Brushshe(ctk.CTk):
                 (int(self.image.width * self.zoom), int(self.image.height * self.zoom)), Image.NEAREST
             )
         self.img_tk = ImageTk.PhotoImage(canvas_image)
-        self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.img_tk)
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        self.canvas.itemconfig(self.canvas_image, image=self.img_tk)
 
     def force_resize_canvas(self):
         self.canvas.configure(
             width=int(self.image.width * self.zoom),
             height=int(self.image.height * self.zoom),
         )
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
     def crop_picture(self, event=None):
         new_image = Image.new("RGB", (int(self.width_slider.get()), int(self.height_slider.get())), self.bg_color)
@@ -844,6 +845,7 @@ class Brushshe(ctk.CTk):
             # Removing unnecessary variables for normal selection of the next shape in the menu
             #   and disabling other side effects.
             del self.shape_x, self.shape_y
+            self.canvas.delete(self.shape_id)
 
         if shape == "Fill rectangle" or shape == "Fill oval":
             self.set_tool("shape", shape, None, None, None, "cross")
@@ -1009,7 +1011,7 @@ class Brushshe(ctk.CTk):
 
             prev_x, prev_y = None, None
 
-            self.update_canvas()  # force=True
+            self.canvas.delete("tools")
             self.undo_stack.append(self.image.copy())
 
         def move(event):
@@ -1137,8 +1139,6 @@ class Brushshe(ctk.CTk):
                 width=1,
                 tag="tools",
             )
-
-        self.update_canvas()  # force=True
 
         self.canvas.bind("<Button-1>", begin)
         self.canvas.bind("<B1-Motion>", drawing)
@@ -1315,7 +1315,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v1.14.1",
+            message=about_text + "v1.14.2",
             icon=resource("icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
@@ -1325,24 +1325,27 @@ class Brushshe(ctk.CTk):
         if about_msg.get() == "GitHub":
             webbrowser.open(r"https://github.com/limafresh/Brushshe")
 
-    def new_picture(self, color):
+    def new_picture(self, color, first_time=False):
         self.bg_color = color
-        img_width = self.canvas_frame.winfo_width() - self.width_slider.winfo_height() - self.h_scrollbar.winfo_height()
-        img_height = (
-            self.canvas_frame.winfo_height() - self.height_slider.winfo_width() - self.v_scrollbar.winfo_width()
-        )
-        self.width_slider.set(img_width)
-        self.height_slider.set(img_height)
-        self.width_tooltip.configure(message=img_width)
-        self.height_tooltip.configure(message=img_height)
 
-        self.image = Image.new("RGB", (img_width, img_height), color)
+        self.width_slider.set(self.new_img_width)
+        self.height_slider.set(self.new_img_height)
+        self.width_tooltip.configure(message=self.new_img_width)
+        self.height_tooltip.configure(message=self.new_img_height)
+
+        self.image = Image.new("RGB", (self.new_img_width, self.new_img_height), color)
         self.draw = ImageDraw.Draw(self.image)
-        self.canvas.configure(width=img_width, height=img_height, scrollregion=self.canvas.bbox("all"))
+        self.canvas.configure(
+            width=self.new_img_width, height=self.new_img_height, scrollregion=self.canvas.bbox("all")
+        )
         self.canvas.xview_moveto(0)
         self.canvas.yview_moveto(0)
 
-        self.update_canvas()
+        if first_time:
+            self.img_tk = ImageTk.PhotoImage(self.image)
+            self.canvas_image = self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.img_tk)
+        else:
+            self.update_canvas()
         self.force_resize_canvas()
 
         self.undo_stack.append(self.image.copy())
@@ -1436,8 +1439,6 @@ class Brushshe(ctk.CTk):
         askcolor = AskColor(title=self._("Color select"))
         self.obtained_color = askcolor.get()
         if self.obtained_color:
-            # self.main_brush_color = self.obtained_color
-            # self.brush_palette.main_color = self.obtained_color
             btn.configure(
                 fg_color=self.obtained_color,
                 hover_color=self.obtained_color,
@@ -1521,8 +1522,7 @@ class Brushshe(ctk.CTk):
             self.tool_size_label.pack(side=ctk.LEFT, padx=1)
             self.tool_size_tooltip.configure(message=self.tool_size)
         self.canvas.configure(cursor=cursor)
-
-        self.update_canvas()  # force = True
+        self.canvas.delete("tools")
 
     def change_size(self):
         def size_sb_callback(value):
