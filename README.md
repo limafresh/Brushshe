@@ -86,6 +86,9 @@ You can change the size by cropping or scaling.
 ## Goal of project
 The goal of the project is to provide a open-source, convenient, beautiful and multifunctional painting app using the CustomTkinter toolkit.
 
+## Contributions
+All contributions are welcome!
+
 ## Credits
 + Thanks [Akascape](https://github.com/Akascape) for CTkColorPicker, CTkMenuBar, CTkMessagebox and CTkToolTip.
 + Thanks [Chip Viled](https://github.com/chipviled) for conributing.
@@ -102,6 +105,6 @@ The internationalization of this program has a simple principle - it determines 
 
 ## For developers
 ### Linter
-[Ruff](https://github.com/astral-sh/ruff) is used to maintain code cleanliness
+[Ruff](https://github.com/astral-sh/ruff) is used to maintain code cleanliness.
 
 ## 🎨🦅💪

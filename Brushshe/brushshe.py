@@ -455,6 +455,7 @@ class Brushshe(ctk.CTk):
         self.canvas.xview_scroll(count, "units")
 
     def zoom_in(self, event=None):
+        self.canvas.delete("tools")
         if 1 < self.zoom < 2:  # Need if zoom not integer but more 1 and less 2
             self.zoom = 1
 
@@ -466,6 +467,7 @@ class Brushshe(ctk.CTk):
         self.force_resize_canvas()
 
     def zoom_out(self, event=None):
+        self.canvas.delete("tools")
         if 1 < self.zoom:
             self.zoom -= 1
         elif 0.05 < self.zoom <= 1:  # Zooming limited down by 0.05.
@@ -474,6 +476,7 @@ class Brushshe(ctk.CTk):
         self.force_resize_canvas()
 
     def reset_zoom(self, event=None):
+        self.canvas.delete("tools")
         self.zoom = 1
         self.update_canvas()
         self.force_resize_canvas()
@@ -1011,7 +1014,7 @@ class Brushshe(ctk.CTk):
 
             prev_x, prev_y = None, None
 
-            self.canvas.delete("tools")
+            self.update_canvas()
             self.undo_stack.append(self.image.copy())
 
         def move(event):
@@ -1315,7 +1318,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v1.14.2",
+            message=about_text + "v1.14.3",
             icon=resource("icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
@@ -1326,6 +1329,7 @@ class Brushshe(ctk.CTk):
             webbrowser.open(r"https://github.com/limafresh/Brushshe")
 
     def new_picture(self, color, first_time=False):
+        self.canvas.delete("tools")
         self.bg_color = color
 
         self.width_slider.set(self.new_img_width)
@@ -1486,6 +1490,7 @@ class Brushshe(ctk.CTk):
         self.picture_postconfigure()
 
     def picture_postconfigure(self):
+        self.canvas.delete("tools")
         self.width_slider.set(self.image.width)
         self.height_slider.set(self.image.height)
         self.width_tooltip.configure(message=self.image.width)
