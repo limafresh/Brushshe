@@ -1,17 +1,22 @@
-import json
 import os
+import random
 import sys
 import webbrowser
 from collections import deque
-from locale import getlocale
 from pathlib import Path
+from threading import Thread
 from tkinter import PhotoImage
 from uuid import uuid4
 
 import customtkinter as ctk
+import translator
+from bezier import make_bezier
+from brush_palette import BrushPalette
+from color_picker import AskColor
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
 from CTkToolTip import CTkToolTip
+from file_dialog import FileDialog
 from PIL import (
     Image,
     ImageColor,
@@ -24,10 +29,6 @@ from PIL import (
     ImageStat,
     ImageTk,
 )
-from tools.bezier import make_bezier
-from tools.brush_palette import BrushPalette
-from tools.color_picker import AskColor
-from tools.file_dialog import FileDialog
 
 
 def resource(relative_path):
@@ -38,59 +39,17 @@ def resource(relative_path):
 class Brushshe(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.geometry("680x600")
+        self.geometry("820x690")
+        self.title(self._("Brushshe"))
         if os.name == "nt":
             self.iconbitmap(resource("icons/icon.ico"))
         else:
             self.iconphoto(True, PhotoImage(file=resource("icons/icon.png")))
         ctk.set_default_color_theme(resource("brushshe_theme.json"))
         ctk.set_appearance_mode("system")
+        self.configure(fg_color=("#e6f8ff", "gray10"))
         self.protocol("WM_DELETE_WINDOW", self.when_closing)
 
-        # Get system locale
-        locale = getlocale()
-
-        if isinstance(locale, tuple) and all(isinstance(item, str) for item in locale):
-            language_code = locale[0][:2].lower()
-        elif isinstance(locale, str):
-            language_code = locale[:2].lower()
-        else:
-            language_code = None
-
-        self.translations = {}
-        self.load_language(language_code)
-        self.initialization()
-
-        self.title(self._("Brushshe"))
-
-    """Translate app"""
-
-    def load_language(self, language_code):
-        if language_code == "en":
-            pass
-        else:
-            try:
-                with open(
-                    resource(f"locales/{language_code}.json"),
-                    "r",
-                    encoding="utf-8",
-                ) as f:
-                    self.translations = json.load(f)
-            except FileNotFoundError:
-                print(f"File for language '{language_code}' not found.")
-            except json.JSONDecodeError:
-                CTkMessagebox(
-                    title="Oh, unfortunately, it happened",
-                    message="Localization file is corrupted. Brushshe will be in English.",
-                    icon=resource("icons/cry.png"),
-                    icon_size=(100, 100),
-                    sound=True,
-                )
-
-    def _(self, key):
-        return self.translations.get(key, key)
-
-    def initialization(self):
         self.colors = [
             "white",
             "black",
@@ -170,9 +129,10 @@ class Brushshe(ctk.CTk):
 
         """Toolbar"""
         tools_frame = ctk.CTkFrame(self)
-        tools_frame.pack(side=ctk.TOP, fill=ctk.X)
+        tools_frame.pack(side=ctk.TOP, fill=ctk.X, padx=5, pady=5)
 
         # Brush size used to paint all the icons in the toolbar: 50
+        # Width and height of all icons - 512 px
 
         brush_icon = ctk.CTkImage(
             light_image=Image.open(resource("icons/brush_light.png")),
@@ -215,6 +175,21 @@ class Brushshe(ctk.CTk):
         )
         recoloring_brush_button.pack(side=ctk.LEFT, padx=1)
         CTkToolTip(recoloring_brush_button, message=self._("Recoloring Brush"), text_color="gray14")
+
+        spray_icon = ctk.CTkImage(
+            light_image=Image.open(resource("icons/spray_light.png")),
+            dark_image=Image.open(resource("icons/spray_dark.png")),
+            size=(22, 22),
+        )
+        spray_button = ctk.CTkButton(
+            tools_frame,
+            text=None,
+            width=30,
+            image=spray_icon,
+            command=self.spray,
+        )
+        spray_button.pack(side=ctk.LEFT, padx=1)
+        CTkToolTip(spray_button, message=self._("Spray"), text_color="gray14")
 
         undo_icon = ctk.CTkImage(
             light_image=Image.open(resource("icons/undo_light.png")),
@@ -259,7 +234,7 @@ class Brushshe(ctk.CTk):
         self.tool_size_label = ctk.CTkLabel(tools_frame, text=None)
 
         save_to_gallery_btn = ctk.CTkButton(tools_frame, text=self._("Save to gallery"), command=self.save_to_gallery)
-        save_to_gallery_btn.pack(side=ctk.RIGHT, padx=1)
+        save_to_gallery_btn.pack(side=ctk.RIGHT)
         CTkToolTip(save_to_gallery_btn, message=self._("Save to gallery") + " (Ctrl+S)", text_color="gray14")
 
         """Canvas"""
@@ -348,18 +323,15 @@ class Brushshe(ctk.CTk):
 
         self.brush_size = 2
         self.eraser_size = 4
+        self.spray_size = 10
         self.shape_size = 2
         self.sticker_size = 100
         self.font_size = 24
         self.zoom = 1
 
         self.update()  # update interface before calculate picture size
-        self.new_img_width = (
-            self.canvas_frame.winfo_width() - self.width_slider.winfo_height() - self.h_scrollbar.winfo_height()
-        )
-        self.new_img_height = (
-            self.canvas_frame.winfo_height() - self.height_slider.winfo_width() - self.v_scrollbar.winfo_width()
-        )
+        self.new_img_width = self.canvas_frame.winfo_width() - 200
+        self.new_img_height = self.canvas_frame.winfo_height() - 100
         self.new_picture(self.bg_color, first_time=True)
         self.brush()
 
@@ -426,6 +398,9 @@ class Brushshe(ctk.CTk):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
     """ Functionality """
+
+    def _(self, key):
+        return translator.translations.get(key, key)
 
     def when_closing(self):
         closing_msg = CTkMessagebox(
@@ -497,7 +472,6 @@ class Brushshe(ctk.CTk):
 
     def stop_paint(self, event):
         self.prev_x, self.prev_y = (None, None)
-        self.update_canvas()
         self.undo_stack.append(self.image.copy())
 
     def draw_line(self, x1, y1, x2, y2):
@@ -560,6 +534,10 @@ class Brushshe(ctk.CTk):
             height=int(self.image.height * self.zoom),
         )
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        self.width_slider.set(self.image.width)
+        self.height_slider.set(self.image.height)
+        self.width_tooltip.configure(message=self.image.width)
+        self.height_tooltip.configure(message=self.image.height)
 
     def crop_picture(self, event=None):
         new_image = Image.new("RGB", (int(self.width_slider.get()), int(self.height_slider.get())), self.bg_color)
@@ -571,8 +549,6 @@ class Brushshe(ctk.CTk):
         self.force_resize_canvas()
 
         self.undo_stack.append(self.image.copy())
-        self.width_tooltip.configure(message=self.image.width)
-        self.height_tooltip.configure(message=self.image.height)
 
     def eyedropper(self, event):
         # Get the coordinates of the click event
@@ -585,7 +561,7 @@ class Brushshe(ctk.CTk):
         self.brush_palette.main_color = self.obtained_color
 
     def start_fill(self):  # beta
-        self.set_tool("fill", "Fill", None, None, None, "spraycan")
+        self.set_tool("fill", "Fill", None, None, None, "cross")
         self.canvas.bind("<Button-1>", self.fill)
 
     def fill(self, event):
@@ -595,7 +571,7 @@ class Brushshe(ctk.CTk):
         self.undo_stack.append(self.image.copy())
 
     def open_from_file(self):
-        dialog = FileDialog(self, self._("Open from file"))
+        dialog = FileDialog(self, title=self._("Open from file"))
         if dialog.path:
             try:
                 self.open_image(dialog.path)
@@ -603,7 +579,7 @@ class Brushshe(ctk.CTk):
                 self.open_file_error(e)
 
     def save_to_device(self):
-        dialog = FileDialog(self, self._("Save to device"), True, self._("Enter name for save..."))
+        dialog = FileDialog(self, title=self._("Save to device"), save=True)
         if dialog.path:
             self.image.save(dialog.path)
             CTkMessagebox(
@@ -623,28 +599,23 @@ class Brushshe(ctk.CTk):
 
     def show_stickers_choice(self):
         def sticker_from_file():
-            file_path = ctk.filedialog.askopenfilename(
-                filetypes=[
-                    (self._("Images"), "*png* *jpg* *jpeg* *gif* *ico* *bmp* *webp* *tiff* *ppm* *pgm* *pbm*"),
-                    (self._("All files"), "*.*"),
-                ]
-            )
-            if file_path:
+            dialog = FileDialog(self, title=self._("Sticker from file"))
+            if dialog.path:
                 try:
-                    sticker_image = Image.open(file_path)
+                    sticker_image = Image.open(dialog.path)
                     self.set_current_sticker(sticker_image)
                 except Exception as e:
                     self.open_file_error(e)
 
         sticker_choose = ctk.CTkToplevel(self)
-        sticker_choose.geometry("350x420")
+        sticker_choose.geometry("370x500")
         sticker_choose.title(self._("Choose a sticker"))
 
         tabview = ctk.CTkTabview(sticker_choose)
         tabview.add(self._("Choose a sticker"))
         tabview.add(self._("Sticker from file"))
         tabview.set(self._("Choose a sticker"))
-        tabview.pack(fill=ctk.BOTH, expand=True)
+        tabview.pack(fill=ctk.BOTH, expand=True, padx=10, pady=10)
 
         stickers_scrollable_frame = ctk.CTkScrollableFrame(tabview.tab(self._("Choose a sticker")))
         stickers_scrollable_frame.pack(fill=ctk.BOTH, expand=True)
@@ -880,7 +851,9 @@ class Brushshe(ctk.CTk):
                 canvas_points.append((cx, cy))
                 image_points.append(self.canvas_to_pict_xy(event.x, event.y))
 
-                bezier_id = self.canvas.create_line(cx, cy, cx, cy, fill=self.contrast_color)  # smooth="bezier"
+                bezier_id = self.canvas.create_line(
+                    cx, cy, cx, cy, fill=self.contrast_color, tag="tools"
+                )  # smooth="bezier"
 
         def drawing(event):
             nonlocal canvas_points, bezier_id
@@ -1194,7 +1167,7 @@ class Brushshe(ctk.CTk):
         effects_win.geometry("250x500")
 
         effects_frame = ctk.CTkScrollableFrame(effects_win)
-        effects_frame.pack(fill=ctk.BOTH, expand=True)
+        effects_frame.pack(fill=ctk.BOTH, expand=True, padx=10, pady=10)
 
         ctk.CTkButton(
             effects_win,
@@ -1248,53 +1221,63 @@ class Brushshe(ctk.CTk):
 
     def show_gallery(self):
         self.my_gallery = ctk.CTkToplevel(self)
-        self.my_gallery.title(self._("Brushshe Gallery (loading...)"))
+        self.my_gallery.title(self._("Brushshe Gallery"))
         self.my_gallery.geometry("650x580")
 
+        progressbar = ctk.CTkProgressBar(self.my_gallery, mode="intermediate")
+        progressbar.pack(padx=10, pady=10, fill="x")
+        progressbar.start()
+
         gallery_scrollable_frame = ctk.CTkScrollableFrame(self.my_gallery, label_text=self._("My Gallery"))
-        gallery_scrollable_frame.pack(fill=ctk.BOTH, expand=True)
+        gallery_scrollable_frame.pack(fill=ctk.BOTH, expand=True, padx=10, pady=10)
 
         gallery_frame = ctk.CTkFrame(gallery_scrollable_frame)
         gallery_frame.pack(padx=10, pady=10)
 
-        row = 0
-        column = 0
+        def load_buttons():
+            try:
+                row = 0
+                column = 0
+                is_image_found = False
 
-        is_image_found = False
+                for filename in os.listdir(self.gallery_folder):
+                    if filename.endswith(".png"):
+                        is_image_found = True
+                        img_path = self.gallery_folder / filename
 
-        for filename in os.listdir(self.gallery_folder):
-            if filename.endswith(".png"):
-                is_image_found = True
-                img_path = self.gallery_folder / filename
+                        image_button = ctk.CTkButton(
+                            gallery_frame,
+                            image=ctk.CTkImage(Image.open(img_path), size=(250, 250)),
+                            text=None,
+                            command=lambda img_path=img_path: self.open_image(img_path),
+                        )
+                        image_button.grid(row=row, column=column, padx=10, pady=10)
 
-                image_button = ctk.CTkButton(
-                    gallery_frame,
-                    image=ctk.CTkImage(Image.open(img_path), size=(250, 250)),
-                    text=None,
-                    command=lambda img_path=img_path: self.open_image(img_path),
-                )
-                image_button.grid(row=row, column=column, padx=10, pady=10)
+                        delete_image_button = ctk.CTkButton(
+                            image_button,
+                            text="x",
+                            fg_color="red",
+                            text_color="white",
+                            width=30,
+                            command=lambda img_path=img_path: self.delete_image(img_path),
+                        )
+                        delete_image_button.place(x=5, y=5)
+                        CTkToolTip(delete_image_button, message=self._("Delete"))
 
-                delete_image_button = ctk.CTkButton(
-                    image_button,
-                    text="x",
-                    fg_color="red",
-                    text_color="white",
-                    width=30,
-                    command=lambda img_path=img_path: self.delete_image(img_path),
-                )
-                delete_image_button.place(x=5, y=5)
-                CTkToolTip(delete_image_button, message=self._("Delete"))
+                        column += 1
+                        if column == 2:
+                            column = 0
+                            row += 1
 
-                column += 1
-                if column == 2:
-                    column = 0
-                    row += 1
+                progressbar.stop()
+                progressbar.pack_forget()
 
-        if not is_image_found:
-            gallery_scrollable_frame.configure(label_text=self._("My gallery (empty)"))
+                if not is_image_found:
+                    gallery_scrollable_frame.configure(label_text=self._("My gallery (empty)"))
+            except Exception:
+                pass
 
-        self.my_gallery.title(self._("Brushshe Gallery"))
+        Thread(target=load_buttons, daemon=True).start()
 
     def delete_image(self, img_path):
         confirm_delete = CTkMessagebox(
@@ -1318,7 +1301,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=self._("About program"),
-            message=about_text + "v1.14.3",
+            message=about_text + "v1.15.0 'Mayami'",
             icon=resource("icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
@@ -1331,11 +1314,6 @@ class Brushshe(ctk.CTk):
     def new_picture(self, color, first_time=False):
         self.canvas.delete("tools")
         self.bg_color = color
-
-        self.width_slider.set(self.new_img_width)
-        self.height_slider.set(self.new_img_height)
-        self.width_tooltip.configure(message=self.new_img_width)
-        self.height_tooltip.configure(message=self.new_img_height)
 
         self.image = Image.new("RGB", (self.new_img_width, self.new_img_height), color)
         self.draw = ImageDraw.Draw(self.image)
@@ -1360,6 +1338,8 @@ class Brushshe(ctk.CTk):
             self.brush_size = int(value)
         elif self.current_tool == "eraser":
             self.eraser_size = int(value)
+        elif self.current_tool == "spray":
+            self.spray_size = int(value)
         elif self.current_tool == "shape":
             self.shape_size = int(value)
         elif self.current_tool == "sticker":
@@ -1383,14 +1363,50 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<B1-Motion>", self.paint)
         self.canvas.bind("<ButtonRelease-1>", self.stop_paint)
 
+    def spray(self):
+        def start_spray(event):
+            self.prev_x, self.prev_y = self.canvas_to_pict_xy(event.x, event.y)
+            self.spraying = True
+            do_spray()
+
+        def do_spray():
+            if not self.spraying or self.prev_x is None or self.prev_y is None:
+                return
+
+            for _ in range(self.tool_size * 2):
+                offset_x = random.randint(-self.tool_size, self.tool_size)
+                offset_y = random.randint(-self.tool_size, self.tool_size)
+                if offset_x**2 + offset_y**2 <= self.tool_size**2:
+                    self.draw.point((self.prev_x + offset_x, self.prev_y + offset_y), fill=self.brush_color)
+
+            self.update_canvas()
+            self.spray_job = self.after(50, do_spray)
+
+        def move_spray(event):
+            self.prev_x, self.prev_y = self.canvas_to_pict_xy(event.x, event.y)
+
+        def stop_spray(event):
+            self.spraying = False
+            if self.spray_job:
+                self.after_cancel(self.spray_job)
+                self.spray_job = None
+            self.prev_x, self.prev_y = (None, None)
+            self.undo_stack.append(self.image.copy())
+
+        self.set_tool("spray", "Spray", self.spray_size, 5, 30, "spraycan")
+
+        self.spraying = False
+        self.spray_job = None
+        self.canvas.bind("<Button-1>", start_spray)
+        self.canvas.bind("<B1-Motion>", move_spray)
+        self.canvas.bind("<ButtonRelease-1>", stop_spray)
+
     def undo(self):
         if len(self.undo_stack) > 1:
             self.redo_stack.append(self.undo_stack.pop())
             self.image = self.undo_stack[-1].copy()
             self.draw = ImageDraw.Draw(self.image)
             if self.image.width != self.canvas.winfo_width() or self.image.height != self.canvas.winfo_height():
-                self.width_slider.set(self.image.width)
-                self.height_slider.set(self.image.height)
                 self.force_resize_canvas()
             self.update_canvas()
 
@@ -1400,8 +1416,6 @@ class Brushshe(ctk.CTk):
             self.undo_stack.append(self.image.copy())
             self.draw = ImageDraw.Draw(self.image)
             if self.image.width != self.canvas.winfo_width() or self.image.height != self.canvas.winfo_height():
-                self.width_slider.set(self.image.width)
-                self.height_slider.set(self.image.height)
                 self.force_resize_canvas()
             self.update_canvas()
 
@@ -1491,10 +1505,6 @@ class Brushshe(ctk.CTk):
 
     def picture_postconfigure(self):
         self.canvas.delete("tools")
-        self.width_slider.set(self.image.width)
-        self.height_slider.set(self.image.height)
-        self.width_tooltip.configure(message=self.image.width)
-        self.height_tooltip.configure(message=self.image.height)
 
         self.update_canvas()
         self.force_resize_canvas()
@@ -1566,8 +1576,10 @@ class Brushshe(ctk.CTk):
 
         width_entry = ctk.CTkEntry(width_height_frame, placeholder_text=self._("Width"))
         width_entry.pack(side="left", padx=10, pady=10)
+        width_entry.insert(ctk.END, self.image.width)
         height_entry = ctk.CTkEntry(width_height_frame, placeholder_text=self._("Height"))
         height_entry.pack(side="right", padx=10, pady=10)
+        height_entry.insert(ctk.END, self.image.height)
 
         ready_size_button = ctk.CTkButton(change_size_toplevel, text="OK", command=crop)
         ready_size_button.pack(padx=10, pady=10)

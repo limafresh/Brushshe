@@ -31,46 +31,27 @@ pip install customtkinter Pillow
 4. Run file `Brushshe/brushshe.py`.
 
 ## 🚀 Features
-### Open
-You can open a picture from a file.
-### Painting
-You can choose a color, change the brush thickness, and paint. You can change canvas size.
-### Recoloring brush (new!)
-Draws through contours.
-### Save to device
-You can save picture to your PC in different formats (PNG, JPG, GIF, BMP, TIFF, WEBP, ICO, PPM, PGM, PBM).
-### Undo and redo
-You can undo and redo 10 last actions.
-### Eraser
-Removing excess with an eraser.
-### Fill
-Can fill areas of a drawing. Can work slowly on large areas, and not work on RGBA-images.
-### Eyedropper
-Right click on the desired place on the canvas to get its color and paint with it.
-### Background
-You can choose the background color.
-### Stickers
-You can add stickers from Brushshe sticker set (all sticker images are drawn by me or created by AI) and resize them. You can also add a sticker from a file.
-### Text
-You can place text and change its size.
-### Frames
-You can decorate the picture with frames.
-### Shapes
-Rectangle and oval (with or without fill), line, bezier curve.
-### Effects
-Blur, detail, contour, grayscale, inversion and other. Not work on GIF images.
-### My Gallery
-Window showing images drawn in Brushshe and "saved to gallery". Images from the gallery are stored in `<user_home_folder>/Pictures/Brushshe Images` or `<user_home_folder>/Brushshe Images` on some minimalistic Linux distributions.
-### Dark theme
-There is a system, light and dark theme.
-### Rotate
-Rotate right, rotate left.
-### Create screenshot
-You can take a screenshot and draw on it. Not work on Linux with Wayland.
-### View (beta)
-Zoom in, zoom out, reset zoom.
-### Change size
-You can change the size by cropping or scaling.
++ **Open**: You can open a picture from a file.
++ **Painting**: You can choose a color, change the brush thickness, and paint. You can change canvas size.
++ **Recoloring brush (new!)**: Draws through contours.
++ **Save to device**: You can save picture to your PC in different formats (PNG, JPG, GIF, BMP, TIFF, WEBP, ICO, PPM, PGM, PBM).
++ **Undo and redo**: You can undo and redo 10 last actions.
++ **Eraser**: Removing excess with an eraser.
++ **Fill**: Can fill areas of a drawing. Can work slowly on large areas, and not work on RGBA-images.
++ **Eyedropper**: Right click on the desired place on the canvas to get its color and paint with it.
++ **Spray**: Spray paint.
++ **Background**: You can choose the background color.
++ **Stickers**: You can add stickers from Brushshe sticker set (all sticker images are drawn by me or created by AI) and resize them. You can also add a sticker from a file.
++ **Text**: You can place text and change its size.
++ **Frames**: You can decorate the picture with frames.
++ **Shapes**: Rectangle and oval (with or without fill), line, bezier curve.
++ **Effects**: Blur, detail, contour, grayscale, inversion and other. Not work on GIF images.
++ **My Gallery**: Window showing images drawn in Brushshe and "saved to gallery". Images from the gallery are stored in `<user_home_folder>/Pictures/Brushshe Images` or `<user_home_folder>/Brushshe Images` on some minimalistic Linux distributions.
++ **Dark theme**: There is a light and dark theme.
++ **Rotate**: Rotate right, rotate left.
++ **Create screenshot**: You can take a screenshot and draw on it. Not work on Linux with Wayland.
++ **View**: Zoom in, zoom out, reset zoom.
++ **Change size**: You can change the size by cropping or scaling.
 
 ## Hotkeys
 + *Ctrl+Z*: undo
@@ -88,6 +69,7 @@ The goal of the project is to provide a open-source, convenient, beautiful and m
 
 ## Contributions
 All contributions are welcome!
++ Do not use third-party libraries. Only standard Python libraries, CustomTkinter and Pillow/PIL.
 
 ## Credits
 + Thanks [Akascape](https://github.com/Akascape) for CTkColorPicker, CTkMenuBar, CTkMessagebox and CTkToolTip.

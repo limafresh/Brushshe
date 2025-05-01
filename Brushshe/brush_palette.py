@@ -1,16 +1,7 @@
-"""
-Kostils & velosipeds programming.
-
-The "Transparent" color actually is not transparent and around corners has defects.
-Button hover effect can't has transparent color.
-"""
-
 import os
 import sys
 
 import customtkinter as ctk
-
-# from PIL import Image
 
 
 class BrushPalette(ctk.CTkFrame):
@@ -35,21 +26,15 @@ class BrushPalette(ctk.CTkFrame):
         super().__init__(master, height=height, width=width, corner_radius=corner_radius, bg_color=bg_color, **kwargs)
         super().pack(side=ctk.LEFT)
 
-        # brush_flip_icon = ctk.CTkImage(
-        #     # light_image=Image.open(self.resource("../../icons/flip_light.png")),
-        #     # dark_image=Image.open(self.resource("../../icons/flip_dark.png")),
-        #     size=(10, 10),
-        # )
         ctk.CTkButton(
             self,
             text=None,
-            # image=brush_flip_icon,
             width=12,
             height=12,
             border_width=0,
             corner_radius=0,
             command=self.click_flip_btn,
-            fg_color="#707070",  # TODO: Change to image
+            fg_color="#707070",
             hover_color="#7f7f7f",
         ).place(x=32, y=0)
 

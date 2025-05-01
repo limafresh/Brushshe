@@ -1,14 +1,19 @@
 import os
+import sys
 import tkinter as tk
 from tkinter import ttk
 
 import customtkinter as ctk
+import translator
 
-PATH = os.path.dirname(os.path.realpath(__file__))
+
+def resource(relative_path):
+    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
 
 
 class FileDialog(ctk.CTkToplevel):
-    def __init__(self, parent, title, save=False, save_placeholder=""):
+    def __init__(self, parent, title, save=False):
         super().__init__(parent)
         self.geometry("500x400")
         self.title(title)
@@ -18,8 +23,8 @@ class FileDialog(ctk.CTkToplevel):
         self.extension = ".png"
 
         # Images by Vijay Verma from Wikimedia Commons, licensed under CC0 1.0
-        self.folder_image = tk.PhotoImage(file=os.path.join(PATH, "folder.png"))
-        self.file_image = tk.PhotoImage(file=os.path.join(PATH, "file.png"))
+        self.folder_image = tk.PhotoImage(file=resource("icons/folder.png"))
+        self.file_image = tk.PhotoImage(file=resource("icons/file.png"))
 
         self.frame = ctk.CTkFrame(self)
         self.frame.pack(fill=ctk.BOTH, expand=True)
@@ -37,7 +42,7 @@ class FileDialog(ctk.CTkToplevel):
 
         if save:
             extensions = [".png", ".jpg", ".gif", ".bmp", ".tiff", ".webp", ".ico", ".ppm", ".pgm", ".pbm"]
-            extension_combobox = ctk.CTkComboBox(
+            extension_combobox = ctk.CTkOptionMenu(
                 self.path_frame, values=extensions, width=80, command=self._combobox_callback
             )
             extension_combobox.pack(side=ctk.RIGHT, padx=10, pady=10)
@@ -56,7 +61,7 @@ class FileDialog(ctk.CTkToplevel):
         ctk.CTkButton(btn_frame, text="x", command=self.destroy).pack(side=ctk.RIGHT, padx=10)
 
         if self.save_mode:
-            self.save_entry = ctk.CTkEntry(self.frame, placeholder_text=save_placeholder)
+            self.save_entry = ctk.CTkEntry(self.frame, placeholder_text=self._("Enter name for save..."))
             self.save_entry.pack(side=ctk.BOTTOM, fill=ctk.X, padx=10)
 
         self.tree_frame = ctk.CTkFrame(self.frame)
@@ -74,6 +79,9 @@ class FileDialog(ctk.CTkToplevel):
         self.wait_visibility()
         self.grab_set()
         self.wait_window()
+
+    def _(self, key):
+        return translator.translations.get(key, key)
 
     def _populate_file_list(self, event=None):
         if self.initialdir.get() == "":
