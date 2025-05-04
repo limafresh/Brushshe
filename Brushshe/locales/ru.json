@@ -80,5 +80,10 @@
 	"Height": "Высота",
 	"R. Brush": "Кисть для п.",
 	"Recoloring Brush": "Кисть для перекрашивания",
-	"Spray": "Аерозоль"
+	"Spray": "Аерозоль",
+	"Settings": "Настройки",
+	"Apply": "Применить",
+	"Maximum undo/redo levels": "Максимальное кол-во разов отмены/возврата",
+	"The new size will be too big": "Новый размер будет слишком большим",
+	"Drawing will be slow": "Рисование будет медленным"
 }

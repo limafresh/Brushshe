@@ -12,6 +12,10 @@ def resource(relative_path):
     return os.path.join(base_path, relative_path)
 
 
+def _(key):
+    return translator.translations.get(key, key)
+
+
 class FileDialog(ctk.CTkToplevel):
     def __init__(self, parent, title, save=False):
         super().__init__(parent)
@@ -61,7 +65,7 @@ class FileDialog(ctk.CTkToplevel):
         ctk.CTkButton(btn_frame, text="x", command=self.destroy).pack(side=ctk.RIGHT, padx=10)
 
         if self.save_mode:
-            self.save_entry = ctk.CTkEntry(self.frame, placeholder_text=self._("Enter name for save..."))
+            self.save_entry = ctk.CTkEntry(self.frame, placeholder_text=_("Enter name for save..."))
             self.save_entry.pack(side=ctk.BOTTOM, fill=ctk.X, padx=10)
 
         self.tree_frame = ctk.CTkFrame(self.frame)
@@ -79,9 +83,6 @@ class FileDialog(ctk.CTkToplevel):
         self.wait_visibility()
         self.grab_set()
         self.wait_window()
-
-    def _(self, key):
-        return translator.translations.get(key, key)
 
     def _populate_file_list(self, event=None):
         if self.initialdir.get() == "":
