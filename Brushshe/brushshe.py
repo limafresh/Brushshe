@@ -119,15 +119,6 @@ class Brushshe(ctk.CTk):
 
         other_menu = menu.add_cascade(_("More"))
         other_dropdown = CustomDropdownMenu(widget=other_menu)
-        theme_var = ctk.StringVar(value=ctk.get_appearance_mode())
-        ctk.CTkCheckBox(
-            other_dropdown,
-            text=_("Dark theme"),
-            variable=theme_var,
-            onvalue="Dark",
-            offvalue="Light",
-            command=lambda: ctk.set_appearance_mode(theme_var.get()),
-        ).pack(padx=10, pady=10)
         other_dropdown.add_option(option=_("Settings"), command=self.settings)
         other_dropdown.add_option(option=_("About program"), command=self.about_program)
 
@@ -1461,7 +1452,12 @@ class Brushshe(ctk.CTk):
 
         def crop():
             try:
-                if int(width_spinbox.get()) > 2000 or int(height_spinbox.get()) > 2000:
+                if aspect_ratio_var.get() == "on":
+                    new_height = int(self.image.height * width_spinbox.get() / self.image.width)
+                else:
+                    new_height = int(height_spinbox.get())
+
+                if int(width_spinbox.get()) > 2000 or new_height > 2000:
                     continue_size_msg = CTkMessagebox(
                         title=_("The new size will be too big"),
                         message=_("Drawing will be slow") + " " + _("Continue?"),
@@ -1472,15 +1468,20 @@ class Brushshe(ctk.CTk):
                         sound=True,
                     )
                     if continue_size_msg.get() == _("Yes"):
-                        self.crop_picture(int(width_spinbox.get()), int(height_spinbox.get()))
+                        self.crop_picture(int(width_spinbox.get()), new_height)
                 else:
-                    self.crop_picture(int(width_spinbox.get()), int(height_spinbox.get()))
+                    self.crop_picture(int(width_spinbox.get()), new_height)
             except Exception as e:
                 print(e)
 
         def scale():
             try:
-                if int(width_spinbox.get()) > 2000 or int(height_spinbox.get()) > 2000:
+                if aspect_ratio_var.get() == "on":
+                    new_height = int(self.image.height * width_spinbox.get() / self.image.width)
+                else:
+                    new_height = int(height_spinbox.get())
+
+                if int(width_spinbox.get()) > 2000 or new_height > 2000:
                     continue_size_msg = CTkMessagebox(
                         title=_("The new size will be too big"),
                         message=_("Drawing will be slow") + " " + _("Continue?"),
@@ -1491,15 +1492,11 @@ class Brushshe(ctk.CTk):
                         sound=True,
                     )
                     if continue_size_msg.get() == _("Yes"):
-                        scaled_image = self.image.resize(
-                            (int(width_spinbox.get()), int(height_spinbox.get())), Image.NEAREST
-                        )
+                        scaled_image = self.image.resize((int(width_spinbox.get()), new_height), Image.NEAREST)
                         self.image = scaled_image
                         self.picture_postconfigure()
                 else:
-                    scaled_image = self.image.resize(
-                        (int(width_spinbox.get()), int(height_spinbox.get())), Image.NEAREST
-                    )
+                    scaled_image = self.image.resize((int(width_spinbox.get()), new_height), Image.NEAREST)
                     self.image = scaled_image
                     self.picture_postconfigure()
             except Exception as e:
@@ -1525,6 +1522,15 @@ class Brushshe(ctk.CTk):
         height_spinbox.grid(row=2, column=2, padx=10, pady=10)
         height_spinbox.set(self.image.height)
 
+        aspect_ratio_var = ctk.StringVar(value="on")
+        ctk.CTkCheckBox(
+            change_size_toplevel,
+            text=_("Maintain aspect ratio"),
+            variable=aspect_ratio_var,
+            onvalue="on",
+            offvalue="off",
+        ).pack(padx=10, pady=10)
+
         ready_size_button = ctk.CTkButton(change_size_toplevel, text="OK", command=crop)
         ready_size_button.pack(padx=10, pady=10)
 
@@ -1536,8 +1542,23 @@ class Brushshe(ctk.CTk):
         settings_tl = ctk.CTkToplevel(self)
         settings_tl.title(_("Settings"))
 
+        theme_frame = ctk.CTkFrame(settings_tl)
+        theme_frame.pack(padx=10, pady=10, fill="x")
+
+        ctk.CTkLabel(theme_frame, text=_("Theme")).pack(padx=10, pady=10)
+
+        theme_var = ctk.StringVar(value=ctk.get_appearance_mode())
+        for theme_name in ["System", "Light", "Dark"]:
+            ctk.CTkRadioButton(
+                theme_frame,
+                text=_(theme_name),
+                variable=theme_var,
+                value=theme_name,
+                command=lambda: ctk.set_appearance_mode(theme_var.get()),
+            ).pack(padx=10, pady=10)
+
         undo_levels_frame = ctk.CTkFrame(settings_tl)
-        undo_levels_frame.pack(padx=10, pady=10)
+        undo_levels_frame.pack(padx=10, pady=10, fill="x")
 
         ctk.CTkLabel(undo_levels_frame, text=_("Maximum undo/redo levels")).pack(padx=10, pady=10)
 

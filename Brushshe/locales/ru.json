@@ -18,7 +18,6 @@
 	"Fill oval": "Заполненный овал",
 	"My Gallery": "Моя галерея",
 	"More": "Больше",
-	"Dark theme": "Тёмная тема",
 	"About program": "О программе",
 	"Brush": "Кисть",
 	"Fill": "Заливка",
@@ -85,5 +84,10 @@
 	"Apply": "Применить",
 	"Maximum undo/redo levels": "Максимальное кол-во разов отмены/возврата",
 	"The new size will be too big": "Новый размер будет слишком большим",
-	"Drawing will be slow": "Рисование будет медленным"
+	"Drawing will be slow": "Рисование будет медленным",
+	"Maintain aspect ratio": "Сохранять соотношение сторон",
+	"Theme": "Тема",
+	"System": "Система",
+	"Light": "Светлая",
+	"Dark": "Тёмная"
 }
