@@ -20,6 +20,7 @@ class FileDialog(ctk.CTkToplevel):
     def __init__(self, parent, title, save=False):
         super().__init__(parent)
         self.geometry("500x400")
+        self.transient(parent)
         self.title(title)
         self.save_mode = save
 

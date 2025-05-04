@@ -1504,6 +1504,7 @@ class Brushshe(ctk.CTk):
 
         change_size_toplevel = ctk.CTkToplevel(self)
         change_size_toplevel.title(_("Change size..."))
+        change_size_toplevel.transient(self)
 
         size_sb = ctk.CTkSegmentedButton(change_size_toplevel, values=[_("Crop"), _("Scale")], command=size_sb_callback)
         size_sb.pack(padx=10, pady=10)
@@ -1541,6 +1542,7 @@ class Brushshe(ctk.CTk):
 
         settings_tl = ctk.CTkToplevel(self)
         settings_tl.title(_("Settings"))
+        settings_tl.transient(self)
 
         theme_frame = ctk.CTkFrame(settings_tl)
         theme_frame.pack(padx=10, pady=10, fill="x")
