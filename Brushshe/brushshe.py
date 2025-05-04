@@ -1461,9 +1461,7 @@ class Brushshe(ctk.CTk):
 
         def crop():
             try:
-                if int(width_spinbox.get()) < 2000 or int(height_spinbox.get()) < 2000:
-                    self.crop_picture(int(width_spinbox.get()), int(height_spinbox.get()))
-                else:
+                if int(width_spinbox.get()) > 2000 or int(height_spinbox.get()) > 2000:
                     continue_size_msg = CTkMessagebox(
                         title=_("The new size will be too big"),
                         message=_("Drawing will be slow") + " " + _("Continue?"),
@@ -1475,18 +1473,14 @@ class Brushshe(ctk.CTk):
                     )
                     if continue_size_msg.get() == _("Yes"):
                         self.crop_picture(int(width_spinbox.get()), int(height_spinbox.get()))
+                else:
+                    self.crop_picture(int(width_spinbox.get()), int(height_spinbox.get()))
             except Exception as e:
                 print(e)
 
         def scale():
             try:
-                if int(width_spinbox.get()) < 2000 or int(height_spinbox.get()) < 2000:
-                    scaled_image = self.image.resize(
-                        (int(width_spinbox.get()), int(height_spinbox.get())), Image.NEAREST
-                    )
-                    self.image = scaled_image
-                    self.picture_postconfigure()
-                else:
+                if int(width_spinbox.get()) > 2000 or int(height_spinbox.get()) > 2000:
                     continue_size_msg = CTkMessagebox(
                         title=_("The new size will be too big"),
                         message=_("Drawing will be slow") + " " + _("Continue?"),
@@ -1502,6 +1496,12 @@ class Brushshe(ctk.CTk):
                         )
                         self.image = scaled_image
                         self.picture_postconfigure()
+                else:
+                    scaled_image = self.image.resize(
+                        (int(width_spinbox.get()), int(height_spinbox.get())), Image.NEAREST
+                    )
+                    self.image = scaled_image
+                    self.picture_postconfigure()
             except Exception as e:
                 print(e)
 
