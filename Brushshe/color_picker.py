@@ -6,7 +6,6 @@
 import math
 import os
 import sys
-import tkinter
 
 import customtkinter
 from PIL import Image, ImageTk
@@ -83,10 +82,11 @@ class AskColor(customtkinter.CTkToplevel):
         self.frame = customtkinter.CTkFrame(master=self, fg_color=self.fg_color, bg_color=self.bg_color)
         self.frame.grid(padx=20, pady=20, sticky="nswe")
 
-        self.canvas = tkinter.Canvas(
+        self.canvas = customtkinter.CTkCanvas(
             self.frame, height=self.image_dimension, width=self.image_dimension, highlightthickness=0, bg=self.fg_color
         )
         self.canvas.pack(pady=20)
+        self.canvas.bind("<Button-1>", self.on_mouse_drag)
         self.canvas.bind("<B1-Motion>", self.on_mouse_drag)
 
         self.img1 = Image.open(resource("icons/color_wheel.png")).resize(

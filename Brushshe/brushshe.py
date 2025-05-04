@@ -29,6 +29,7 @@ from PIL import (
     ImageStat,
     ImageTk,
 )
+from spinbox import IntSpinbox
 
 
 def resource(relative_path):
@@ -36,11 +37,15 @@ def resource(relative_path):
     return os.path.join(base_path, relative_path)
 
 
+def _(key):
+    return translator.translations.get(key, key)
+
+
 class Brushshe(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.geometry("820x690")
-        self.title(self._("Brushshe"))
+        self.geometry("790x680")
+        self.title(_("Brushshe"))
         if os.name == "nt":
             self.iconbitmap(resource("icons/icon.ico"))
         else:
@@ -68,64 +73,54 @@ class Brushshe(ctk.CTk):
         """ Menu """
         menu = CTkMenuBar(self)
 
-        file_menu = menu.add_cascade(self._("File"))
+        file_menu = menu.add_cascade(_("File"))
         file_dropdown = CustomDropdownMenu(widget=file_menu)
-        file_dropdown.add_option(option=self._("Open from file"), command=self.open_from_file)
-        file_dropdown.add_option(option=self._("Save to device"), command=self.save_to_device)
+        file_dropdown.add_option(option=_("Open from file"), command=self.open_from_file)
+        file_dropdown.add_option(option=_("Save to device"), command=self.save_to_device)
         file_dropdown.add_separator()
-        file_dropdown.add_option(option=self._("Rotate right"), command=lambda: self.rotate(-90))
-        file_dropdown.add_option(option=self._("Rotate left"), command=lambda: self.rotate(90))
-        file_dropdown.add_separator()
-        file_dropdown.add_option(option=self._("Change size..."), command=self.change_size)
+        file_dropdown.add_option(option=_("Rotate right"), command=lambda: self.rotate(-90))
+        file_dropdown.add_option(option=_("Rotate left"), command=lambda: self.rotate(90))
 
-        new_menu = menu.add_cascade(self._("New"))
+        new_menu = menu.add_cascade(_("New"))
         new_dropdown = CustomDropdownMenu(widget=new_menu)
 
         for color in self.colors:
             new_dropdown.add_option(option=None, bg_color=color, command=lambda c=color: self.new_picture(c))
         new_dropdown.add_separator()
-        new_dropdown.add_option(option=self._("Other color"), command=self.other_bg_color)
-        new_dropdown.add_option(option=self._("Create screenshot"), command=self.create_screenshot)
+        new_dropdown.add_option(option=_("Other color"), command=self.other_bg_color)
+        new_dropdown.add_option(option=_("Create screenshot"), command=self.create_screenshot)
 
-        view_menu = menu.add_cascade(self._("View"))
+        view_menu = menu.add_cascade(_("View"))
         view_dropdown = CustomDropdownMenu(widget=view_menu)
-        view_dropdown.add_option(option=self._("Zoom In"), command=self.zoom_in)
-        view_dropdown.add_option(option=self._("Zoom Out"), command=self.zoom_out)
+        view_dropdown.add_option(option=_("Zoom In"), command=self.zoom_in)
+        view_dropdown.add_option(option=_("Zoom Out"), command=self.zoom_out)
         view_dropdown.add_separator()
-        view_dropdown.add_option(option=self._("Reset"), command=self.reset_zoom)
+        view_dropdown.add_option(option=_("Reset"), command=self.reset_zoom)
 
-        add_menu = menu.add_cascade(self._("Add"))
+        add_menu = menu.add_cascade(_("Add"))
         add_dropdown = CustomDropdownMenu(widget=add_menu)
         smile_icon = ctk.CTkImage(Image.open(resource("icons/smile.png")), size=(50, 50))
-        add_dropdown.add_option(option=self._("Stickers"), image=smile_icon, command=self.show_stickers_choice)
+        add_dropdown.add_option(option=_("Stickers"), image=smile_icon, command=self.show_stickers_choice)
         text_icon = ctk.CTkImage(Image.open(resource("icons/text.png")), size=(50, 50))
-        add_dropdown.add_option(option=self._("Text"), image=text_icon, command=self.show_text_window)
+        add_dropdown.add_option(option=_("Text"), image=text_icon, command=self.show_text_window)
         frame_icon = ctk.CTkImage(Image.open(resource("icons/frame.png")), size=(50, 50))
-        add_dropdown.add_option(option=self._("Frames"), image=frame_icon, command=self.show_frame_choice)
+        add_dropdown.add_option(option=_("Frames"), image=frame_icon, command=self.show_frame_choice)
         effects_icon = ctk.CTkImage(Image.open(resource("icons/effects.png")), size=(50, 50))
-        add_dropdown.add_option(option=self._("Effects"), image=effects_icon, command=self.effects)
+        add_dropdown.add_option(option=_("Effects"), image=effects_icon, command=self.effects)
 
-        shapes_menu = menu.add_cascade(self._("Shapes"))
+        shapes_menu = menu.add_cascade(_("Shapes"))
         shapes_dropdown = CustomDropdownMenu(widget=shapes_menu)
         shape_options = ["Rectangle", "Oval", "Line", "Fill rectangle", "Fill oval"]
         for shape in shape_options:
-            shapes_dropdown.add_option(option=self._(shape), command=lambda shape=shape: self.create_shape(shape))
-        shapes_dropdown.add_option(option=self._("Bezier curve"), command=self.bezier_shape)
+            shapes_dropdown.add_option(option=_(shape), command=lambda shape=shape: self.create_shape(shape))
+        shapes_dropdown.add_option(option=_("Bezier curve"), command=self.bezier_shape)
 
-        menu.add_cascade(self._("My Gallery"), command=self.show_gallery)
+        menu.add_cascade(_("My Gallery"), command=self.show_gallery)
 
-        other_menu = menu.add_cascade(self._("More"))
+        other_menu = menu.add_cascade(_("More"))
         other_dropdown = CustomDropdownMenu(widget=other_menu)
-        theme_var = ctk.StringVar(value=ctk.get_appearance_mode())
-        ctk.CTkCheckBox(
-            other_dropdown,
-            text=self._("Dark theme"),
-            variable=theme_var,
-            onvalue="Dark",
-            offvalue="Light",
-            command=lambda: ctk.set_appearance_mode(theme_var.get()),
-        ).pack(padx=10, pady=10)
-        other_dropdown.add_option(option=self._("About program"), command=self.about_program)
+        other_dropdown.add_option(option=_("Settings"), command=self.settings)
+        other_dropdown.add_option(option=_("About program"), command=self.about_program)
 
         """Toolbar"""
         tools_frame = ctk.CTkFrame(self)
@@ -134,96 +129,41 @@ class Brushshe(ctk.CTk):
         # Brush size used to paint all the icons in the toolbar: 50
         # Width and height of all icons - 512 px
 
-        brush_icon = ctk.CTkImage(
-            light_image=Image.open(resource("icons/brush_light.png")),
-            dark_image=Image.open(resource("icons/brush_dark.png")),
-            size=(22, 22),
-        )
-        brush_button = ctk.CTkButton(tools_frame, text=None, width=30, image=brush_icon, command=self.brush)
-        brush_button.pack(side=ctk.LEFT, padx=1)
-        CTkToolTip(brush_button, message=self._("Brush"), text_color="gray14")
+        tools_dict = {
+            "Brush": self.brush,
+            "Eraser": self.eraser,
+            "Fill": self.start_fill,
+            "Recoloring Brush": self.recoloring_brush,
+            "Spray": self.spray,
+            "Undo (Ctrl+Z)": self.undo,
+            "Redo (Ctrl+Y)": self.redo,
+        }
 
-        eraser_icon = ctk.CTkImage(
-            light_image=Image.open(resource("icons/eraser_light.png")),
-            dark_image=Image.open(resource("icons/eraser_dark.png")),
-            size=(22, 22),
-        )
-        eraser_button = ctk.CTkButton(tools_frame, text=None, width=30, image=eraser_icon, command=self.eraser)
-        eraser_button.pack(side=ctk.LEFT, padx=1)
-        CTkToolTip(eraser_button, message=self._("Eraser"), text_color="gray14")
-
-        fill_icon = ctk.CTkImage(
-            light_image=Image.open(resource("icons/fill_light.png")),
-            dark_image=Image.open(resource("icons/fill_dark.png")),
-            size=(22, 22),
-        )
-        fill_button = ctk.CTkButton(tools_frame, text=None, width=30, image=fill_icon, command=self.start_fill)
-        fill_button.pack(side=ctk.LEFT, padx=1)
-        CTkToolTip(fill_button, message=self._("Fill"), text_color="gray14")
-
-        recoloring_brush_icon = ctk.CTkImage(
-            light_image=Image.open(resource("icons/recoloring_brush_light.png")),
-            dark_image=Image.open(resource("icons/recoloring_brush_dark.png")),
-            size=(22, 22),
-        )
-        recoloring_brush_button = ctk.CTkButton(
-            tools_frame,
-            text=None,
-            width=30,
-            image=recoloring_brush_icon,
-            command=self.recoloring_brush,
-        )
-        recoloring_brush_button.pack(side=ctk.LEFT, padx=1)
-        CTkToolTip(recoloring_brush_button, message=self._("Recoloring Brush"), text_color="gray14")
-
-        spray_icon = ctk.CTkImage(
-            light_image=Image.open(resource("icons/spray_light.png")),
-            dark_image=Image.open(resource("icons/spray_dark.png")),
-            size=(22, 22),
-        )
-        spray_button = ctk.CTkButton(
-            tools_frame,
-            text=None,
-            width=30,
-            image=spray_icon,
-            command=self.spray,
-        )
-        spray_button.pack(side=ctk.LEFT, padx=1)
-        CTkToolTip(spray_button, message=self._("Spray"), text_color="gray14")
-
-        undo_icon = ctk.CTkImage(
-            light_image=Image.open(resource("icons/undo_light.png")),
-            dark_image=Image.open(resource("icons/undo_dark.png")),
-            size=(22, 22),
-        )
-        undo_button = ctk.CTkButton(
-            tools_frame,
-            text=None,
-            width=30,
-            image=undo_icon,
-            fg_color=tools_frame.cget("fg_color"),
-            hover=False,
-            command=self.undo,
-        )
-        undo_button.pack(side=ctk.LEFT, padx=1)
-        CTkToolTip(undo_button, message=self._("Undo") + " (Ctrl+Z)", text_color="gray14")
-
-        redo_icon = ctk.CTkImage(
-            light_image=Image.open(resource("icons/redo_light.png")),
-            dark_image=Image.open(resource("icons/redo_dark.png")),
-            size=(22, 22),
-        )
-        redo_button = ctk.CTkButton(
-            tools_frame,
-            text=None,
-            width=30,
-            image=redo_icon,
-            fg_color=tools_frame.cget("fg_color"),
-            hover=False,
-            command=self.redo,
-        )
-        redo_button.pack(side=ctk.LEFT, padx=1)
-        CTkToolTip(redo_button, message=self._("Redo") + " (Ctrl+Y)", text_color="gray14")
+        for tool_name, tool_command in tools_dict.items():
+            tool_icon_name = tool_name.lower().replace(" ", "_").split("_(")[0]
+            tool_icon = ctk.CTkImage(
+                light_image=Image.open(resource(f"icons/{tool_icon_name}_light.png")),
+                dark_image=Image.open(resource(f"icons/{tool_icon_name}_dark.png")),
+                size=(22, 22),
+            )
+            if tool_name not in ["Undo (Ctrl+Z)", "Redo (Ctrl+Y)"]:
+                tool_button = ctk.CTkButton(tools_frame, text=None, width=30, image=tool_icon, command=tool_command)
+            else:
+                tool_button = ctk.CTkButton(
+                    tools_frame,
+                    text=None,
+                    width=30,
+                    image=tool_icon,
+                    fg_color=tools_frame.cget("fg_color"),
+                    hover=False,
+                    command=tool_command,
+                )
+            tool_button.pack(side=ctk.LEFT, padx=1)
+            if "(" in tool_name:
+                tooltip_message = _(tool_name.split(" (")[0]) + " (" + tool_name.split("(", 1)[-1]
+            else:
+                tooltip_message = _(tool_name.split(" (")[0])
+            CTkToolTip(tool_button, message=tooltip_message, text_color="gray14")
 
         self.tool_label = ctk.CTkLabel(tools_frame, text=None)
         self.tool_label.pack(side=ctk.LEFT, padx=1)
@@ -233,36 +173,14 @@ class Brushshe(ctk.CTk):
 
         self.tool_size_label = ctk.CTkLabel(tools_frame, text=None)
 
-        save_to_gallery_btn = ctk.CTkButton(tools_frame, text=self._("Save to gallery"), command=self.save_to_gallery)
+        save_to_gallery_btn = ctk.CTkButton(tools_frame, text=_("Save to gallery"), command=self.save_to_gallery)
         save_to_gallery_btn.pack(side=ctk.RIGHT)
-        CTkToolTip(save_to_gallery_btn, message=self._("Save to gallery") + " (Ctrl+S)", text_color="gray14")
+        CTkToolTip(save_to_gallery_btn, message=_("Save to gallery") + " (Ctrl+S)", text_color="gray14")
 
         """Canvas"""
         self.canvas_frame = ctk.CTkFrame(self)
         self.canvas_frame.pack_propagate(False)
         self.canvas_frame.pack(fill=ctk.BOTH, expand=True)
-
-        self.width_slider = ctk.CTkSlider(
-            self.canvas_frame,
-            from_=100,
-            to=2000,
-            orientation="horizontal",
-            command=lambda val: self.canvas.configure(width=int(val * self.zoom)),
-        )
-        self.width_slider.pack(side=ctk.BOTTOM, fill=ctk.X)
-        self.width_slider.bind("<ButtonRelease-1>", self.crop_picture)
-        self.width_tooltip = CTkToolTip(self.width_slider, text_color="gray14")
-
-        self.height_slider = ctk.CTkSlider(
-            self.canvas_frame,
-            from_=100,
-            to=2000,
-            orientation="vertical",
-            command=lambda val: self.canvas.configure(height=int(val * self.zoom)),
-        )
-        self.height_slider.pack(side=ctk.LEFT, fill=ctk.Y)
-        self.height_slider.bind("<ButtonRelease-1>", self.crop_picture)
-        self.height_tooltip = CTkToolTip(self.height_slider, text_color="gray14")
 
         self.v_scrollbar = ctk.CTkScrollbar(self.canvas_frame, orientation="vertical")
         self.v_scrollbar.pack(side=ctk.RIGHT, fill=ctk.Y)
@@ -310,9 +228,8 @@ class Brushshe(ctk.CTk):
             tmp_btn.pack(side=ctk.LEFT, padx=1, pady=1)
             tmp_btn.bind("<Button-3>", lambda event, obj=tmp_btn: self.color_choice_bth(event, obj))
 
-        ctk.CTkButton(self.bottom_docker, text=self._("Other"), command=self.main_color_choice).pack(
-            side=ctk.RIGHT, padx=1
-        )
+        self.size_button = ctk.CTkButton(self.bottom_docker, text="640x480", command=self.change_size)
+        self.size_button.pack(side=ctk.RIGHT, padx=1)
 
         """ Initialization """
         self.brush_color = "black"
@@ -330,8 +247,6 @@ class Brushshe(ctk.CTk):
         self.zoom = 1
 
         self.update()  # update interface before calculate picture size
-        self.new_img_width = self.canvas_frame.winfo_width() - 200
-        self.new_img_height = self.canvas_frame.winfo_height() - 100
         self.new_picture(self.bg_color, first_time=True)
         self.brush()
 
@@ -399,20 +314,17 @@ class Brushshe(ctk.CTk):
 
     """ Functionality """
 
-    def _(self, key):
-        return translator.translations.get(key, key)
-
     def when_closing(self):
         closing_msg = CTkMessagebox(
-            title=self._("You are leaving Brushshe"),
-            message=self._("Continue?"),
-            option_1=self._("Yes"),
-            option_2=self._("No"),
+            title=_("You are leaving Brushshe"),
+            message=_("Continue?"),
+            option_1=_("Yes"),
+            option_2=_("No"),
             icon=resource("icons/question.png"),
             icon_size=(100, 100),
             sound=True,
         )
-        if closing_msg.get() == self._("Yes"):
+        if closing_msg.get() == _("Yes"):
             self.destroy()
 
     def scroll_on_canvasy(self, event):
@@ -534,13 +446,10 @@ class Brushshe(ctk.CTk):
             height=int(self.image.height * self.zoom),
         )
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
-        self.width_slider.set(self.image.width)
-        self.height_slider.set(self.image.height)
-        self.width_tooltip.configure(message=self.image.width)
-        self.height_tooltip.configure(message=self.image.height)
+        self.size_button.configure(text=f"{self.image.width}x{self.image.height}")
 
-    def crop_picture(self, event=None):
-        new_image = Image.new("RGB", (int(self.width_slider.get()), int(self.height_slider.get())), self.bg_color)
+    def crop_picture(self, new_width, new_height, event=None):
+        new_image = Image.new("RGB", (new_width, new_height), self.bg_color)
         new_image.paste(self.image, (0, 0))
         self.image = new_image
         self.draw = ImageDraw.Draw(self.image)
@@ -571,7 +480,7 @@ class Brushshe(ctk.CTk):
         self.undo_stack.append(self.image.copy())
 
     def open_from_file(self):
-        dialog = FileDialog(self, title=self._("Open from file"))
+        dialog = FileDialog(self, title=_("Open from file"))
         if dialog.path:
             try:
                 self.open_image(dialog.path)
@@ -579,27 +488,26 @@ class Brushshe(ctk.CTk):
                 self.open_file_error(e)
 
     def save_to_device(self):
-        dialog = FileDialog(self, title=self._("Save to device"), save=True)
+        dialog = FileDialog(self, title=_("Save to device"), save=True)
         if dialog.path:
             self.image.save(dialog.path)
             CTkMessagebox(
-                title=self._("Saved"),
-                message=self._("The picture has been successfully saved to your device in format")
-                + f" {dialog.extension}!",
+                title=_("Saved"),
+                message=_("The picture has been successfully saved to your device in format") + f" {dialog.extension}!",
                 icon=resource("icons/saved.png"),
                 icon_size=(100, 100),
                 sound=True,
             )
 
     def other_bg_color(self):
-        askcolor = AskColor(title=self._("Choose a different background color"))
+        askcolor = AskColor(title=_("Choose a different background color"))
         obtained_bg_color = askcolor.get()
         if obtained_bg_color:
             self.new_picture(obtained_bg_color)
 
     def show_stickers_choice(self):
         def sticker_from_file():
-            dialog = FileDialog(self, title=self._("Sticker from file"))
+            dialog = FileDialog(sticker_choose, title=_("Sticker from file"))
             if dialog.path:
                 try:
                     sticker_image = Image.open(dialog.path)
@@ -609,15 +517,15 @@ class Brushshe(ctk.CTk):
 
         sticker_choose = ctk.CTkToplevel(self)
         sticker_choose.geometry("370x500")
-        sticker_choose.title(self._("Choose a sticker"))
+        sticker_choose.title(_("Choose a sticker"))
 
         tabview = ctk.CTkTabview(sticker_choose)
-        tabview.add(self._("Choose a sticker"))
-        tabview.add(self._("Sticker from file"))
-        tabview.set(self._("Choose a sticker"))
+        tabview.add(_("Choose a sticker"))
+        tabview.add(_("Sticker from file"))
+        tabview.set(_("Choose a sticker"))
         tabview.pack(fill=ctk.BOTH, expand=True, padx=10, pady=10)
 
-        stickers_scrollable_frame = ctk.CTkScrollableFrame(tabview.tab(self._("Choose a sticker")))
+        stickers_scrollable_frame = ctk.CTkScrollableFrame(tabview.tab(_("Choose a sticker")))
         stickers_scrollable_frame.pack(fill=ctk.BOTH, expand=True)
 
         stickers_frame = ctk.CTkFrame(stickers_scrollable_frame)
@@ -639,8 +547,8 @@ class Brushshe(ctk.CTk):
                 row += 1
 
         ctk.CTkButton(
-            tabview.tab(self._("Sticker from file")),
-            text=self._("Choose sticker from file\nthen click where you want\nit on the picture"),
+            tabview.tab(_("Sticker from file")),
+            text=_("Choose sticker from file\nthen click where you want\nit on the picture"),
             command=sticker_from_file,
         ).pack(padx=10, pady=10)
 
@@ -685,18 +593,18 @@ class Brushshe(ctk.CTk):
             self.imagefont = ImageFont.truetype(self.font_path, self.tool_size)
 
         def add_text_ready():
-            self.tx_message_label.configure(text=self._("Now click where you\nwant it on the picture"))
+            self.tx_message_label.configure(text=_("Now click where you\nwant it on the picture"))
             text = tx_entry.get()
             self.set_tool("text", "Text", self.font_size, 11, 96, "cross")
             self.canvas.bind("<Button-1>", lambda event, t=text: self.add_text(event, text))
 
         text_win = ctk.CTkToplevel(self)
-        text_win.title(self._("Add text to a picture"))
+        text_win.title(_("Add text to a picture"))
 
-        tx_entry = ctk.CTkEntry(text_win, placeholder_text=self._("Enter text..."))
+        tx_entry = ctk.CTkEntry(text_win, placeholder_text=_("Enter text..."))
         tx_entry.pack(padx=10, pady=10)
 
-        ctk.CTkLabel(text_win, text=self._("Fonts:")).pack(padx=10, pady=10)
+        ctk.CTkLabel(text_win, text=_("Fonts:")).pack(padx=10, pady=10)
 
         fonts_dict = {
             "Open Sans": "fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf",
@@ -723,7 +631,7 @@ class Brushshe(ctk.CTk):
             self.undo_stack.append(self.image.copy())
 
         frames_win = ctk.CTkToplevel(self)
-        frames_win.title(self._("Frames"))
+        frames_win.title(_("Frames"))
 
         frames_names = [
             "frame1",
@@ -1163,7 +1071,7 @@ class Brushshe(ctk.CTk):
             post_actions()
 
         effects_win = ctk.CTkToplevel(self)
-        effects_win.title(self._("Effects"))
+        effects_win.title(_("Effects"))
         effects_win.geometry("250x500")
 
         effects_frame = ctk.CTkScrollableFrame(effects_win)
@@ -1171,7 +1079,7 @@ class Brushshe(ctk.CTk):
 
         ctk.CTkButton(
             effects_win,
-            text=self._("Remove all effects"),
+            text=_("Remove all effects"),
             command=remove_all_effects,
             fg_color="red",
             text_color="white",
@@ -1181,23 +1089,23 @@ class Brushshe(ctk.CTk):
         blur_frame = ctk.CTkFrame(effects_frame)
         blur_frame.pack(padx=10, pady=10)
 
-        ctk.CTkLabel(blur_frame, text=self._("Blur")).pack(padx=10, pady=10)
+        ctk.CTkLabel(blur_frame, text=_("Blur")).pack(padx=10, pady=10)
 
         blur_slider = ctk.CTkSlider(blur_frame, from_=0, to=20)
         blur_slider.pack(padx=10, pady=10)
 
-        ctk.CTkButton(blur_frame, text=self._("Apply to picture"), command=blur).pack(padx=10, pady=10)
+        ctk.CTkButton(blur_frame, text=_("Apply to picture"), command=blur).pack(padx=10, pady=10)
 
         # Detail
         detail_frame = ctk.CTkFrame(effects_frame)
         detail_frame.pack(padx=10, pady=10)
 
-        ctk.CTkLabel(detail_frame, text=self._("Detail")).pack(padx=10, pady=10)
+        ctk.CTkLabel(detail_frame, text=_("Detail")).pack(padx=10, pady=10)
 
         detail_slider = ctk.CTkSlider(detail_frame, from_=1, to=20)
         detail_slider.pack(padx=10, pady=10)
 
-        ctk.CTkButton(detail_frame, text=self._("Apply to picture"), command=detail).pack(padx=10, pady=10)
+        ctk.CTkButton(detail_frame, text=_("Apply to picture"), command=detail).pack(padx=10, pady=10)
 
         effects_dict = {  # dictionary for effects which without slider
             "Contour": contour,
@@ -1211,9 +1119,9 @@ class Brushshe(ctk.CTk):
             effect_frame = ctk.CTkFrame(effects_frame)
             effect_frame.pack(padx=10, pady=10)
 
-            ctk.CTkLabel(effect_frame, text=self._(effect_name)).pack(padx=10, pady=10)
+            ctk.CTkLabel(effect_frame, text=_(effect_name)).pack(padx=10, pady=10)
 
-            ctk.CTkButton(effect_frame, text=self._("Apply to picture"), command=effect_command).pack(padx=10, pady=10)
+            ctk.CTkButton(effect_frame, text=_("Apply to picture"), command=effect_command).pack(padx=10, pady=10)
 
         image_copy = self.image.copy()
 
@@ -1221,14 +1129,14 @@ class Brushshe(ctk.CTk):
 
     def show_gallery(self):
         self.my_gallery = ctk.CTkToplevel(self)
-        self.my_gallery.title(self._("Brushshe Gallery"))
+        self.my_gallery.title(_("Brushshe Gallery"))
         self.my_gallery.geometry("650x580")
 
         progressbar = ctk.CTkProgressBar(self.my_gallery, mode="intermediate")
         progressbar.pack(padx=10, pady=10, fill="x")
         progressbar.start()
 
-        gallery_scrollable_frame = ctk.CTkScrollableFrame(self.my_gallery, label_text=self._("My Gallery"))
+        gallery_scrollable_frame = ctk.CTkScrollableFrame(self.my_gallery, label_text=_("My Gallery"))
         gallery_scrollable_frame.pack(fill=ctk.BOTH, expand=True, padx=10, pady=10)
 
         gallery_frame = ctk.CTkFrame(gallery_scrollable_frame)
@@ -1262,7 +1170,7 @@ class Brushshe(ctk.CTk):
                             command=lambda img_path=img_path: self.delete_image(img_path),
                         )
                         delete_image_button.place(x=5, y=5)
-                        CTkToolTip(delete_image_button, message=self._("Delete"))
+                        CTkToolTip(delete_image_button, message=_("Delete"))
 
                         column += 1
                         if column == 2:
@@ -1273,7 +1181,7 @@ class Brushshe(ctk.CTk):
                 progressbar.pack_forget()
 
                 if not is_image_found:
-                    gallery_scrollable_frame.configure(label_text=self._("My gallery (empty)"))
+                    gallery_scrollable_frame.configure(label_text=_("My gallery (empty)"))
             except Exception:
                 pass
 
@@ -1281,27 +1189,27 @@ class Brushshe(ctk.CTk):
 
     def delete_image(self, img_path):
         confirm_delete = CTkMessagebox(
-            title=self._("Confirm delete"),
-            message=self._("Are you sure you want to delete the picture?"),
+            title=_("Confirm delete"),
+            message=_("Are you sure you want to delete the picture?"),
             icon=resource("icons/question.png"),
             icon_size=(100, 100),
-            option_1=self._("Yes"),
-            option_2=self._("No"),
+            option_1=_("Yes"),
+            option_2=_("No"),
             sound=True,
         )
-        if confirm_delete.get() == self._("Yes") and os.path.exists(str(img_path)):
+        if confirm_delete.get() == _("Yes") and os.path.exists(str(img_path)):
             os.remove(str(img_path))
             self.my_gallery.destroy()
             self.show_gallery()
 
     def about_program(self):
-        about_text = self._(
+        about_text = _(
             "Brushshe is a painting program where you can create whatever you like.\n\n"
             "An eagle named Brucklin is its mascot.\n\n"
         )
         about_msg = CTkMessagebox(
-            title=self._("About program"),
-            message=about_text + "v1.15.0 'Mayami'",
+            title=_("About program"),
+            message=about_text + "v1.16.0 'Krakow'",
             icon=resource("icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
@@ -1315,11 +1223,9 @@ class Brushshe(ctk.CTk):
         self.canvas.delete("tools")
         self.bg_color = color
 
-        self.image = Image.new("RGB", (self.new_img_width, self.new_img_height), color)
+        self.image = Image.new("RGB", (640, 480), color)
         self.draw = ImageDraw.Draw(self.image)
-        self.canvas.configure(
-            width=self.new_img_width, height=self.new_img_height, scrollregion=self.canvas.bbox("all")
-        )
+        self.canvas.configure(width=640, height=480, scrollregion=self.canvas.bbox("all"))
         self.canvas.xview_moveto(0)
         self.canvas.yview_moveto(0)
 
@@ -1426,10 +1332,8 @@ class Brushshe(ctk.CTk):
         self.image.save(file_path)
 
         CTkMessagebox(
-            title=self._("Saved"),
-            message=self._(
-                'The picture has been successfully saved to the gallery ("My Gallery" in the menu at the top)!'
-            ),
+            title=_("Saved"),
+            message=_('The picture has been successfully saved to the gallery ("My Gallery" in the menu at the top)!'),
             icon=resource("icons/saved.png"),
             icon_size=(100, 100),
             sound=True,
@@ -1440,21 +1344,21 @@ class Brushshe(ctk.CTk):
         self.brush_palette.main_color = self.brush_color
 
     def main_color_choice(self):
-        askcolor = AskColor(title=self._("Color select"))
+        askcolor = AskColor(title=_("Color select"))
         self.obtained_color = askcolor.get()
         if self.obtained_color:
             self.brush_color = self.obtained_color
             self.brush_palette.main_color = self.obtained_color
 
     def second_color_choice(self):
-        askcolor = AskColor(title=self._("Color select"))
+        askcolor = AskColor(title=_("Color select"))
         self.obtained_color = askcolor.get()
         if self.obtained_color:
             self.second_brush_color = self.obtained_color
             self.brush_palette.second_color = self.obtained_color
 
     def color_choice_bth(self, event, btn):
-        askcolor = AskColor(title=self._("Color select"))
+        askcolor = AskColor(title=_("Color select"))
         self.obtained_color = askcolor.get()
         if self.obtained_color:
             btn.configure(
@@ -1476,9 +1380,9 @@ class Brushshe(ctk.CTk):
         self.picture_postconfigure()
 
     def open_file_error(self, e):
-        message_text = self._("Error - cannot open file:")
+        message_text = _("Error - cannot open file:")
         CTkMessagebox(
-            title=self._("Oh, unfortunately, it happened"),
+            title=_("Oh, unfortunately, it happened"),
             message=f"{message_text} {e}",
             icon=resource("icons/cry.png"),
             icon_size=(100, 100),
@@ -1524,11 +1428,11 @@ class Brushshe(ctk.CTk):
         self.canvas.unbind("<Motion>")
 
         if tool_size is None and from_ is None and to is None:
-            self.tool_label.configure(text=self._(tool_name))
+            self.tool_label.configure(text=_(tool_name))
             self.tool_size_slider.pack_forget()
             self.tool_size_label.pack_forget()
         else:
-            self.tool_label.configure(text=self._(tool_name) + ":")
+            self.tool_label.configure(text=_(tool_name) + ":")
             self.tool_size = tool_size
             self.tool_size_slider.configure(from_=from_, to=to)
             self.tool_size_slider.set(self.tool_size)
@@ -1541,48 +1445,130 @@ class Brushshe(ctk.CTk):
 
     def change_size(self):
         def size_sb_callback(value):
-            if value == self._("Crop"):
+            if value == _("Crop"):
                 ready_size_button.configure(command=crop)
-            elif value == self._("Scale"):
+            elif value == _("Scale"):
                 ready_size_button.configure(command=scale)
 
         def crop():
             try:
-                self.width_slider.set(int(width_entry.get()))
-                self.height_slider.set(int(height_entry.get()))
-                self.crop_picture()
-            except Exception:
-                pass
+                if aspect_ratio_var.get() == "on":
+                    new_height = int(self.image.height * width_spinbox.get() / self.image.width)
+                else:
+                    new_height = int(height_spinbox.get())
+
+                if int(width_spinbox.get()) > 2000 or new_height > 2000:
+                    continue_size_msg = CTkMessagebox(
+                        title=_("The new size will be too big"),
+                        message=_("Drawing will be slow") + " " + _("Continue?"),
+                        icon=resource("icons/question.png"),
+                        icon_size=(100, 100),
+                        option_1=_("No"),
+                        option_2=_("Yes"),
+                        sound=True,
+                    )
+                    if continue_size_msg.get() == _("Yes"):
+                        self.crop_picture(int(width_spinbox.get()), new_height)
+                else:
+                    self.crop_picture(int(width_spinbox.get()), new_height)
+            except Exception as e:
+                print(e)
 
         def scale():
             try:
-                scaled_image = self.image.resize((int(width_entry.get()), int(height_entry.get())), Image.NEAREST)
-                self.image = scaled_image
-                self.picture_postconfigure()
-            except Exception:
-                pass
+                if aspect_ratio_var.get() == "on":
+                    new_height = int(self.image.height * width_spinbox.get() / self.image.width)
+                else:
+                    new_height = int(height_spinbox.get())
+
+                if int(width_spinbox.get()) > 2000 or new_height > 2000:
+                    continue_size_msg = CTkMessagebox(
+                        title=_("The new size will be too big"),
+                        message=_("Drawing will be slow") + " " + _("Continue?"),
+                        icon=resource("icons/question.png"),
+                        icon_size=(100, 100),
+                        option_1=_("No"),
+                        option_2=_("Yes"),
+                        sound=True,
+                    )
+                    if continue_size_msg.get() == _("Yes"):
+                        scaled_image = self.image.resize((int(width_spinbox.get()), new_height), Image.NEAREST)
+                        self.image = scaled_image
+                        self.picture_postconfigure()
+                else:
+                    scaled_image = self.image.resize((int(width_spinbox.get()), new_height), Image.NEAREST)
+                    self.image = scaled_image
+                    self.picture_postconfigure()
+            except Exception as e:
+                print(e)
 
         change_size_toplevel = ctk.CTkToplevel(self)
-        change_size_toplevel.title(self._("Change size..."))
+        change_size_toplevel.title(_("Change size..."))
+        change_size_toplevel.transient(self)
 
-        size_sb = ctk.CTkSegmentedButton(
-            change_size_toplevel, values=[self._("Crop"), self._("Scale")], command=size_sb_callback
-        )
+        size_sb = ctk.CTkSegmentedButton(change_size_toplevel, values=[_("Crop"), _("Scale")], command=size_sb_callback)
         size_sb.pack(padx=10, pady=10)
-        size_sb.set(self._("Crop"))
+        size_sb.set(_("Crop"))
 
         width_height_frame = ctk.CTkFrame(change_size_toplevel)
         width_height_frame.pack(padx=10, pady=10)
 
-        width_entry = ctk.CTkEntry(width_height_frame, placeholder_text=self._("Width"))
-        width_entry.pack(side="left", padx=10, pady=10)
-        width_entry.insert(ctk.END, self.image.width)
-        height_entry = ctk.CTkEntry(width_height_frame, placeholder_text=self._("Height"))
-        height_entry.pack(side="right", padx=10, pady=10)
-        height_entry.insert(ctk.END, self.image.height)
+        ctk.CTkLabel(width_height_frame, text=_("Width")).grid(row=1, column=1, padx=10, pady=10)
+        width_spinbox = IntSpinbox(width_height_frame, width=150)
+        width_spinbox.grid(row=2, column=1, padx=10, pady=10)
+        width_spinbox.set(self.image.width)
+
+        ctk.CTkLabel(width_height_frame, text=_("Height")).grid(row=1, column=2, padx=10, pady=10)
+        height_spinbox = IntSpinbox(width_height_frame, width=150)
+        height_spinbox.grid(row=2, column=2, padx=10, pady=10)
+        height_spinbox.set(self.image.height)
+
+        aspect_ratio_var = ctk.StringVar(value="on")
+        ctk.CTkCheckBox(
+            change_size_toplevel,
+            text=_("Maintain aspect ratio"),
+            variable=aspect_ratio_var,
+            onvalue="on",
+            offvalue="off",
+        ).pack(padx=10, pady=10)
 
         ready_size_button = ctk.CTkButton(change_size_toplevel, text="OK", command=crop)
         ready_size_button.pack(padx=10, pady=10)
+
+    def settings(self):
+        def change_undo_levels():
+            self.undo_stack = deque(self.undo_stack, maxlen=undo_levels_spinbox.get())
+            self.redo_stack = deque(self.redo_stack, maxlen=undo_levels_spinbox.get())
+
+        settings_tl = ctk.CTkToplevel(self)
+        settings_tl.title(_("Settings"))
+        settings_tl.transient(self)
+
+        theme_frame = ctk.CTkFrame(settings_tl)
+        theme_frame.pack(padx=10, pady=10, fill="x")
+
+        ctk.CTkLabel(theme_frame, text=_("Theme")).pack(padx=10, pady=10)
+
+        theme_var = ctk.StringVar(value=ctk.get_appearance_mode())
+        for theme_name in ["System", "Light", "Dark"]:
+            ctk.CTkRadioButton(
+                theme_frame,
+                text=_(theme_name),
+                variable=theme_var,
+                value=theme_name,
+                command=lambda: ctk.set_appearance_mode(theme_var.get()),
+            ).pack(padx=10, pady=10)
+
+        undo_levels_frame = ctk.CTkFrame(settings_tl)
+        undo_levels_frame.pack(padx=10, pady=10, fill="x")
+
+        ctk.CTkLabel(undo_levels_frame, text=_("Maximum undo/redo levels")).pack(padx=10, pady=10)
+
+        undo_levels_spinbox = IntSpinbox(undo_levels_frame, width=150)
+        undo_levels_spinbox.pack(padx=10, pady=10)
+        undo_levels_spinbox.set(self.undo_stack.maxlen)
+
+        ctk.CTkButton(undo_levels_frame, text=_("Apply"), command=change_undo_levels).pack(padx=10, pady=10)
 
 
 app = Brushshe()

@@ -57,7 +57,6 @@
 	"Remove all effects": "Видалити всі ефекти",
 	"Sticker from file": "Наліпка з файла",
 	"Choose sticker from file\nthen click where you want\nit on the picture": "Виберіть наліпку з файла,\nа потім клацніть на потрібне\nмісце на малюнку",
-	"Brushshe Gallery (loading...)": "Галерея Брашше (завантаження...)",
 	"Undo": "Скасувати",
 	"Redo": "Повернути",
 	"Rotate right": "Повернути ліворуч",
@@ -81,5 +80,16 @@
 	"Height": "Висота",
 	"R. Brush": "Пензль для п.",
 	"Recoloring Brush": "Пензль для перефарбовування",
-	"Spray": "Аерозоль"
+	"Spray": "Аерозоль",
+	"Settings": "Налаштування",
+	"Apply": "Застосувати",
+	"Maximum undo/redo levels": "Максимальна кількість разів скасування/повертання",
+	"The new size will be too big": "Новий розмір буде завеликим",
+	"Drawing will be slow": "Малювання буде повільним",
+	"Maintain aspect ratio": "Зберігати співвідношення сторін",
+	"Theme": "Тема",
+	"System": "Система",
+	"Light": "Світла",
+	"Dark": "Темна",
+	"Cancel": "Скасувати"
 }
