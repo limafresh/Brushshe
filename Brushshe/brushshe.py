@@ -507,7 +507,7 @@ class Brushshe(ctk.CTk):
 
     def show_stickers_choice(self):
         def sticker_from_file():
-            dialog = FileDialog(self, title=_("Sticker from file"))
+            dialog = FileDialog(sticker_choose, title=_("Sticker from file"))
             if dialog.path:
                 try:
                     sticker_image = Image.open(dialog.path)

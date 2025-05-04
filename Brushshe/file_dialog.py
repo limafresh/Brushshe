@@ -63,7 +63,7 @@ class FileDialog(ctk.CTkToplevel):
         else:
             ok_btn.configure(command=self._on_click)
 
-        ctk.CTkButton(btn_frame, text="x", command=self.destroy).pack(side=ctk.RIGHT, padx=10)
+        ctk.CTkButton(btn_frame, text=_("Cancel"), command=self.destroy).pack(side=ctk.RIGHT, padx=10)
 
         if self.save_mode:
             self.save_entry = ctk.CTkEntry(self.frame, placeholder_text=_("Enter name for save..."))
