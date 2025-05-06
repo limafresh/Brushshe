@@ -1,10 +1,8 @@
+import math
 import os
 import random
 import sys
 import webbrowser
-import math
-import time
-
 from collections import deque
 from pathlib import Path
 from threading import Thread
@@ -53,9 +51,7 @@ class Brushshe(ctk.CTk):
             self.iconbitmap(resource("icons/icon.ico"))
         else:
             self.iconphoto(True, PhotoImage(file=resource("icons/icon.png")))
-        ctk.set_default_color_theme(resource("brushshe_theme.json"))
         ctk.set_appearance_mode("system")
-        self.configure(fg_color=("#e6f8ff", "gray10"))
         self.protocol("WM_DELETE_WINDOW", self.when_closing)
 
         # Max tail can not be more 4 MB = 1024 (width) x 1024 (height) x 4 (rgba).
@@ -339,7 +335,7 @@ class Brushshe(ctk.CTk):
 
     def on_window_resize(self, event):
         # Update canvas after any resize window.
-        if hasattr(self, "canvas") and hasattr(self, "image"):
+        if self.zoom > 1:
             self.update_canvas()
 
     def when_closing(self):
@@ -566,10 +562,10 @@ class Brushshe(ctk.CTk):
 
         # self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         self.canvas.config(
-                scrollregion=(0, 0, cw_full - 1, ch_full - 1),
-                width=cw_full,
-                height=ch_full,
-            )
+            scrollregion=(0, 0, cw_full - 1, ch_full - 1),
+            width=cw_full,
+            height=ch_full,
+        )
         self.size_button.configure(text=f"{self.image.width}x{self.image.height}")
 
     def crop_picture(self, new_width, new_height, event=None):
@@ -1697,5 +1693,6 @@ class Brushshe(ctk.CTk):
         ctk.CTkButton(undo_levels_frame, text=_("Apply"), command=change_undo_levels).pack(padx=10, pady=10)
 
 
+ctk.set_default_color_theme(resource("brushshe_theme.json"))
 app = Brushshe()
 app.mainloop()
