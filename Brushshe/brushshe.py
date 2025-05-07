@@ -16,7 +16,6 @@ from brush_palette import BrushPalette
 from color_picker import AskColor
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
-from CTkToolTip import CTkToolTip
 from file_dialog import FileDialog
 from PIL import (
     Image,
@@ -31,6 +30,7 @@ from PIL import (
     ImageTk,
 )
 from spinbox import IntSpinbox
+from tooltip import Tooltip
 
 
 def resource(relative_path):
@@ -169,19 +169,19 @@ class Brushshe(ctk.CTk):
                 tooltip_message = _(tool_name.split(" (")[0]) + " (" + tool_name.split("(", 1)[-1]
             else:
                 tooltip_message = _(tool_name.split(" (")[0])
-            CTkToolTip(tool_button, message=tooltip_message, text_color="gray14")
+            Tooltip(tool_button, message=tooltip_message)
 
         self.tool_label = ctk.CTkLabel(tools_frame, text=None)
         self.tool_label.pack(side=ctk.LEFT, padx=1)
 
         self.tool_size_slider = ctk.CTkSlider(tools_frame, command=self.change_tool_size)
-        self.tool_size_tooltip = CTkToolTip(self.tool_size_slider, text_color="gray14")
+        self.tool_size_tooltip = Tooltip(self.tool_size_slider)
 
         self.tool_size_label = ctk.CTkLabel(tools_frame, text=None)
 
         save_to_gallery_btn = ctk.CTkButton(tools_frame, text=_("Save to gallery"), command=self.save_to_gallery)
         save_to_gallery_btn.pack(side=ctk.RIGHT)
-        CTkToolTip(save_to_gallery_btn, message=_("Save to gallery") + " (Ctrl+S)", text_color="gray14")
+        Tooltip(save_to_gallery_btn, message=_("Save to gallery") + " (Ctrl+S)")
 
         """Canvas"""
         self.canvas_frame = ctk.CTkFrame(self)
@@ -1290,7 +1290,7 @@ class Brushshe(ctk.CTk):
                             command=lambda img_path=img_path: self.delete_image(img_path),
                         )
                         delete_image_button.place(x=5, y=5)
-                        CTkToolTip(delete_image_button, message=_("Delete"))
+                        Tooltip(delete_image_button, message=_("Delete"))
 
                         column += 1
                         if column == 2:
@@ -1329,7 +1329,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=_("About program"),
-            message=about_text + "v1.16.0 'Krakow'",
+            message=about_text + "v1.17.0",
             icon=resource("icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
