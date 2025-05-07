@@ -1,3 +1,4 @@
+import math
 import os
 import random
 import sys
@@ -15,7 +16,6 @@ from brush_palette import BrushPalette
 from color_picker import AskColor
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
-from CTkToolTip import CTkToolTip
 from file_dialog import FileDialog
 from PIL import (
     Image,
@@ -30,6 +30,7 @@ from PIL import (
     ImageTk,
 )
 from spinbox import IntSpinbox
+from tooltip import Tooltip
 
 
 def resource(relative_path):
@@ -50,10 +51,15 @@ class Brushshe(ctk.CTk):
             self.iconbitmap(resource("icons/icon.ico"))
         else:
             self.iconphoto(True, PhotoImage(file=resource("icons/icon.png")))
-        ctk.set_default_color_theme(resource("brushshe_theme.json"))
         ctk.set_appearance_mode("system")
-        self.configure(fg_color=("#e6f8ff", "gray10"))
         self.protocol("WM_DELETE_WINDOW", self.when_closing)
+
+        # Max tail can not be more 4 MB = 1024 (width) x 1024 (height) x 4 (rgba).
+        # canvas_tail_size: Max = 1024. Default = 128. Min = 16.
+        self.canvas_tail_size = 128
+
+        # If None - no crop, if set - need check out of crop.
+        self.canvas_tails_area = None
 
         self.colors = [
             "white",
@@ -163,19 +169,19 @@ class Brushshe(ctk.CTk):
                 tooltip_message = _(tool_name.split(" (")[0]) + " (" + tool_name.split("(", 1)[-1]
             else:
                 tooltip_message = _(tool_name.split(" (")[0])
-            CTkToolTip(tool_button, message=tooltip_message, text_color="gray14")
+            Tooltip(tool_button, message=tooltip_message)
 
         self.tool_label = ctk.CTkLabel(tools_frame, text=None)
         self.tool_label.pack(side=ctk.LEFT, padx=1)
 
         self.tool_size_slider = ctk.CTkSlider(tools_frame, command=self.change_tool_size)
-        self.tool_size_tooltip = CTkToolTip(self.tool_size_slider, text_color="gray14")
+        self.tool_size_tooltip = Tooltip(self.tool_size_slider)
 
         self.tool_size_label = ctk.CTkLabel(tools_frame, text=None)
 
         save_to_gallery_btn = ctk.CTkButton(tools_frame, text=_("Save to gallery"), command=self.save_to_gallery)
         save_to_gallery_btn.pack(side=ctk.RIGHT)
-        CTkToolTip(save_to_gallery_btn, message=_("Save to gallery") + " (Ctrl+S)", text_color="gray14")
+        Tooltip(save_to_gallery_btn, message=_("Save to gallery") + " (Ctrl+S)")
 
         """Canvas"""
         self.canvas_frame = ctk.CTkFrame(self)
@@ -193,8 +199,8 @@ class Brushshe(ctk.CTk):
         )
         self.canvas.pack(anchor="nw")  # As in most drawing programs
 
-        self.v_scrollbar.configure(command=self.canvas.yview)
-        self.h_scrollbar.configure(command=self.canvas.xview)
+        self.v_scrollbar.configure(command=self.v_scrollbar_command)
+        self.h_scrollbar.configure(command=self.h_scrollbar_command)
 
         """Palette"""
         self.bottom_docker = ctk.CTkFrame(self, corner_radius=0)
@@ -276,6 +282,9 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<Shift-Button-4>", self.scroll_on_canvasx)
         self.canvas.bind("<Shift-Button-5>", self.scroll_on_canvasx)
 
+        # Resize window (and canvas)
+        self.bind("<Configure>", self.on_window_resize)
+
         """Defining the Gallery Folder Path"""
         if os.name == "nt":  # For Windows
             images_folder = Path(os.environ["USERPROFILE"]) / "Pictures"
@@ -314,6 +323,21 @@ class Brushshe(ctk.CTk):
 
     """ Functionality """
 
+    def v_scrollbar_command(self, a, b, c=None):
+        self.canvas.yview(a, b, c)
+        if self.canvas_tails_area is not None and self.get_canvas_tails_area() != self.canvas_tails_area:
+            self.update_canvas()
+
+    def h_scrollbar_command(self, a, b, c=None):
+        self.canvas.xview(a, b, c)
+        if self.canvas_tails_area is not None and self.get_canvas_tails_area() != self.canvas_tails_area:
+            self.update_canvas()
+
+    def on_window_resize(self, event):
+        # Update canvas after any resize window.
+        if self.zoom > 1:
+            self.update_canvas()
+
     def when_closing(self):
         closing_msg = CTkMessagebox(
             title=_("You are leaving Brushshe"),
@@ -333,6 +357,8 @@ class Brushshe(ctk.CTk):
         if event.num == 4 or event.delta > 0:
             count = -1
         self.canvas.yview_scroll(count, "units")
+        if self.canvas_tails_area is not None and self.get_canvas_tails_area() != self.canvas_tails_area:
+            self.update_canvas()
 
     def scroll_on_canvasx(self, event):
         if event.num == 5 or event.delta < 0:
@@ -340,6 +366,8 @@ class Brushshe(ctk.CTk):
         if event.num == 4 or event.delta > 0:
             count = -1
         self.canvas.xview_scroll(count, "units")
+        if self.canvas_tails_area is not None and self.get_canvas_tails_area() != self.canvas_tails_area:
+            self.update_canvas()
 
     def zoom_in(self, event=None):
         self.canvas.delete("tools")
@@ -429,6 +457,17 @@ class Brushshe(ctk.CTk):
                 y1 += sy
 
     def update_canvas(self):
+        # Debug
+        # t1 = time.perf_counter(), time.process_time()
+
+        # self._update_canvas()
+        self._tailing_update_canvas()
+
+        # Debug
+        # t2 = time.perf_counter(), time.process_time()
+        # print(f" Real time: {t2[0] - t1[0]:.6f} sec. CPU time: {t2[1] - t1[1]:.6f} sec")
+
+    def _update_canvas(self):
         # Please try not to cram into this function what can be moved to others.
         # This function is critical and its speed is important
         if self.zoom == 1:
@@ -440,12 +479,93 @@ class Brushshe(ctk.CTk):
         self.img_tk = ImageTk.PhotoImage(canvas_image)
         self.canvas.itemconfig(self.canvas_image, image=self.img_tk)
 
+    def _tailing_update_canvas(self):
+        if self.zoom == 1:
+            canvas_image = self.image
+        elif self.zoom < 1:
+            canvas_image = self.image.resize(
+                (int(self.image.width * self.zoom), int(self.image.height * self.zoom)), Image.NEAREST
+            )
+        else:  # self.zoom > 1:
+            # It can be used for zoom == 1 with some corrected on other places.
+            # It work incorrect at this implementation for zoom < 1.
+
+            cw_full = int(self.image.width * self.zoom)
+            ch_full = int(self.image.height * self.zoom)
+
+            (x1, y1, x2, y2) = self.get_canvas_tails_area()
+
+            # Check, maybe the image all on canvas.
+            if x1 == 0 and y1 == 0 and x2 == cw_full - 1 and y2 == ch_full - 1:
+                x1_correct = 0
+                y1_correct = 0
+                tmp_canvas_image = self.image
+            else:
+                tiles_xy_on_image = (
+                    math.floor(x1 / self.zoom),
+                    math.floor(y1 / self.zoom),
+                    math.ceil(x2 / self.zoom),
+                    math.ceil(y2 / self.zoom),
+                )
+
+                # Subpixel correct.
+                x1_correct = tiles_xy_on_image[0] * self.zoom
+                y1_correct = tiles_xy_on_image[1] * self.zoom
+
+                # Debug
+                # print((x1, y1, x2, y2), tiles_xy_on_image, (x1_correct, y1_correct))
+
+                tmp_canvas_image = self.image.crop(tiles_xy_on_image)
+
+            canvas_image = tmp_canvas_image.resize(
+                (int(tmp_canvas_image.width * self.zoom), int(tmp_canvas_image.height * self.zoom)), Image.NEAREST
+            )
+
+            self.img_tk = ImageTk.PhotoImage(canvas_image)
+            self.canvas.itemconfig(self.canvas_image, image=self.img_tk)
+            self.canvas.moveto(self.canvas_image, x1_correct, y1_correct)
+            self.canvas_tails_area = (x1, y1, x2, y2)
+            return
+
+        self.img_tk = ImageTk.PhotoImage(canvas_image)
+        self.canvas.itemconfig(self.canvas_image, image=self.img_tk)
+        self.canvas.moveto(self.canvas_image, 0, 0)
+        self.canvas_tails_area = None
+        return
+
+    def get_canvas_tails_area(self):
+        cw_full = int(self.image.width * self.zoom)
+        ch_full = int(self.image.height * self.zoom)
+
+        # Set param canvas with real image size. Not use bbox in this place.
+        self.canvas.config(scrollregion=(0, 0, cw_full - 1, ch_full - 1), width=cw_full, height=ch_full)
+
+        iw, ih = self.image.size
+        cx_frame_1, cx_frame_2 = self.canvas.xview()
+        cy_frame_1, cy_frame_2 = self.canvas.yview()
+
+        # Find the area without subpixel correct.
+        x1 = math.floor(cx_frame_1 * cw_full / self.canvas_tail_size) * self.canvas_tail_size
+        y1 = math.floor(cy_frame_1 * ch_full / self.canvas_tail_size) * self.canvas_tail_size
+        x2 = math.ceil(cx_frame_2 * cw_full / self.canvas_tail_size) * self.canvas_tail_size - 1
+        y2 = math.ceil(cy_frame_2 * ch_full / self.canvas_tail_size) * self.canvas_tail_size - 1
+        if x2 > cw_full - 1:
+            x2 = cw_full - 1
+        if y2 > ch_full - 1:
+            y2 = ch_full - 1
+
+        return (x1, y1, x2, y2)
+
     def force_resize_canvas(self):
-        self.canvas.configure(
-            width=int(self.image.width * self.zoom),
-            height=int(self.image.height * self.zoom),
+        cw_full = int(self.image.width * self.zoom)
+        ch_full = int(self.image.height * self.zoom)
+
+        # self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        self.canvas.config(
+            scrollregion=(0, 0, cw_full - 1, ch_full - 1),
+            width=cw_full,
+            height=ch_full,
         )
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         self.size_button.configure(text=f"{self.image.width}x{self.image.height}")
 
     def crop_picture(self, new_width, new_height, event=None):
@@ -454,8 +574,8 @@ class Brushshe(ctk.CTk):
         self.image = new_image
         self.draw = ImageDraw.Draw(self.image)
 
-        self.update_canvas()
         self.force_resize_canvas()
+        self.update_canvas()
 
         self.undo_stack.append(self.image.copy())
 
@@ -1170,7 +1290,7 @@ class Brushshe(ctk.CTk):
                             command=lambda img_path=img_path: self.delete_image(img_path),
                         )
                         delete_image_button.place(x=5, y=5)
-                        CTkToolTip(delete_image_button, message=_("Delete"))
+                        Tooltip(delete_image_button, message=_("Delete"))
 
                         column += 1
                         if column == 2:
@@ -1209,7 +1329,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=_("About program"),
-            message=about_text + "v1.16.0 'Krakow'",
+            message=about_text + "v1.17.0",
             icon=resource("icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
@@ -1410,12 +1530,14 @@ class Brushshe(ctk.CTk):
     def picture_postconfigure(self):
         self.canvas.delete("tools")
 
+        self.draw = ImageDraw.Draw(self.image)
+
+        self.canvas.xview_moveto(0)
+        self.canvas.yview_moveto(0)
+
         self.update_canvas()
         self.force_resize_canvas()
 
-        self.draw = ImageDraw.Draw(self.image)
-        self.canvas.xview_moveto(0)
-        self.canvas.yview_moveto(0)
         self.undo_stack.append(self.image.copy())
 
     def set_tool(self, tool, tool_name, tool_size, from_, to, cursor):
@@ -1571,5 +1693,6 @@ class Brushshe(ctk.CTk):
         ctk.CTkButton(undo_levels_frame, text=_("Apply"), command=change_undo_levels).pack(padx=10, pady=10)
 
 
+ctk.set_default_color_theme(resource("brushshe_theme.json"))
 app = Brushshe()
 app.mainloop()
