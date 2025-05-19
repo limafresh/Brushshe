@@ -3,6 +3,8 @@ import os
 import random
 import sys
 import webbrowser
+# import time  # Need for debug.
+
 from collections import deque
 from pathlib import Path
 from threading import Thread
@@ -398,21 +400,6 @@ class Brushshe(ctk.CTk):
 
     def canvas_to_pict_xy(self, x, y):
         return self.canvas.canvasx(x) // self.zoom, self.canvas.canvasy(y) // self.zoom
-
-    def paint(self, event):
-        x, y = self.canvas_to_pict_xy(event.x, event.y)
-        if self.prev_x is not None and self.prev_y is not None:
-            self.draw_line(self.prev_x, self.prev_y, x, y)
-        else:
-            self.draw_line(x, y, x, y)
-
-        self.update_canvas()
-
-        self.prev_x, self.prev_y = x, y
-
-    def stop_paint(self, event):
-        self.prev_x, self.prev_y = (None, None)
-        self.undo_stack.append(self.image.copy())
 
     def draw_line(self, x1, y1, x2, y2):
         if self.current_tool == "brush":
@@ -1122,14 +1109,14 @@ class Brushshe(ctk.CTk):
                     self.canvas.delete(ii)
 
             d1 = (self.tool_size - 1) // 2
-            d2 = self.tool_size // 2 + 1
+            d2 = self.tool_size // 2
             # dd = (d2 - d1) / 2
 
             self.canvas.create_rectangle(
                 int((x - d1) * self.zoom - 1),
                 int((y - d1) * self.zoom - 1),
-                int((x + d2) * self.zoom),
-                int((y + d2) * self.zoom),
+                int((x + d2 + 1) * self.zoom),
+                int((y + d2 + 1) * self.zoom),
                 outline="white",
                 width=1,
                 tag="tools",
@@ -1137,8 +1124,8 @@ class Brushshe(ctk.CTk):
             self.canvas.create_rectangle(
                 int((x - d1) * self.zoom),
                 int((y - d1) * self.zoom),
-                int((x + d2) * self.zoom - 1),
-                int((y + d2) * self.zoom - 1),
+                int((x + d2 + 1) * self.zoom - 1),
+                int((y + d2 + 1) * self.zoom - 1),
                 outline="black",
                 width=1,
                 tag="tools",
@@ -1375,19 +1362,86 @@ class Brushshe(ctk.CTk):
         self.tool_size_label.configure(text=self.tool_size)
         self.tool_size_tooltip.configure(message=self.tool_size)
 
-    def brush(self):
-        self.set_tool("brush", "Brush", self.brush_size, 1, 50, "pencil")
+    def brush(self, type="brush"):
+        prev_x = None
+        prev_y = None
 
-        self.canvas.bind("<Button-1>", self.paint)
-        self.canvas.bind("<B1-Motion>", self.paint)
-        self.canvas.bind("<ButtonRelease-1>", self.stop_paint)
+        if type == "brush":
+            self.set_tool("brush", "Brush", self.brush_size, 1, 50, "pencil")
+        elif type == "eraser":
+            self.set_tool("eraser", "Eraser", self.eraser_size, 1, 50, "target")
+        else:
+            print('Warning: Incorrect brush type. Set default as.')
+            self.set_tool("brush", "Brush", self.brush_size, 1, 50, "pencil")
+
+        def paint(event):
+            nonlocal prev_x, prev_y
+
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+
+            if prev_x is not None and prev_y is not None:
+                self.draw_line(prev_x, prev_y, x, y)
+            else:
+                self.draw_line(x, y, x, y)
+
+            self.update_canvas()
+
+            prev_x, prev_y = x, y
+
+            draw_brush_halo(x, y)
+
+        def stop_paint(event):
+            nonlocal prev_x, prev_y
+
+            if prev_x is None:
+                return
+
+            prev_x, prev_y = (None, None)
+            self.undo_stack.append(self.image.copy())
+
+        def move(event):
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+            draw_brush_halo(x, y)
+
+        def draw_brush_halo(x, y):
+            # TODO: Add checking when the Config System will be created.
+
+            on_canvas = self.canvas.find_all()
+            for ii in on_canvas:
+                tmp = self.canvas.itemcget(ii, "tag")
+                if tmp == "tools":
+                    self.canvas.delete(ii)
+
+            d1 = (self.tool_size - 1) // 2
+            d2 = self.tool_size // 2
+
+            # TODO: Need use the pixel perfect halo for zoom >= 2 if it doesn't too slow.
+            self.canvas.create_oval(
+                int((x - d1) * self.zoom - 1),
+                int((y - d1) * self.zoom - 1),
+                int((x + d2 + 1) * self.zoom),
+                int((y + d2 + 1) * self.zoom),
+                outline="white",
+                width=1,
+                tag="tools",
+            )
+            self.canvas.create_oval(
+                int((x - d1) * self.zoom),
+                int((y - d1) * self.zoom),
+                int((x + d2 + 1) * self.zoom - 1),
+                int((y + d2 + 1) * self.zoom - 1),
+                outline="black",
+                width=1,
+                tag="tools",
+            )
+
+        self.canvas.bind("<Button-1>", paint)
+        self.canvas.bind("<B1-Motion>", paint)
+        self.canvas.bind("<ButtonRelease-1>", stop_paint)
+        self.canvas.bind("<Motion>", move)
 
     def eraser(self):
-        self.set_tool("eraser", "Eraser", self.eraser_size, 1, 50, "target")
-
-        self.canvas.bind("<Button-1>", self.paint)
-        self.canvas.bind("<B1-Motion>", self.paint)
-        self.canvas.bind("<ButtonRelease-1>", self.stop_paint)
+        self.brush(type="eraser")
 
     def spray(self):
         def start_spray(event):
