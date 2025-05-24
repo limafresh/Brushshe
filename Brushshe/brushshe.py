@@ -979,6 +979,7 @@ class Brushshe(ctk.CTk):
             draw_recoloring_brush(x, y, x, y)
             prev_x, prev_y = x, y
 
+            self.update_canvas()
             draw_brush_halo(x, y)
 
         def drawing(event):
@@ -992,7 +993,6 @@ class Brushshe(ctk.CTk):
             prev_x, prev_y = x, y
 
             self.update_canvas()  # force=False  # Do not delete tools shapes.
-
             draw_brush_halo(x, y)
 
         def end(event):
@@ -1103,11 +1103,12 @@ class Brushshe(ctk.CTk):
                 is_line = True
 
         def draw_brush_halo(x, y):
-            on_canvas = self.canvas.find_all()
-            for ii in on_canvas:
-                tmp = self.canvas.itemcget(ii, "tag")
-                if tmp == "tools":
-                    self.canvas.delete(ii)
+            # on_canvas = self.canvas.find_all()
+            # for ii in on_canvas:
+            #     tmp = self.canvas.itemcget(ii, "tag")
+            #     if tmp == "tools":
+            #         self.canvas.delete(ii)
+            self.canvas.delete("tools")
 
             d1 = (self.tool_size - 1) // 2
             d2 = self.tool_size // 2
@@ -1385,10 +1386,9 @@ class Brushshe(ctk.CTk):
             else:
                 self.draw_line(x, y, x, y)
 
-            self.update_canvas()
-
             prev_x, prev_y = x, y
 
+            self.update_canvas()
             draw_brush_halo(x, y)
 
         def stop_paint(event):
@@ -1407,11 +1407,12 @@ class Brushshe(ctk.CTk):
         def draw_brush_halo(x, y):
             # TODO: Add checking when the Config System will be created.
 
-            on_canvas = self.canvas.find_all()
-            for ii in on_canvas:
-                tmp = self.canvas.itemcget(ii, "tag")
-                if tmp == "tools":
-                    self.canvas.delete(ii)
+            # on_canvas = self.canvas.find_all()
+            # for ii in on_canvas:
+            #     tmp = self.canvas.itemcget(ii, "tag")
+            #     if tmp == "tools":
+            #         self.canvas.delete(ii)
+            self.canvas.delete("tools")
 
             d1 = (self.tool_size - 1) // 2
             d2 = self.tool_size // 2
