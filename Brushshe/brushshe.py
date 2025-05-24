@@ -235,6 +235,7 @@ class Brushshe(ctk.CTk):
             )
             tmp_btn.pack(side=ctk.LEFT, padx=1, pady=1)
             tmp_btn.bind("<Button-3>", lambda event, obj=tmp_btn: self.color_choice_bth(event, obj))
+            tmp_btn.bind("<Double-Button-1>", lambda event, obj=tmp_btn: self.color_choice_bth(event, obj))
 
         self.size_button = ctk.CTkButton(self.bottom_docker, text="640x480", command=self.change_size)
         self.size_button.pack(side=ctk.RIGHT, padx=1)
@@ -1532,7 +1533,7 @@ class Brushshe(ctk.CTk):
             self.brush_palette.second_color = self.obtained_color
 
     def color_choice_bth(self, event, btn):
-        askcolor = AskColor(title=_("Color select"))
+        askcolor = AskColor(title=_("Color select"), initial_color=btn.cget('fg_color'))
         self.obtained_color = askcolor.get()
         if self.obtained_color:
             btn.configure(
@@ -1540,6 +1541,8 @@ class Brushshe(ctk.CTk):
                 hover_color=self.obtained_color,
                 command=lambda c=self.obtained_color: self.change_color(c),
             )
+            self.brush_color = self.obtained_color
+            self.brush_palette.main_color = self.obtained_color
 
     def flip_brush_colors(self):
         self.brush_color = self.brush_palette.second_color
