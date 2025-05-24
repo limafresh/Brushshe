@@ -35,8 +35,8 @@ class AskColor(customtkinter.CTkToplevel):
 
         self.title(title)
         WIDTH = width if width >= 200 else 200  # noqa: N806
-        HEIGHT = WIDTH + 120  # noqa: N806
-        self.image_dimension = self._apply_window_scaling(WIDTH - 100)
+        HEIGHT = WIDTH + 148  # noqa: N806
+        self.image_dimension = self._apply_window_scaling(WIDTH - 72)
         self.target_dimension = self._apply_window_scaling(20)
 
         self.maxsize(WIDTH, HEIGHT)
@@ -96,14 +96,19 @@ class AskColor(customtkinter.CTkToplevel):
             (self.target_dimension, self.target_dimension), Image.Resampling.LANCZOS
         )
 
-        self.wheel = ImageTk.PhotoImage(self.img1)
-        self.target = ImageTk.PhotoImage(self.img2)
-
-        self.canvas.create_image(self.image_dimension / 2, self.image_dimension / 2, image=self.wheel)
-        self.set_initial_color(initial_color)
-
         self.brightness_slider_value = customtkinter.IntVar()
         self.brightness_slider_value.set(255)
+
+        self.img_tmp = self.get_real_circuit(self.img1, self.brightness_slider_value.get())
+
+        self.wheel = ImageTk.PhotoImage(self.img_tmp)
+        self.target = ImageTk.PhotoImage(self.img2)
+
+        self.wheel_canvas_id = self.canvas.create_image(
+            self.image_dimension / 2,
+            self.image_dimension / 2,
+            image=self.wheel,
+        )
 
         self.slider = customtkinter.CTkSlider(
             master=self.frame,
@@ -124,10 +129,15 @@ class AskColor(customtkinter.CTkToplevel):
         self.slider.pack(fill="both", pady=(0, 15), padx=20 - self.slider_border)
 
         self.entry = customtkinter.CTkEntry(
-            master=self.frame, text_color="black", fg_color=self.default_hex_color, corner_radius=self.corner_radius
+            master=self.frame,
+            text_color="black",
+            fg_color=self.default_hex_color,
+            corner_radius=self.corner_radius,
         )
+
         self.entry.pack(fill="both", padx=10)
         self.entry.insert(0, self.default_hex_color)
+        self.entry.bind("<Return>", self.entryReturn)
 
         self.button = customtkinter.CTkButton(
             master=self.frame,
@@ -140,9 +150,15 @@ class AskColor(customtkinter.CTkToplevel):
         )
         self.button.pack(fill="both", padx=10, pady=20)
 
+        self.set_initial_color(initial_color)
+
         self.after(150, lambda: self.entry.focus())
 
         self.grab_set()
+
+    def entryReturn(self, event):
+        if self.default_hex_color != self.entry.get():
+            self.set_initial_color(self.entry.get())
 
     def get(self):
         self._color = self.entry._fg_color
@@ -153,12 +169,15 @@ class AskColor(customtkinter.CTkToplevel):
         try:
             self.entry.configure(fg_color=self.entry.get())
             self._color = self.entry.get()
-        except:  # noqa: E722
-            self._color = "white"
+            self.winfo_rgb(self._color)
+        except Exception:  # noqa: E722
+            self.entry.configure(fg_color="red")
+            return
         self.grab_release()
         self.destroy()
         del self.img1
         del self.img2
+        del self.img_tmp
         del self.wheel
         del self.target
 
@@ -168,26 +187,40 @@ class AskColor(customtkinter.CTkToplevel):
         self.destroy()
         del self.img1
         del self.img2
+        del self.img_tmp
         del self.wheel
         del self.target
 
-    def on_mouse_drag(self, event):
-        x = event.x
-        y = event.y
+    def get_real_circuit(self, img, brightness):
+        if brightness > 255:
+            brightness = 255
+        if brightness < 0:
+            brightness = 0
+        source = img.split()
+        r = source[0].point(lambda i: i * brightness / 255)
+        g = source[1].point(lambda i: i * brightness / 255)
+        b = source[2].point(lambda i: i * brightness / 255)
+        return Image.merge(img.mode, (r, g, b, source[3]))  # rgba
+
+    def update_wheel(self, x, y):
         self.canvas.delete("all")
-        self.canvas.create_image(self.image_dimension / 2, self.image_dimension / 2, image=self.wheel)
-
+        self.img_tmp = self.get_real_circuit(self.img1, self.brightness_slider_value.get())
+        self.wheel = ImageTk.PhotoImage(self.img_tmp)
+        self.wheel_canvas_id = self.canvas.create_image(self.image_dimension / 2, self.image_dimension / 2, image=self.wheel)
         d_from_center = math.sqrt(((self.image_dimension / 2) - x) ** 2 + ((self.image_dimension / 2) - y) ** 2)
-
         if d_from_center < self.image_dimension / 2:
             self.target_x, self.target_y = x, y
         else:
             self.target_x, self.target_y = self.projection_on_circle(
                 x, y, self.image_dimension / 2, self.image_dimension / 2, self.image_dimension / 2 - 1
             )
+        self.wheel_target_id = self.canvas.create_image(self.target_x, self.target_y, image=self.target)
 
-        self.canvas.create_image(self.target_x, self.target_y, image=self.target)
+    def on_mouse_drag(self, event):
+        x = event.x
+        y = event.y
 
+        self.update_wheel(x, y)
         self.get_target_color()
         self.update_colors()
 
@@ -206,6 +239,10 @@ class AskColor(customtkinter.CTkToplevel):
     def update_colors(self):
         brightness = self.brightness_slider_value.get()
 
+        self.img_tmp = self.get_real_circuit(self.img1, self.brightness_slider_value.get())
+        self.wheel = ImageTk.PhotoImage(self.img_tmp)
+        self.canvas.itemconfig(self.wheel_canvas_id, image=self.wheel)
+
         self.get_target_color()
 
         r = int(self.rgb_color[0] * (brightness / 255))
@@ -214,6 +251,9 @@ class AskColor(customtkinter.CTkToplevel):
 
         self.rgb_color = [r, g, b]
 
+        self.update_slider()
+
+    def update_slider(self):
         self.default_hex_color = "#{:02x}{:02x}{:02x}".format(*self.rgb_color)
 
         self.slider.configure(progress_color=self.default_hex_color)
@@ -222,7 +262,7 @@ class AskColor(customtkinter.CTkToplevel):
         self.entry.delete(0, customtkinter.END)
         self.entry.insert(0, str(self.default_hex_color))
 
-        if self.brightness_slider_value.get() < 70:
+        if self.brightness_slider_value.get() < 120:
             self.entry.configure(text_color="white")
         else:
             self.entry.configure(text_color="black")
@@ -238,22 +278,56 @@ class AskColor(customtkinter.CTkToplevel):
         return projection_x, projection_y
 
     def set_initial_color(self, initial_color):
-        # set_initial_color is in beta stage, cannot seek all colors accurately
 
-        if initial_color and initial_color.startswith("#"):
+        # https://github.com/python/cpython/blob/3.13/Lib/colorsys.py
+        def rgb_to_hsv(r, g, b):
+            maxc = max(r, g, b)
+            minc = min(r, g, b)
+            rangec = (maxc - minc)
+            v = maxc
+            if minc == maxc:
+                return 0.0, 0.0, v
+            s = rangec / maxc
+            rc = (maxc - r) / rangec
+            gc = (maxc - g) / rangec
+            bc = (maxc - b) / rangec
+            if r == maxc:
+                h = bc-gc
+            elif g == maxc:
+                h = 2.0 + rc - bc
+            else:
+                h = 4.0 + gc - rc
+            h = (h/6.0) % 1.0
+            return h, s, v
+
+        if initial_color:
             try:
-                r, g, b = tuple(int(initial_color.lstrip("#")[i : i + 2], 16) for i in (0, 2, 4))
+                rgb = self.winfo_rgb(initial_color)
+                r = math.floor(rgb[0] / 256)
+                g = math.floor(rgb[1] / 256)
+                b = math.floor(rgb[2] / 256)
             except ValueError:
                 return
+            except Exception:
+                self.entry.configure(fg_color="red")
+                return
 
-            self.default_hex_color = initial_color
-            for i in range(0, self.image_dimension):
-                for j in range(0, self.image_dimension):
-                    self.rgb_color = self.img1.getpixel((i, j))
-                    if (self.rgb_color[0], self.rgb_color[1], self.rgb_color[2]) == (r, g, b):
-                        self.canvas.create_image(i, j, image=self.target)
-                        self.target_x = i
-                        self.target_y = j
-                        return
+            self.default_hex_color = "#{:02x}{:02x}{:02x}".format(r, g, b)
 
-        self.canvas.create_image(self.image_dimension / 2, self.image_dimension / 2, image=self.target)
+            h, s, v = rgb_to_hsv(r, g, b)
+
+            radius = self.image_dimension / 2
+            cr = s * radius
+            # angle = (1 - h) * (2 * math.pi)
+            angle = h * (2 * math.pi) - math.pi  # For current image wheel
+            midX = self.image_dimension / 2
+            midY = self.image_dimension / 2
+            xOffset = math.cos(angle) * cr
+            yOffset = math.sin(angle) * cr
+            x = midX + xOffset
+            y = midY + yOffset
+
+            self.rgb_color = [r, g, b]
+            self.brightness_slider_value.set(v)
+            self.update_slider()
+            self.update_wheel(x, y)
