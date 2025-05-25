@@ -34,6 +34,8 @@ from PIL import (
 from spinbox import IntSpinbox
 from tooltip import Tooltip
 
+from tkinter import filedialog as tk_fd
+
 
 def resource(relative_path):
     base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
@@ -63,7 +65,7 @@ class Brushshe(ctk.CTk):
         # If None - no crop, if set - need check out of crop.
         self.canvas_tails_area = None
 
-        self.colors = [
+        self.colors_vintage = [
             "white",
             "black",
             "red",
@@ -78,6 +80,41 @@ class Brushshe(ctk.CTk):
             "gray",
         ]
 
+        self.colors = [
+            "#000000",
+            "#222034",
+            "#45283c",
+            "#663931",
+            "#8f563b",
+            "#df7126",
+            "#d9a066",
+            "#eec39a",
+            "#fbf236",
+            "#99e550",
+            "#6abe30",
+            "#37946e",
+            "#4b692f",
+            "#524b24",
+            "#323c39",
+            "#3f3f74",
+            "#ffffff",
+            "#306082",
+            "#5b6ee1",
+            "#639bff",
+            "#5fcde4",
+            "#cbdbfc",
+            "#9badb7",
+            "#847e87",
+            "#696a6a",
+            "#595652",
+            "#76428a",
+            "#ac3232",
+            "#d95763",
+            "#d77bba",
+            "#8f974a",
+            "#8a6f30",
+        ]
+
         """ Menu """
         menu = CTkMenuBar(self)
 
@@ -88,12 +125,17 @@ class Brushshe(ctk.CTk):
         file_dropdown.add_separator()
         file_dropdown.add_option(option=_("Rotate right"), command=lambda: self.rotate(-90))
         file_dropdown.add_option(option=_("Rotate left"), command=lambda: self.rotate(90))
+        file_dropdown.add_separator()
+        file_dropdown.add_option(option=_("Import palette (hex)"), command=self.import_palette)
+        file_dropdown.add_option(option=_("Reset palette to default"), command=lambda: self.make_color_palette(self.colors))
 
         new_menu = menu.add_cascade(_("New"))
         new_dropdown = CustomDropdownMenu(widget=new_menu)
 
-        for color in self.colors:
+        # TODO: Change to select bg_color as HEX as default.
+        for color in self.colors_vintage:
             new_dropdown.add_option(option=None, bg_color=color, command=lambda c=color: self.new_picture(c))
+
         new_dropdown.add_separator()
         new_dropdown.add_option(option=_("Other color"), command=self.other_bg_color)
         new_dropdown.add_option(option=_("Create screenshot"), command=self.create_screenshot)
@@ -221,21 +263,7 @@ class Brushshe(ctk.CTk):
         )
         self.palette_widget.pack(side=ctk.LEFT, fill=ctk.X, padx=2, pady=2)
 
-        for color in self.colors:
-            tmp_btn = ctk.CTkButton(
-                self.palette_widget,
-                fg_color=color,
-                hover=False,
-                text=None,
-                width=30,
-                height=30,
-                border_width=2,
-                corner_radius=15,
-                command=lambda c=color: self.change_color(c),
-            )
-            tmp_btn.pack(side=ctk.LEFT, padx=1, pady=1)
-            tmp_btn.bind("<Button-3>", lambda event, obj=tmp_btn: self.color_choice_bth(event, obj))
-            tmp_btn.bind("<Double-Button-1>", lambda event, obj=tmp_btn: self.color_choice_bth(event, obj))
+        self.make_color_palette(self.colors)
 
         self.size_button = ctk.CTkButton(self.bottom_docker, text="640x480", command=self.change_size)
         self.size_button.pack(side=ctk.RIGHT, padx=1)
@@ -325,6 +353,50 @@ class Brushshe(ctk.CTk):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
     """ Functionality """
+
+    def make_color_palette(self, colors):
+        MAX_COLUMNS_IN_ROW = 16
+
+        if colors is None or len(colors) == 0:
+            print("Wrong palette")
+            return
+
+        for child in self.palette_widget.winfo_children():
+            child.destroy()
+
+        ii = 0
+        for color in colors:
+            try:
+                rgb = self.winfo_rgb(color)
+                r = math.floor(rgb[0] / 256)
+                g = math.floor(rgb[1] / 256)
+                b = math.floor(rgb[2] / 256)
+            except Exception:
+                print("Warning: String `{}` is not correct color.".format(color))
+                continue
+
+            row = ii // MAX_COLUMNS_IN_ROW
+            column = ii % MAX_COLUMNS_IN_ROW
+
+            color_checked = "#{:02x}{:02x}{:02x}".format(r, g, b)
+
+            tmp_btn = ctk.CTkButton(
+                self.palette_widget,
+                fg_color=color_checked,
+                hover=False,
+                text=None,
+                width=24,
+                height=24,
+                border_width=1,
+                corner_radius=1,
+                command=lambda c=color_checked: self.change_color(c),
+            )
+            # tmp_btn.pack(side=ctk.LEFT, padx=1, pady=1)
+            tmp_btn.grid(row=row, column=column, padx=1, pady=1)
+            tmp_btn.bind("<Button-3>", lambda event, obj=tmp_btn: self.color_choice_bth(event, obj))
+            tmp_btn.bind("<Double-Button-1>", lambda event, obj=tmp_btn: self.color_choice_bth(event, obj))
+
+            ii += 1
 
     def v_scrollbar_command(self, a, b, c=None):
         self.canvas.yview(a, b, c)
@@ -608,7 +680,7 @@ class Brushshe(ctk.CTk):
             )
 
     def other_bg_color(self):
-        askcolor = AskColor(title=_("Choose a different background color"))
+        askcolor = AskColor(title=_("Choose a different background color"), initial_color="#ffffff")
         obtained_bg_color = askcolor.get()
         if obtained_bg_color:
             self.new_picture(obtained_bg_color)
@@ -1520,14 +1592,14 @@ class Brushshe(ctk.CTk):
         self.brush_palette.main_color = self.brush_color
 
     def main_color_choice(self):
-        askcolor = AskColor(title=_("Color select"))
+        askcolor = AskColor(title=_("Color select"), initial_color=self.brush_color)
         self.obtained_color = askcolor.get()
         if self.obtained_color:
             self.brush_color = self.obtained_color
             self.brush_palette.main_color = self.obtained_color
 
     def second_color_choice(self):
-        askcolor = AskColor(title=_("Color select"))
+        askcolor = AskColor(title=_("Color select"), initial_color=self.second_brush_color)
         self.obtained_color = askcolor.get()
         if self.obtained_color:
             self.second_brush_color = self.obtained_color
@@ -1749,6 +1821,46 @@ class Brushshe(ctk.CTk):
         undo_levels_spinbox.set(self.undo_stack.maxlen)
 
         ctk.CTkButton(undo_levels_frame, text=_("Apply"), command=change_undo_levels).pack(padx=10, pady=10)
+
+    def import_palette(self):
+        filetypes = (
+            ('HEX palette', '*.hex'),
+            ('All files', '*.*'),
+        )
+
+        filename = tk_fd.askopenfilename(
+            title=_("Import palette from file"),
+            filetypes=filetypes,
+        )
+
+        if filename is None or filename == "":
+            return
+
+        colors = []
+
+        try:
+            with open(filename) as f:
+                lines = f.readlines()
+                for line in lines:
+                    if len(line) == 0:
+                        continue
+
+                    color = line.strip()
+                    if line[0] != "#":
+                        color = "#" + color
+                    try:
+                        self.winfo_rgb(color)
+                    except Exception:
+                        print("Warning: String `{}` is not correct color.".format(color))
+                        continue
+                    colors.append(color)
+        except FileNotFoundError:
+            return
+        except Exception:
+            print("Incorrect file format?")
+            return
+
+        self.make_color_palette(colors)
 
 
 ctk.set_default_color_theme(resource("brushshe_theme.json"))
