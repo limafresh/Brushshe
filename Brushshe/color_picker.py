@@ -206,7 +206,11 @@ class AskColor(customtkinter.CTkToplevel):
         self.canvas.delete("all")
         self.img_tmp = self.get_real_circuit(self.img1, self.brightness_slider_value.get())
         self.wheel = ImageTk.PhotoImage(self.img_tmp)
-        self.wheel_canvas_id = self.canvas.create_image(self.image_dimension / 2, self.image_dimension / 2, image=self.wheel)
+        self.wheel_canvas_id = self.canvas.create_image(
+            self.image_dimension / 2,
+            self.image_dimension / 2,
+            image=self.wheel,
+        )
         d_from_center = math.sqrt(((self.image_dimension / 2) - x) ** 2 + ((self.image_dimension / 2) - y) ** 2)
         if d_from_center < self.image_dimension / 2:
             self.target_x, self.target_y = x, y
