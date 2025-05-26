@@ -3,8 +3,8 @@ import os
 import random
 import sys
 import webbrowser
-# import time  # Need for debug.
 
+# import time  # Need for debug.
 from collections import deque
 from pathlib import Path
 from threading import Thread
@@ -34,8 +34,6 @@ from PIL import (
 from spinbox import IntSpinbox
 from tooltip import Tooltip
 
-from tkinter import filedialog as tk_fd
-
 
 def resource(relative_path):
     base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
@@ -48,7 +46,7 @@ def _(key):
 
 class Brushshe(ctk.CTk):
     def __init__(self):
-        super().__init__()
+        super().__init__(className="Brushshe")
         self.geometry("790x680")
         self.title(_("Brushshe"))
         if os.name == "nt":
@@ -127,7 +125,9 @@ class Brushshe(ctk.CTk):
         file_dropdown.add_option(option=_("Rotate left"), command=lambda: self.rotate(90))
         file_dropdown.add_separator()
         file_dropdown.add_option(option=_("Import palette (hex)"), command=self.import_palette)
-        file_dropdown.add_option(option=_("Reset palette to default"), command=lambda: self.make_color_palette(self.colors))
+        file_dropdown.add_option(
+            option=_("Reset palette to default"), command=lambda: self.make_color_palette(self.colors)
+        )
 
         new_menu = menu.add_cascade(_("New"))
         new_dropdown = CustomDropdownMenu(widget=new_menu)
@@ -355,7 +355,7 @@ class Brushshe(ctk.CTk):
     """ Functionality """
 
     def make_color_palette(self, colors):
-        MAX_COLUMNS_IN_ROW = 16
+        max_columns_in_row = 16
 
         if colors is None or len(colors) == 0:
             print("Wrong palette")
@@ -375,8 +375,8 @@ class Brushshe(ctk.CTk):
                 print("Warning: String `{}` is not correct color.".format(color))
                 continue
 
-            row = ii // MAX_COLUMNS_IN_ROW
-            column = ii % MAX_COLUMNS_IN_ROW
+            row = ii // max_columns_in_row
+            column = ii % max_columns_in_row
 
             color_checked = "#{:02x}{:02x}{:02x}".format(r, g, b)
 
@@ -1390,7 +1390,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=_("About program"),
-            message=about_text + "v1.17.0",
+            message=about_text + "v1.18.0",
             icon=resource("icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
@@ -1445,7 +1445,7 @@ class Brushshe(ctk.CTk):
         elif type == "eraser":
             self.set_tool("eraser", "Eraser", self.eraser_size, 1, 50, "target")
         else:
-            print('Warning: Incorrect brush type. Set default as.')
+            print("Warning: Incorrect brush type. Set default as.")
             self.set_tool("brush", "Brush", self.brush_size, 1, 50, "pencil")
 
         def paint(event):
@@ -1606,7 +1606,7 @@ class Brushshe(ctk.CTk):
             self.brush_palette.second_color = self.obtained_color
 
     def color_choice_bth(self, event, btn):
-        askcolor = AskColor(title=_("Color select"), initial_color=btn.cget('fg_color'))
+        askcolor = AskColor(title=_("Color select"), initial_color=btn.cget("fg_color"))
         self.obtained_color = askcolor.get()
         if self.obtained_color:
             btn.configure(
@@ -1823,23 +1823,18 @@ class Brushshe(ctk.CTk):
         ctk.CTkButton(undo_levels_frame, text=_("Apply"), command=change_undo_levels).pack(padx=10, pady=10)
 
     def import_palette(self):
-        filetypes = (
-            ('HEX palette', '*.hex'),
-            ('All files', '*.*'),
+        dialog = FileDialog(
+            self,
+            title=_("Import palette from .hex file"),
         )
 
-        filename = tk_fd.askopenfilename(
-            title=_("Import palette from file"),
-            filetypes=filetypes,
-        )
-
-        if filename is None or filename == "":
+        if dialog.path is None or dialog.path == "":
             return
 
         colors = []
 
         try:
-            with open(filename) as f:
+            with open(dialog.path) as f:
                 lines = f.readlines()
                 for line in lines:
                     if len(line) == 0:

@@ -1,7 +1,7 @@
 # CTk Color Picker for customtkinter
 # Original Author: Akash Bora (Akascape)
 # Contributers: Victor Vimbert-Guerlais (helloHackYnow)
-# Modifed by limafresh for Brushshe app
+# Modifed by Brushshe developers for Brushshe app
 
 import math
 import os
@@ -137,7 +137,7 @@ class AskColor(customtkinter.CTkToplevel):
 
         self.entry.pack(fill="both", padx=10)
         self.entry.insert(0, self.default_hex_color)
-        self.entry.bind("<Return>", self.entryReturn)
+        self.entry.bind("<Return>", self.entry_return)
 
         self.button = customtkinter.CTkButton(
             master=self.frame,
@@ -156,7 +156,7 @@ class AskColor(customtkinter.CTkToplevel):
 
         self.grab_set()
 
-    def entryReturn(self, event):
+    def entry_return(self, event):
         if self.default_hex_color != self.entry.get():
             self.set_initial_color(self.entry.get())
 
@@ -282,12 +282,11 @@ class AskColor(customtkinter.CTkToplevel):
         return projection_x, projection_y
 
     def set_initial_color(self, initial_color):
-
         # https://github.com/python/cpython/blob/3.13/Lib/colorsys.py
         def rgb_to_hsv(r, g, b):
             maxc = max(r, g, b)
             minc = min(r, g, b)
-            rangec = (maxc - minc)
+            rangec = maxc - minc
             v = maxc
             if minc == maxc:
                 return 0.0, 0.0, v
@@ -296,12 +295,12 @@ class AskColor(customtkinter.CTkToplevel):
             gc = (maxc - g) / rangec
             bc = (maxc - b) / rangec
             if r == maxc:
-                h = bc-gc
+                h = bc - gc
             elif g == maxc:
                 h = 2.0 + rc - bc
             else:
                 h = 4.0 + gc - rc
-            h = (h/6.0) % 1.0
+            h = (h / 6.0) % 1.0
             return h, s, v
 
         if initial_color:
@@ -324,12 +323,12 @@ class AskColor(customtkinter.CTkToplevel):
             cr = s * radius
             # angle = (1 - h) * (2 * math.pi)
             angle = h * (2 * math.pi) - math.pi  # For current image wheel
-            midX = self.image_dimension / 2
-            midY = self.image_dimension / 2
-            xOffset = math.cos(angle) * cr
-            yOffset = math.sin(angle) * cr
-            x = midX + xOffset
-            y = midY + yOffset
+            mid_x = self.image_dimension / 2
+            mid_y = self.image_dimension / 2
+            x_offset = math.cos(angle) * cr
+            y_offset = math.sin(angle) * cr
+            x = mid_x + x_offset
+            y = mid_y + y_offset
 
             self.rgb_color = [r, g, b]
             self.brightness_slider_value.set(v)
