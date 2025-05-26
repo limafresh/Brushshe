@@ -303,6 +303,11 @@ class Brushshe(ctk.CTk):
         self.bind("<Key-equal>", lambda e: self.zoom_in(e))  # Key "=" -> ("+" without Shift)
         self.bind("<Key-minus>", lambda e: self.zoom_out(e))
 
+        self.bind("<Key-bracketleft>", lambda e: self.change_tool_size_bind(e, -1))  # Key "["
+        self.bind("<Key-bracketright>", lambda e: self.change_tool_size_bind(e, 1))  # Key "]"
+        self.bind("<Key-braceleft>", lambda e: self.change_tool_size_bind(e, -10))  # Key "{"
+        self.bind("<Key-braceright>", lambda e: self.change_tool_size_bind(e, 10))  # Key "}"
+
         # Scroll on mouse
         # Windows OS
         self.canvas.bind("<MouseWheel>", self.scroll_on_canvasy)
@@ -353,6 +358,25 @@ class Brushshe(ctk.CTk):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
     """ Functionality """
+
+    def change_tool_size_bind(self, event=None, delta=1):
+        new_size = self.get_tool_size() + delta
+        if new_size < 1:
+            new_size = 1
+        if (self.current_tool == "brush"
+                or self.current_tool == "eraser"
+                or self.current_tool == "spray"
+                or self.current_tool == "shape"):
+            if new_size > 50:
+                new_size = 50
+        elif self.current_tool == "text":
+            if new_size > 96:
+                new_size = 96
+        else:
+            if new_size > 175:
+                new_size = 175
+        self.change_tool_size(new_size)
+        self.tool_size_slider.set(int(new_size))
 
     def make_color_palette(self, colors):
         max_columns_in_row = 16
@@ -1435,6 +1459,22 @@ class Brushshe(ctk.CTk):
             self.font_size = int(value)
         self.tool_size_label.configure(text=self.tool_size)
         self.tool_size_tooltip.configure(message=self.tool_size)
+
+    def get_tool_size(self):
+        res = self.tool_size
+        if self.current_tool == "brush":
+            res = self.brush_size
+        elif self.current_tool == "eraser":
+            res = self.eraser_size
+        elif self.current_tool == "spray":
+            res = self.spray_size
+        elif self.current_tool == "shape":
+            res = self.shape_size
+        elif self.current_tool == "sticker":
+            res = self.sticker_size
+        elif self.current_tool == "text":
+            res = self.font_size
+        return res
 
     def brush(self, type="brush"):
         prev_x = None
