@@ -13,7 +13,7 @@ from uuid import uuid4
 
 import customtkinter as ctk
 import translator
-from bezier import make_bezier
+from core.bezier import make_bezier
 from brush_palette import BrushPalette
 from color_picker import AskColor
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
@@ -288,7 +288,7 @@ class Brushshe(ctk.CTk):
         self.brush()
 
         self.prev_x, self.prev_y = (None, None)
-        self.font_path = resource("fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
+        self.font_path = resource("assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
         self.canvas.bind("<Button-3>", self.eyedropper)
 
         self.bind("<Control-z>", lambda e: self.undo())
@@ -353,7 +353,7 @@ class Brushshe(ctk.CTk):
             "butterfly",
             "flower2",
         ]
-        self.stickers = [Image.open(resource(f"stickers/{name}.png")) for name in stickers_names]
+        self.stickers = [Image.open(resource(f"assets/stickers/{name}.png")) for name in stickers_names]
 
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
@@ -811,10 +811,10 @@ class Brushshe(ctk.CTk):
         ctk.CTkLabel(text_win, text=_("Fonts:")).pack(padx=10, pady=10)
 
         fonts_dict = {
-            "Open Sans": "fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf",
-            "Sigmar": "fonts/Sigmar/Sigmar-Regular.ttf",
-            "Playwrite IT Moderna": "fonts/Playwrite_IT_Moderna/PlaywriteITModerna-VariableFont_wght.ttf",
-            "Monomakh": "fonts/Monomakh/Monomakh-Regular.ttf",
+            "Open Sans": "assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf",
+            "Sigmar": "assets/fonts/Sigmar/Sigmar-Regular.ttf",
+            "Playwrite IT Moderna": "assets/fonts/Playwrite_IT_Moderna/PlaywriteITModerna-VariableFont_wght.ttf",
+            "Monomakh": "assets/fonts/Monomakh/Monomakh-Regular.ttf",
         }
         fonts = list(fonts_dict.keys())
 
@@ -847,10 +847,10 @@ class Brushshe(ctk.CTk):
             "frame7",
         ]
         frames_thumbnails = [
-            ctk.CTkImage(Image.open(resource(f"frames_preview/{name}.png")), size=(100, 100)) for name in frames_names
+            ctk.CTkImage(Image.open(resource(f"assets/frames_preview/{name}.png")), size=(100, 100)) for name in frames_names
         ]
 
-        frames = [Image.open(resource(f"frames/{name}.png")) for name in frames_names]
+        frames = [Image.open(resource(f"assets/frames/{name}.png")) for name in frames_names]
 
         row = 0
         column = 0
