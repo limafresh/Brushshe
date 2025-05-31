@@ -1229,10 +1229,14 @@ class Brushshe(ctk.CTk):
                 tag="tools",
             )
 
+        def leave(event):
+            self.canvas.delete("tools")
+
         self.canvas.bind("<Button-1>", begin)
         self.canvas.bind("<B1-Motion>", drawing)
         self.canvas.bind("<ButtonRelease-1>", end)
         self.canvas.bind("<Motion>", move)
+        self.canvas.bind("<Leave>", leave)
 
     def effects(self):
         def post_actions():
@@ -1549,10 +1553,14 @@ class Brushshe(ctk.CTk):
                 tag="tools",
             )
 
+        def leave(event):
+            self.canvas.delete("tools")
+
         self.canvas.bind("<Button-1>", paint)
         self.canvas.bind("<B1-Motion>", paint)
         self.canvas.bind("<ButtonRelease-1>", stop_paint)
         self.canvas.bind("<Motion>", move)
+        self.canvas.bind("<Leave>", leave)
 
     def eraser(self):
         self.brush(type="eraser")
@@ -1718,6 +1726,7 @@ class Brushshe(ctk.CTk):
         self.canvas.unbind("<ButtonRelease-1>")
         self.canvas.unbind("<B1-Motion>")
         self.canvas.unbind("<Motion>")
+        self.canvas.unbind("<Leave>")
 
         if tool_size is None and from_ is None and to is None:
             self.tool_label.configure(text=_(tool_name))
