@@ -14,6 +14,7 @@ from uuid import uuid4
 import customtkinter as ctk
 import translator
 from core.bezier import make_bezier
+from core.bhhistory import BhHistory, BhPoint
 from brush_palette import BrushPalette
 from color_picker import AskColor
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
@@ -282,6 +283,7 @@ class Brushshe(ctk.CTk):
         self.sticker_size = 100
         self.font_size = 24
         self.zoom = 1
+        self.is_brush_smoothing = True
 
         self.update()  # update interface before calculate picture size
         self.new_picture(self.bg_color, first_time=True)
@@ -473,7 +475,7 @@ class Brushshe(ctk.CTk):
         if 1 < self.zoom < 2:  # Need if zoom not integer but more 1 and less 2
             self.zoom = 1
 
-        if 1 <= self.zoom < 6:  # Zooming limited up by 6. More value has optimization problems.
+        if 1 <= self.zoom < 8:  # Zooming limited up by 8.
             self.zoom += 1
         elif self.zoom < 1:
             self.zoom *= 2
@@ -497,6 +499,9 @@ class Brushshe(ctk.CTk):
 
     def canvas_to_pict_xy(self, x, y):
         return self.canvas.canvasx(x) // self.zoom, self.canvas.canvasy(y) // self.zoom
+
+    def canvas_to_pict_xy_f(self, x, y):
+        return self.canvas.canvasx(x) / self.zoom, self.canvas.canvasy(y) / self.zoom
 
     def draw_line(self, x1, y1, x2, y2):
         if self.current_tool == "brush":
@@ -1483,6 +1488,7 @@ class Brushshe(ctk.CTk):
     def brush(self, type="brush"):
         prev_x = None
         prev_y = None
+        point_history = None
 
         if type == "brush":
             self.set_tool("brush", "Brush", self.brush_size, 1, 50, "pencil")
@@ -1493,9 +1499,21 @@ class Brushshe(ctk.CTk):
             self.set_tool("brush", "Brush", self.brush_size, 1, 50, "pencil")
 
         def paint(event):
-            nonlocal prev_x, prev_y
+            nonlocal prev_x, prev_y, point_history
 
-            x, y = self.canvas_to_pict_xy(event.x, event.y)
+            if self.is_brush_smoothing is False:
+                x, y = self.canvas_to_pict_xy(event.x, event.y)
+            else:
+                if point_history is None:
+                    point_history = BhHistory(limit_length=10)
+                xf, yf = self.canvas_to_pict_xy_f(event.x, event.y)
+                point_history.addPoint(BhPoint(x=xf, y=yf, pressure=1.0))
+                s_point = point_history.getSmoothingPoint(10, 20)
+                if s_point is not None:
+                    x = int(s_point.x)
+                    y = int(s_point.y)
+                else:
+                    x, y = self.canvas_to_pict_xy(event.x, event.y)
 
             if prev_x is not None and prev_y is not None:
                 self.draw_line(prev_x, prev_y, x, y)
@@ -1508,11 +1526,16 @@ class Brushshe(ctk.CTk):
             draw_brush_halo(x, y)
 
         def stop_paint(event):
-            nonlocal prev_x, prev_y
+            nonlocal prev_x, prev_y, point_history
 
             if prev_x is None:
                 return
 
+            self.canvas.delete("tools")
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+            draw_brush_halo(x, y)
+
+            point_history = None
             prev_x, prev_y = (None, None)
             self.undo_stack.append(self.image.copy())
 
