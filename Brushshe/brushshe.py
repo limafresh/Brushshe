@@ -176,6 +176,7 @@ class Brushshe(ctk.CTk):
         """Toolbar"""
         tools_frame = ctk.CTkFrame(self)
         tools_frame.pack(side=ctk.TOP, fill=ctk.X, padx=5, pady=5)
+        # tools_frame.configure(fg_color="transparent")
 
         # Brush size used to paint all the icons in the toolbar: 50
         # Width and height of all icons - 512 px
@@ -216,13 +217,9 @@ class Brushshe(ctk.CTk):
                 tooltip_message = _(tool_name.split(" (")[0])
             Tooltip(tool_button, message=tooltip_message)
 
-        self.tool_label = ctk.CTkLabel(tools_frame, text=None)
-        self.tool_label.pack(side=ctk.LEFT, padx=1)
-
-        self.tool_size_slider = ctk.CTkSlider(tools_frame, command=self.change_tool_size)
-        self.tool_size_tooltip = Tooltip(self.tool_size_slider)
-
-        self.tool_size_label = ctk.CTkLabel(tools_frame, text=None)
+        self.tool_config_docker = ctk.CTkFrame(tools_frame)
+        self.tool_config_docker.pack(side=ctk.LEFT,  padx=5)
+        self.tool_config_docker.configure(height=30, fg_color="transparent")
 
         save_to_gallery_btn = ctk.CTkButton(tools_frame, text=_("Save to gallery"), command=self.save_to_gallery)
         save_to_gallery_btn.pack(side=ctk.RIGHT)
@@ -283,7 +280,7 @@ class Brushshe(ctk.CTk):
         self.sticker_size = 100
         self.font_size = 24
         self.zoom = 1
-        self.is_brush_smoothing = True
+        self.is_brush_smoothing = False
 
         self.update()  # update interface before calculate picture size
         self.new_picture(self.bg_color, first_time=True)
@@ -852,7 +849,10 @@ class Brushshe(ctk.CTk):
             "frame7",
         ]
         frames_thumbnails = [
-            ctk.CTkImage(Image.open(resource(f"assets/frames_preview/{name}.png")), size=(100, 100)) for name in frames_names
+            ctk.CTkImage(
+                Image.open(resource(f"assets/frames_preview/{name}.png")),
+                size=(100, 100),
+            ) for name in frames_names
         ]
 
         frames = [Image.open(resource(f"assets/frames/{name}.png")) for name in frames_names]
@@ -1505,7 +1505,7 @@ class Brushshe(ctk.CTk):
                 x, y = self.canvas_to_pict_xy(event.x, event.y)
             else:
                 if point_history is None:
-                    point_history = BhHistory(limit_length=10)
+                    point_history = BhHistory(limit_length=64)
                 xf, yf = self.canvas_to_pict_xy_f(event.x, event.y)
                 point_history.addPoint(BhPoint(x=xf, y=yf, pressure=1.0))
                 s_point = point_history.getSmoothingPoint(10, 20)
@@ -1751,6 +1751,18 @@ class Brushshe(ctk.CTk):
         self.canvas.unbind("<Motion>")
         self.canvas.unbind("<Leave>")
 
+        for child in self.tool_config_docker.winfo_children():
+            child.destroy()
+
+        self.tool_label = ctk.CTkLabel(self.tool_config_docker, text=None)
+        self.tool_label.pack(side=ctk.LEFT, padx=1)
+
+        self.tool_size_slider = ctk.CTkSlider(self.tool_config_docker, command=self.change_tool_size, width=100)
+        self.tool_size_slider.pack(side=ctk.LEFT, padx=1)
+        self.tool_size_tooltip = Tooltip(self.tool_size_slider)
+        self.tool_size_label = ctk.CTkLabel(self.tool_config_docker, text=None)
+        self.tool_size_label.pack(side=ctk.LEFT, padx=5)
+
         if tool_size is None and from_ is None and to is None:
             self.tool_label.configure(text=_(tool_name))
             self.tool_size_slider.pack_forget()
@@ -1762,10 +1774,32 @@ class Brushshe(ctk.CTk):
             self.tool_size_slider.set(self.tool_size)
             self.tool_size_slider.pack(side=ctk.LEFT, padx=1)
             self.tool_size_label.configure(text=self.tool_size)
-            self.tool_size_label.pack(side=ctk.LEFT, padx=1)
+            self.tool_size_label.pack(side=ctk.LEFT, padx=5)
             self.tool_size_tooltip.configure(message=self.tool_size)
+
+        # TODO: On current time for the normal brush and the eraser only.
+        #       After testing will be add for R.Brush too.
+        if (tool == "brush" and tool_name == _("Brush")) or tool == "eraser":
+            self.tool_config_docker
+            checkbox = ctk.CTkCheckBox(
+                self.tool_config_docker,
+                text=_("Smoothing"),
+                command=None,
+            )
+            checkbox.pack(side=ctk.LEFT, padx=1)
+            checkbox.configure(
+                command=lambda c=checkbox: self.brush_smoothing_checkbox_event(c)
+            )
+            if self.is_brush_smoothing:
+                checkbox.select()
+
+            # TODO: Add smoothing_factor (3..64) slider and smoothing_quality slider (1..50)
+
         self.canvas.configure(cursor=cursor)
         self.canvas.delete("tools")
+
+    def brush_smoothing_checkbox_event(self, element):
+        self.is_brush_smoothing = element.get() == 1
 
     def change_size(self):
         def size_sb_callback(value):
