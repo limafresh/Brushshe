@@ -91,5 +91,8 @@
 	"System": "Система",
 	"Light": "Світла",
 	"Dark": "Темна",
-	"Cancel": "Скасувати"
+	"Cancel": "Скасувати",
+	"Import palette (hex)": "Імпортувати палітру (hex)",
+	"Reset palette to default": "Скинути палітру до стандартної",
+	"Import palette from .hex file": "Імпортувати палітру з .hex файлу"
 }

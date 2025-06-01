@@ -90,5 +90,8 @@
 	"System": "Система",
 	"Light": "Светлая",
 	"Dark": "Тёмная",
-	"Cancel": "Отмена"
+	"Cancel": "Отмена",
+	"Import palette (hex)": "Импортировать палитру (hex)",
+	"Reset palette to default": "Сбросить палитру до значений по умолчанию",
+	"Import palette from .hex file": "Импортировать палитру из .hex файла"
 }

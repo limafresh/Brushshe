@@ -1,0 +1,16 @@
+services:
+  python:
+    build: ./docker/python
+    working_dir: '/app'
+    user: "$UID:$GID"
+    tty: true
+    volumes:
+      - ${SRC_PATH}:/app
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ${LOCAL_DATA}/gallery:/home/user/Brushshe Images
+    environment:
+      - DISPLAY=$DISPLAY
+    #command: ["bash"]
+    command: ["python3", "./brushshe.py"]
+    network_mode: none
+

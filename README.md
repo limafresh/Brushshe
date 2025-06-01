@@ -18,6 +18,10 @@
 [![Static Badge](https://img.shields.io/badge/Download-portable_.exe_file-blue?style=for-the-badge)](https://github.com/limafresh/Brushshe/releases)
 
 **or**
+### Download Brushshe for Linux .deb
+[![Static Badge](https://img.shields.io/badge/Download-.deb_file-red?style=for-the-badge&logo=linux)](https://github.com/limafresh/Brushshe/releases)
+
+**or**
 ### Run via Python
 1. Install [Python 3](https://www.python.org/downloads/), if not installed;
 2. Download the code and unpack downloaded archive:
