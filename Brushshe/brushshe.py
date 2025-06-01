@@ -13,7 +13,8 @@ from uuid import uuid4
 
 import customtkinter as ctk
 import translator
-from bezier import make_bezier
+from core.bezier import make_bezier
+from core.bhhistory import BhHistory, BhPoint
 from brush_palette import BrushPalette
 from color_picker import AskColor
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
@@ -175,6 +176,7 @@ class Brushshe(ctk.CTk):
         """Toolbar"""
         tools_frame = ctk.CTkFrame(self)
         tools_frame.pack(side=ctk.TOP, fill=ctk.X, padx=5, pady=5)
+        # tools_frame.configure(fg_color="transparent")
 
         # Brush size used to paint all the icons in the toolbar: 50
         # Width and height of all icons - 512 px
@@ -215,13 +217,9 @@ class Brushshe(ctk.CTk):
                 tooltip_message = _(tool_name.split(" (")[0])
             Tooltip(tool_button, message=tooltip_message)
 
-        self.tool_label = ctk.CTkLabel(tools_frame, text=None)
-        self.tool_label.pack(side=ctk.LEFT, padx=1)
-
-        self.tool_size_slider = ctk.CTkSlider(tools_frame, command=self.change_tool_size)
-        self.tool_size_tooltip = Tooltip(self.tool_size_slider)
-
-        self.tool_size_label = ctk.CTkLabel(tools_frame, text=None)
+        self.tool_config_docker = ctk.CTkFrame(tools_frame)
+        self.tool_config_docker.pack(side=ctk.LEFT,  padx=5)
+        self.tool_config_docker.configure(height=30, fg_color="transparent")
 
         save_to_gallery_btn = ctk.CTkButton(tools_frame, text=_("Save to gallery"), command=self.save_to_gallery)
         save_to_gallery_btn.pack(side=ctk.RIGHT)
@@ -282,13 +280,14 @@ class Brushshe(ctk.CTk):
         self.sticker_size = 100
         self.font_size = 24
         self.zoom = 1
+        self.is_brush_smoothing = False
 
         self.update()  # update interface before calculate picture size
         self.new_picture(self.bg_color, first_time=True)
         self.brush()
 
         self.prev_x, self.prev_y = (None, None)
-        self.font_path = resource("fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
+        self.font_path = resource("assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
         self.canvas.bind("<Button-3>", self.eyedropper)
 
         self.bind("<Control-z>", lambda e: self.undo())
@@ -353,7 +352,7 @@ class Brushshe(ctk.CTk):
             "butterfly",
             "flower2",
         ]
-        self.stickers = [Image.open(resource(f"stickers/{name}.png")) for name in stickers_names]
+        self.stickers = [Image.open(resource(f"assets/stickers/{name}.png")) for name in stickers_names]
 
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
@@ -473,7 +472,7 @@ class Brushshe(ctk.CTk):
         if 1 < self.zoom < 2:  # Need if zoom not integer but more 1 and less 2
             self.zoom = 1
 
-        if 1 <= self.zoom < 6:  # Zooming limited up by 6. More value has optimization problems.
+        if 1 <= self.zoom < 8:  # Zooming limited up by 8.
             self.zoom += 1
         elif self.zoom < 1:
             self.zoom *= 2
@@ -497,6 +496,9 @@ class Brushshe(ctk.CTk):
 
     def canvas_to_pict_xy(self, x, y):
         return self.canvas.canvasx(x) // self.zoom, self.canvas.canvasy(y) // self.zoom
+
+    def canvas_to_pict_xy_f(self, x, y):
+        return self.canvas.canvasx(x) / self.zoom, self.canvas.canvasy(y) / self.zoom
 
     def draw_line(self, x1, y1, x2, y2):
         if self.current_tool == "brush":
@@ -811,10 +813,10 @@ class Brushshe(ctk.CTk):
         ctk.CTkLabel(text_win, text=_("Fonts:")).pack(padx=10, pady=10)
 
         fonts_dict = {
-            "Open Sans": "fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf",
-            "Sigmar": "fonts/Sigmar/Sigmar-Regular.ttf",
-            "Playwrite IT Moderna": "fonts/Playwrite_IT_Moderna/PlaywriteITModerna-VariableFont_wght.ttf",
-            "Monomakh": "fonts/Monomakh/Monomakh-Regular.ttf",
+            "Open Sans": "assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf",
+            "Sigmar": "assets/fonts/Sigmar/Sigmar-Regular.ttf",
+            "Playwrite IT Moderna": "assets/fonts/Playwrite_IT_Moderna/PlaywriteITModerna-VariableFont_wght.ttf",
+            "Monomakh": "assets/fonts/Monomakh/Monomakh-Regular.ttf",
         }
         fonts = list(fonts_dict.keys())
 
@@ -847,10 +849,13 @@ class Brushshe(ctk.CTk):
             "frame7",
         ]
         frames_thumbnails = [
-            ctk.CTkImage(Image.open(resource(f"frames_preview/{name}.png")), size=(100, 100)) for name in frames_names
+            ctk.CTkImage(
+                Image.open(resource(f"assets/frames_preview/{name}.png")),
+                size=(100, 100),
+            ) for name in frames_names
         ]
 
-        frames = [Image.open(resource(f"frames/{name}.png")) for name in frames_names]
+        frames = [Image.open(resource(f"assets/frames/{name}.png")) for name in frames_names]
 
         row = 0
         column = 0
@@ -1229,10 +1234,14 @@ class Brushshe(ctk.CTk):
                 tag="tools",
             )
 
+        def leave(event):
+            self.canvas.delete("tools")
+
         self.canvas.bind("<Button-1>", begin)
         self.canvas.bind("<B1-Motion>", drawing)
         self.canvas.bind("<ButtonRelease-1>", end)
         self.canvas.bind("<Motion>", move)
+        self.canvas.bind("<Leave>", leave)
 
     def effects(self):
         def post_actions():
@@ -1479,6 +1488,7 @@ class Brushshe(ctk.CTk):
     def brush(self, type="brush"):
         prev_x = None
         prev_y = None
+        point_history = None
 
         if type == "brush":
             self.set_tool("brush", "Brush", self.brush_size, 1, 50, "pencil")
@@ -1489,9 +1499,21 @@ class Brushshe(ctk.CTk):
             self.set_tool("brush", "Brush", self.brush_size, 1, 50, "pencil")
 
         def paint(event):
-            nonlocal prev_x, prev_y
+            nonlocal prev_x, prev_y, point_history
 
-            x, y = self.canvas_to_pict_xy(event.x, event.y)
+            if self.is_brush_smoothing is False:
+                x, y = self.canvas_to_pict_xy(event.x, event.y)
+            else:
+                if point_history is None:
+                    point_history = BhHistory(limit_length=64)
+                xf, yf = self.canvas_to_pict_xy_f(event.x, event.y)
+                point_history.addPoint(BhPoint(x=xf, y=yf, pressure=1.0))
+                s_point = point_history.getSmoothingPoint(10, 20)
+                if s_point is not None:
+                    x = int(s_point.x)
+                    y = int(s_point.y)
+                else:
+                    x, y = self.canvas_to_pict_xy(event.x, event.y)
 
             if prev_x is not None and prev_y is not None:
                 self.draw_line(prev_x, prev_y, x, y)
@@ -1504,11 +1526,16 @@ class Brushshe(ctk.CTk):
             draw_brush_halo(x, y)
 
         def stop_paint(event):
-            nonlocal prev_x, prev_y
+            nonlocal prev_x, prev_y, point_history
 
             if prev_x is None:
                 return
 
+            self.canvas.delete("tools")
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+            draw_brush_halo(x, y)
+
+            point_history = None
             prev_x, prev_y = (None, None)
             self.undo_stack.append(self.image.copy())
 
@@ -1549,10 +1576,14 @@ class Brushshe(ctk.CTk):
                 tag="tools",
             )
 
+        def leave(event):
+            self.canvas.delete("tools")
+
         self.canvas.bind("<Button-1>", paint)
         self.canvas.bind("<B1-Motion>", paint)
         self.canvas.bind("<ButtonRelease-1>", stop_paint)
         self.canvas.bind("<Motion>", move)
+        self.canvas.bind("<Leave>", leave)
 
     def eraser(self):
         self.brush(type="eraser")
@@ -1718,6 +1749,19 @@ class Brushshe(ctk.CTk):
         self.canvas.unbind("<ButtonRelease-1>")
         self.canvas.unbind("<B1-Motion>")
         self.canvas.unbind("<Motion>")
+        self.canvas.unbind("<Leave>")
+
+        for child in self.tool_config_docker.winfo_children():
+            child.destroy()
+
+        self.tool_label = ctk.CTkLabel(self.tool_config_docker, text=None)
+        self.tool_label.pack(side=ctk.LEFT, padx=1)
+
+        self.tool_size_slider = ctk.CTkSlider(self.tool_config_docker, command=self.change_tool_size, width=100)
+        self.tool_size_slider.pack(side=ctk.LEFT, padx=1)
+        self.tool_size_tooltip = Tooltip(self.tool_size_slider)
+        self.tool_size_label = ctk.CTkLabel(self.tool_config_docker, text=None)
+        self.tool_size_label.pack(side=ctk.LEFT, padx=5)
 
         if tool_size is None and from_ is None and to is None:
             self.tool_label.configure(text=_(tool_name))
@@ -1730,10 +1774,32 @@ class Brushshe(ctk.CTk):
             self.tool_size_slider.set(self.tool_size)
             self.tool_size_slider.pack(side=ctk.LEFT, padx=1)
             self.tool_size_label.configure(text=self.tool_size)
-            self.tool_size_label.pack(side=ctk.LEFT, padx=1)
+            self.tool_size_label.pack(side=ctk.LEFT, padx=5)
             self.tool_size_tooltip.configure(message=self.tool_size)
+
+        # TODO: On current time for the normal brush and the eraser only.
+        #       After testing will be add for R.Brush too.
+        if (tool == "brush" and tool_name == _("Brush")) or tool == "eraser":
+            self.tool_config_docker
+            checkbox = ctk.CTkCheckBox(
+                self.tool_config_docker,
+                text=_("Smoothing"),
+                command=None,
+            )
+            checkbox.pack(side=ctk.LEFT, padx=1)
+            checkbox.configure(
+                command=lambda c=checkbox: self.brush_smoothing_checkbox_event(c)
+            )
+            if self.is_brush_smoothing:
+                checkbox.select()
+
+            # TODO: Add smoothing_factor (3..64) slider and smoothing_quality slider (1..50)
+
         self.canvas.configure(cursor=cursor)
         self.canvas.delete("tools")
+
+    def brush_smoothing_checkbox_event(self, element):
+        self.is_brush_smoothing = element.get() == 1
 
     def change_size(self):
         def size_sb_callback(value):
