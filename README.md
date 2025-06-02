@@ -66,6 +66,10 @@ pip install customtkinter Pillow
 + *E*: eraser
 + *=*: zoom in
 + *-*: zoom out
++ *[*: down by 1 the brush or other tools size
++ *]*:  by 1 the brush or other tools size
++ *{*: down by 10 the brush or other tools size
++ *}*: up by 10 the brush or other tools size
 + *Shift + mouse scroll*: scrolling the canvas horizontally
 
 ## Goal of project

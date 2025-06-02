@@ -13,10 +13,10 @@ from uuid import uuid4
 
 import customtkinter as ctk
 import translator
-from core.bezier import make_bezier
-from core.bhhistory import BhHistory, BhPoint
 from brush_palette import BrushPalette
 from color_picker import AskColor
+from core.bezier import make_bezier
+from core.bhhistory import BhHistory, BhPoint
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
 from file_dialog import FileDialog
@@ -218,7 +218,7 @@ class Brushshe(ctk.CTk):
             Tooltip(tool_button, message=tooltip_message)
 
         self.tool_config_docker = ctk.CTkFrame(tools_frame)
-        self.tool_config_docker.pack(side=ctk.LEFT,  padx=5)
+        self.tool_config_docker.pack(side=ctk.LEFT, padx=5)
         self.tool_config_docker.configure(height=30, fg_color="transparent")
 
         save_to_gallery_btn = ctk.CTkButton(tools_frame, text=_("Save to gallery"), command=self.save_to_gallery)
@@ -362,10 +362,12 @@ class Brushshe(ctk.CTk):
         new_size = self.get_tool_size() + delta
         if new_size < 1:
             new_size = 1
-        if (self.current_tool == "brush"
-                or self.current_tool == "eraser"
-                or self.current_tool == "spray"
-                or self.current_tool == "shape"):
+        if (
+            self.current_tool == "brush"
+            or self.current_tool == "eraser"
+            or self.current_tool == "spray"
+            or self.current_tool == "shape"
+        ):
             if new_size > 50:
                 new_size = 50
         elif self.current_tool == "text":
@@ -852,7 +854,8 @@ class Brushshe(ctk.CTk):
             ctk.CTkImage(
                 Image.open(resource(f"assets/frames_preview/{name}.png")),
                 size=(100, 100),
-            ) for name in frames_names
+            )
+            for name in frames_names
         ]
 
         frames = [Image.open(resource(f"assets/frames/{name}.png")) for name in frames_names]
@@ -1507,8 +1510,8 @@ class Brushshe(ctk.CTk):
                 if point_history is None:
                     point_history = BhHistory(limit_length=64)
                 xf, yf = self.canvas_to_pict_xy_f(event.x, event.y)
-                point_history.addPoint(BhPoint(x=xf, y=yf, pressure=1.0))
-                s_point = point_history.getSmoothingPoint(10, 20)
+                point_history.add_point(BhPoint(x=xf, y=yf, pressure=1.0))
+                s_point = point_history.get_smoothing_point(10, 20)
                 if s_point is not None:
                     x = int(s_point.x)
                     y = int(s_point.y)
@@ -1757,7 +1760,7 @@ class Brushshe(ctk.CTk):
         self.tool_label = ctk.CTkLabel(self.tool_config_docker, text=None)
         self.tool_label.pack(side=ctk.LEFT, padx=1)
 
-        self.tool_size_slider = ctk.CTkSlider(self.tool_config_docker, command=self.change_tool_size, width=100)
+        self.tool_size_slider = ctk.CTkSlider(self.tool_config_docker, command=self.change_tool_size)
         self.tool_size_slider.pack(side=ctk.LEFT, padx=1)
         self.tool_size_tooltip = Tooltip(self.tool_size_slider)
         self.tool_size_label = ctk.CTkLabel(self.tool_config_docker, text=None)
@@ -1779,27 +1782,10 @@ class Brushshe(ctk.CTk):
 
         # TODO: On current time for the normal brush and the eraser only.
         #       After testing will be add for R.Brush too.
-        if (tool == "brush" and tool_name == _("Brush")) or tool == "eraser":
-            self.tool_config_docker
-            checkbox = ctk.CTkCheckBox(
-                self.tool_config_docker,
-                text=_("Smoothing"),
-                command=None,
-            )
-            checkbox.pack(side=ctk.LEFT, padx=1)
-            checkbox.configure(
-                command=lambda c=checkbox: self.brush_smoothing_checkbox_event(c)
-            )
-            if self.is_brush_smoothing:
-                checkbox.select()
-
-            # TODO: Add smoothing_factor (3..64) slider and smoothing_quality slider (1..50)
+        # TODO: Add smoothing_factor (3..64) slider and smoothing_quality slider (1..50)
 
         self.canvas.configure(cursor=cursor)
         self.canvas.delete("tools")
-
-    def brush_smoothing_checkbox_event(self, element):
-        self.is_brush_smoothing = element.get() == 1
 
     def change_size(self):
         def size_sb_callback(value):
@@ -1898,11 +1884,18 @@ class Brushshe(ctk.CTk):
             self.undo_stack = deque(self.undo_stack, maxlen=undo_levels_spinbox.get())
             self.redo_stack = deque(self.redo_stack, maxlen=undo_levels_spinbox.get())
 
+        def smooth_switch_event():
+            self.is_brush_smoothing = smooth_var.get()
+
         settings_tl = ctk.CTkToplevel(self)
+        settings_tl.geometry("400x500")
         settings_tl.title(_("Settings"))
         settings_tl.transient(self)
 
-        theme_frame = ctk.CTkFrame(settings_tl)
+        settings_frame = ctk.CTkScrollableFrame(settings_tl)
+        settings_frame.pack(padx=10, pady=10, fill="both", expand=True)
+
+        theme_frame = ctk.CTkFrame(settings_frame)
         theme_frame.pack(padx=10, pady=10, fill="x")
 
         ctk.CTkLabel(theme_frame, text=_("Theme")).pack(padx=10, pady=10)
@@ -1917,7 +1910,7 @@ class Brushshe(ctk.CTk):
                 command=lambda: ctk.set_appearance_mode(theme_var.get()),
             ).pack(padx=10, pady=10)
 
-        undo_levels_frame = ctk.CTkFrame(settings_tl)
+        undo_levels_frame = ctk.CTkFrame(settings_frame)
         undo_levels_frame.pack(padx=10, pady=10, fill="x")
 
         ctk.CTkLabel(undo_levels_frame, text=_("Maximum undo/redo levels")).pack(padx=10, pady=10)
@@ -1927,6 +1920,19 @@ class Brushshe(ctk.CTk):
         undo_levels_spinbox.set(self.undo_stack.maxlen)
 
         ctk.CTkButton(undo_levels_frame, text=_("Apply"), command=change_undo_levels).pack(padx=10, pady=10)
+
+        smooth_frame = ctk.CTkFrame(settings_frame)
+        smooth_frame.pack(padx=10, pady=10, fill="x")
+
+        smooth_var = ctk.BooleanVar(value=self.is_brush_smoothing)
+        ctk.CTkSwitch(
+            smooth_frame,
+            text=_("Smoothing for brush/eraser"),
+            variable=smooth_var,
+            onvalue=True,
+            offvalue=False,
+            command=smooth_switch_event,
+        ).pack(padx=10, pady=10)
 
     def import_palette(self):
         dialog = FileDialog(

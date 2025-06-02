@@ -1,8 +1,7 @@
 import math
 
 
-class BhPoint():
-
+class BhPoint:
     def __init__(
         self,
         x: float,
@@ -22,39 +21,36 @@ class BhPoint():
         # self.direction = 0
 
 
-class BhHistory():
-    def __init__(
-        self,
-        limit_length: int = 256
-    ):
+class BhHistory:
+    def __init__(self, limit_length: int = 256):
         max_length = 256
         self.history = []
         self.limit_length = limit_length
         if self.limit_length > max_length:
             self.limit_length = max_length
 
-    def addPoint(self, point: BhPoint):
+    def add_point(self, point: BhPoint):
         if len(self.history) < self.limit_length:
             self.history.append(point)
         else:
             del self.history[0]
             self.history.append(point)
 
-    def getHistory(self):
+    def get_history(self):
         return self.history
 
-    def getHistoryLength(self):
+    def get_history_length(self):
         return len(self.history)
 
-    def getLastPoints(self, count):
-        ll = self.getHistoryLength()
+    def get_last_points(self, count):
+        ll = self.get_history_length()
         if count <= ll:
-            return self.history[ll - count:ll - 1]
+            return self.history[ll - count : ll - 1]
         else:
             return self.history
 
-    def getSmoothingPoint(self, smoothing_quality, smoothing_factor):
-        ll = self.getHistoryLength()
+    def get_smoothing_point(self, smoothing_quality, smoothing_factor):
+        ll = self.get_history_length()
         if ll == 0:
             return None
         if ll == 1:
@@ -78,17 +74,17 @@ class BhHistory():
 
         for index in range(max_index, min_index, -1):
             rate = 0.0
-            nextCoord = self.history[index]
+            next_coord = self.history[index]
 
             if gaussian_weight_sqr != 0.0:
                 velocity_sum += velocity * 100
                 rate = gaussian_weight * math.exp(-velocity_sum * velocity_sum / (2 * gaussian_weight_sqr))
 
             scale_sum += rate
-            coords_x += rate * nextCoord.x
-            coords_y += rate * nextCoord.y
+            coords_x += rate * next_coord.x
+            coords_y += rate * next_coord.y
 
-        if (scale_sum == 0.0):
+        if scale_sum == 0.0:
             return last_point
         else:
             coords_x /= scale_sum
