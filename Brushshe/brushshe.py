@@ -280,7 +280,11 @@ class Brushshe(ctk.CTk):
         self.sticker_size = 100
         self.font_size = 24
         self.zoom = 1
+
         self.is_brush_smoothing = False
+        self.brush_smoothing_factor = 10  # Between: 3..64
+        self.brush_smoothing_quality = 20  # Between: 1..64
+
         self.current_palette = "default"
 
         self.update()  # update interface before calculate picture size
@@ -1076,24 +1080,31 @@ class Brushshe(ctk.CTk):
 
         prev_x = None
         prev_y = None
-
-        def begin(event):
-            nonlocal prev_x, prev_y
-
-            x, y = self.canvas_to_pict_xy(event.x, event.y)
-            draw_recoloring_brush(x, y, x, y)
-            prev_x, prev_y = x, y
-
-            self.update_canvas()
-            draw_brush_halo(x, y)
+        point_history = None
 
         def drawing(event):
-            nonlocal prev_x, prev_y
+            nonlocal prev_x, prev_y, point_history
+
+            if self.is_brush_smoothing is False:
+                x, y = self.canvas_to_pict_xy(event.x, event.y)
+            else:
+                if point_history is None:
+                    point_history = BhHistory(limit_length=self.brush_smoothing_factor)
+                xf, yf = self.canvas_to_pict_xy_f(event.x, event.y)
+                point_history.add_point(BhPoint(x=xf, y=yf, pressure=1.0))
+                s_point = point_history.get_smoothing_point(
+                    self.brush_smoothing_factor,
+                    self.brush_smoothing_quality,
+                )
+                if s_point is not None:
+                    x = int(s_point.x)
+                    y = int(s_point.y)
+                else:
+                    x, y = self.canvas_to_pict_xy(event.x, event.y)
 
             if prev_x is None:
-                return
+                prev_x, prev_y = x, y
 
-            x, y = self.canvas_to_pict_xy(event.x, event.y)
             draw_recoloring_brush(x, y, prev_x, prev_y)
             prev_x, prev_y = x, y
 
@@ -1101,14 +1112,17 @@ class Brushshe(ctk.CTk):
             draw_brush_halo(x, y)
 
         def end(event):
-            nonlocal prev_x, prev_y
+            nonlocal prev_x, prev_y, point_history
 
             if prev_x is None:
                 return
 
-            prev_x, prev_y = None, None
+            self.canvas.delete("tools")
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+            draw_brush_halo(x, y)
 
-            self.update_canvas()
+            point_history = None
+            prev_x, prev_y = (None, None)
             self.undo_stack.append(self.image.copy())
 
         def move(event):
@@ -1208,16 +1222,10 @@ class Brushshe(ctk.CTk):
                 is_line = True
 
         def draw_brush_halo(x, y):
-            # on_canvas = self.canvas.find_all()
-            # for ii in on_canvas:
-            #     tmp = self.canvas.itemcget(ii, "tag")
-            #     if tmp == "tools":
-            #         self.canvas.delete(ii)
             self.canvas.delete("tools")
 
             d1 = (self.tool_size - 1) // 2
             d2 = self.tool_size // 2
-            # dd = (d2 - d1) / 2
 
             self.canvas.create_rectangle(
                 int((x - d1) * self.zoom - 1),
@@ -1241,7 +1249,7 @@ class Brushshe(ctk.CTk):
         def leave(event):
             self.canvas.delete("tools")
 
-        self.canvas.bind("<Button-1>", begin)
+        self.canvas.bind("<Button-1>", drawing)
         self.canvas.bind("<B1-Motion>", drawing)
         self.canvas.bind("<ButtonRelease-1>", end)
         self.canvas.bind("<Motion>", move)
@@ -1509,10 +1517,13 @@ class Brushshe(ctk.CTk):
                 x, y = self.canvas_to_pict_xy(event.x, event.y)
             else:
                 if point_history is None:
-                    point_history = BhHistory(limit_length=64)
+                    point_history = BhHistory(limit_length=self.brush_smoothing_factor)
                 xf, yf = self.canvas_to_pict_xy_f(event.x, event.y)
                 point_history.add_point(BhPoint(x=xf, y=yf, pressure=1.0))
-                s_point = point_history.get_smoothing_point(10, 20)
+                s_point = point_history.get_smoothing_point(
+                    self.brush_smoothing_factor,
+                    self.brush_smoothing_quality,
+                )
                 if s_point is not None:
                     x = int(s_point.x)
                     y = int(s_point.y)
@@ -1548,13 +1559,6 @@ class Brushshe(ctk.CTk):
             draw_brush_halo(x, y)
 
         def draw_brush_halo(x, y):
-            # TODO: Add checking when the Config System will be created.
-
-            # on_canvas = self.canvas.find_all()
-            # for ii in on_canvas:
-            #     tmp = self.canvas.itemcget(ii, "tag")
-            #     if tmp == "tools":
-            #         self.canvas.delete(ii)
             self.canvas.delete("tools")
 
             d1 = (self.tool_size - 1) // 2
@@ -1781,10 +1785,6 @@ class Brushshe(ctk.CTk):
             self.tool_size_label.pack(side=ctk.LEFT, padx=5)
             self.tool_size_tooltip.configure(message=self.tool_size)
 
-        # TODO: On current time for the normal brush and the eraser only.
-        #       After testing will be add for R.Brush too.
-        # TODO: Add smoothing_factor (3..64) slider and smoothing_quality slider (1..50)
-
         self.canvas.configure(cursor=cursor)
         self.canvas.delete("tools")
 
@@ -1888,6 +1888,12 @@ class Brushshe(ctk.CTk):
         def smooth_switch_event():
             self.is_brush_smoothing = smooth_var.get()
 
+        def brush_smoothing_factor_event(event):
+            self.brush_smoothing_factor = brush_smoothing_factor_var.get()
+
+        def brush_smoothing_quality_event(event):
+            self.brush_smoothing_quality = brush_smoothing_quality_var.get()
+
         def palette_radiobutton_callback():
             self.import_palette(resource(f"assets/palettes/{palette_var.get()}_palette.hex"))
             self.current_palette = palette_var.get()
@@ -1937,7 +1943,27 @@ class Brushshe(ctk.CTk):
             onvalue=True,
             offvalue=False,
             command=smooth_switch_event,
-        ).pack(padx=10, pady=10)
+        ).pack(padx=10, pady=1)
+
+        ctk.CTkLabel(smooth_frame, text=_("Brush smoothing quality")).pack(padx=10, pady=1)
+        brush_smoothing_quality_var = ctk.IntVar(value=self.brush_smoothing_quality)
+        ctk.CTkSlider(
+            smooth_frame,
+            variable=brush_smoothing_quality_var,
+            command=brush_smoothing_quality_event,
+            from_=1,
+            to=64,
+        ).pack(padx=10, pady=1)
+
+        ctk.CTkLabel(smooth_frame, text=_("Brush smoothing factor (weight)")).pack(padx=10, pady=1)
+        brush_smoothing_factor_var = ctk.IntVar(value=self.brush_smoothing_factor)
+        ctk.CTkSlider(
+            smooth_frame,
+            variable=brush_smoothing_factor_var,
+            command=brush_smoothing_factor_event,
+            from_=3,
+            to=64,
+        ).pack(padx=10, pady=1)
 
         palette_frame = ctk.CTkFrame(settings_frame)
         palette_frame.pack(padx=10, pady=10, fill="x")
