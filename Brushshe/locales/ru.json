@@ -97,5 +97,8 @@
 	"Smoothing for brush/eraser": "Сглаживание для кисти/ластика",
 	"Palette": "Палитра",
 	"Default": "По умолчанию",
-	"Vintage": "Винтаж"
+	"Vintage": "Винтаж",
+	"4bit": "4бит",
+	"Brush smoothing quality": "Качество сглаживания кисти",
+	"Brush smoothing factor (weight)": "Коэффициент сглаживания кисти (вес)"
 }

@@ -57,6 +57,7 @@ pip install customtkinter Pillow
 + **View**: Zoom in, zoom out, reset zoom.
 + **Change size**: You can change the size by cropping or scaling.
 + **Palettes**: There are 3 built-in palette sets in the settings, and if there are not enough of them, you can load your own from .hex files.
++ **Brush smoothing**: Brush smoothing with params.
 
 ## Hotkeys
 + *Ctrl+Z*: undo

@@ -98,5 +98,8 @@
 	"Smoothing for brush/eraser": "Згладжування для пензля/ластика",
 	"Palette" :"Палітра",
 	"Default": "За замовчанням",
-	"Vintage": "Вінтаж"
+	"Vintage": "Вінтаж",
+	"4bit": "4біт",
+	"Brush smoothing quality": "Якість згладжування пензля",
+	"Brush smoothing factor (weight)": "Коефіцієнт згладжування пензля (вага)"
 }

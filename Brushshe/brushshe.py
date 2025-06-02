@@ -1903,7 +1903,7 @@ class Brushshe(ctk.CTk):
         settings_tl.title(_("Settings"))
         settings_tl.transient(self)
 
-        settings_frame = ctk.CTkScrollableFrame(settings_tl)
+        settings_frame = ctk.CTkScrollableFrame(settings_tl, fg_color="transparent")
         settings_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
         theme_frame = ctk.CTkFrame(settings_frame)
@@ -1943,9 +1943,9 @@ class Brushshe(ctk.CTk):
             onvalue=True,
             offvalue=False,
             command=smooth_switch_event,
-        ).pack(padx=10, pady=1)
+        ).pack(padx=10, pady=10)
 
-        ctk.CTkLabel(smooth_frame, text=_("Brush smoothing quality")).pack(padx=10, pady=1)
+        ctk.CTkLabel(smooth_frame, text=_("Brush smoothing quality")).pack(padx=10, pady=10)
         brush_smoothing_quality_var = ctk.IntVar(value=self.brush_smoothing_quality)
         ctk.CTkSlider(
             smooth_frame,
@@ -1953,7 +1953,7 @@ class Brushshe(ctk.CTk):
             command=brush_smoothing_quality_event,
             from_=1,
             to=64,
-        ).pack(padx=10, pady=1)
+        ).pack(padx=10, pady=10)
 
         ctk.CTkLabel(smooth_frame, text=_("Brush smoothing factor (weight)")).pack(padx=10, pady=1)
         brush_smoothing_factor_var = ctk.IntVar(value=self.brush_smoothing_factor)
@@ -1963,7 +1963,7 @@ class Brushshe(ctk.CTk):
             command=brush_smoothing_factor_event,
             from_=3,
             to=64,
-        ).pack(padx=10, pady=1)
+        ).pack(padx=10, pady=10)
 
         palette_frame = ctk.CTkFrame(settings_frame)
         palette_frame.pack(padx=10, pady=10, fill="x")
