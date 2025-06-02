@@ -94,5 +94,8 @@
 	"Import palette (hex)": "Импортировать палитру (hex)",
 	"Reset palette to default": "Сбросить палитру до значений по умолчанию",
 	"Import palette from .hex file": "Импортировать палитру из .hex файла",
-	"Smoothing for brush/eraser": "Сглаживание для кисти/ластика"
+	"Smoothing for brush/eraser": "Сглаживание для кисти/ластика",
+	"Palette": "Палитра",
+	"Default": "По умолчанию",
+	"Vintage": "Винтаж"
 }

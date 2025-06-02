@@ -95,5 +95,8 @@
 	"Import palette (hex)": "Імпортувати палітру (hex)",
 	"Reset palette to default": "Скинути палітру до стандартної",
 	"Import palette from .hex file": "Імпортувати палітру з .hex файлу",
-	"Smoothing for brush/eraser": "Згладжування для пензля/ластика"
+	"Smoothing for brush/eraser": "Згладжування для пензля/ластика",
+	"Palette" :"Палітра",
+	"Default": "За замовчанням",
+	"Vintage": "Вінтаж"
 }

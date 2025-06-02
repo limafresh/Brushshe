@@ -182,8 +182,8 @@ class Brushshe(ctk.CTk):
         # Width and height of all icons - 512 px
 
         tools_dict = {
-            "Brush": self.brush,
-            "Eraser": self.eraser,
+            "Brush (B)": self.brush,
+            "Eraser (E)": self.eraser,
             "Fill": self.start_fill,
             "Recoloring Brush": self.recoloring_brush,
             "Spray": self.spray,
@@ -281,6 +281,7 @@ class Brushshe(ctk.CTk):
         self.font_size = 24
         self.zoom = 1
         self.is_brush_smoothing = False
+        self.current_palette = "default"
 
         self.update()  # update interface before calculate picture size
         self.new_picture(self.bg_color, first_time=True)
@@ -1426,7 +1427,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=_("About program"),
-            message=about_text + "v1.18.0",
+            message=about_text + "v1.19.0",
             icon=resource("icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
@@ -1887,8 +1888,12 @@ class Brushshe(ctk.CTk):
         def smooth_switch_event():
             self.is_brush_smoothing = smooth_var.get()
 
+        def palette_radiobutton_callback():
+            self.import_palette(resource(f"assets/palettes/{palette_var.get()}_palette.hex"))
+            self.current_palette = palette_var.get()
+
         settings_tl = ctk.CTkToplevel(self)
-        settings_tl.geometry("400x500")
+        settings_tl.geometry("400x650")
         settings_tl.title(_("Settings"))
         settings_tl.transient(self)
 
@@ -1934,19 +1939,39 @@ class Brushshe(ctk.CTk):
             command=smooth_switch_event,
         ).pack(padx=10, pady=10)
 
-    def import_palette(self):
-        dialog = FileDialog(
-            self,
-            title=_("Import palette from .hex file"),
-        )
+        palette_frame = ctk.CTkFrame(settings_frame)
+        palette_frame.pack(padx=10, pady=10, fill="x")
 
-        if dialog.path is None or dialog.path == "":
-            return
+        ctk.CTkLabel(palette_frame, text=_("Palette")).pack(padx=10, pady=10)
+
+        palette_var = ctk.StringVar(value=self.current_palette)
+        for palette_name in ["4bit", "default", "vintage"]:
+            ctk.CTkRadioButton(
+                palette_frame,
+                text=_(palette_name.capitalize()),
+                variable=palette_var,
+                value=palette_name,
+                command=palette_radiobutton_callback,
+            ).pack(padx=10, pady=10)
+
+    def import_palette(self, value=None):
+        if value is None:
+            dialog = FileDialog(
+                self,
+                title=_("Import palette from .hex file"),
+            )
+
+            if dialog.path is None or dialog.path == "":
+                return
+
+            palette_path = dialog.path
+        else:
+            palette_path = value
 
         colors = []
 
         try:
-            with open(dialog.path) as f:
+            with open(palette_path) as f:
                 lines = f.readlines()
                 for line in lines:
                     if len(line) == 0:
