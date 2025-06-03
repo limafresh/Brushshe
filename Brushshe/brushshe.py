@@ -230,7 +230,17 @@ class Brushshe(ctk.CTk):
         self.canvas_frame.pack_propagate(False)
         self.canvas_frame.pack(fill=ctk.BOTH, expand=True)
 
-        self.v_scrollbar = ctk.CTkScrollbar(self.canvas_frame, orientation="vertical")
+        self.canvas_frame_rb = ctk.CTkFrame(self.canvas_frame, fg_color="transparent")
+        self.canvas_frame_rb.pack(side=ctk.RIGHT, fill=ctk.Y)
+        self.canvas_frame_rb_down = ctk.CTkFrame(
+            self.canvas_frame_rb,
+            width=16,
+            height=16,
+            bg_color="transparent"
+        )
+        self.canvas_frame_rb_down.pack(side=ctk.BOTTOM)
+
+        self.v_scrollbar = ctk.CTkScrollbar(self.canvas_frame_rb, orientation="vertical")
         self.v_scrollbar.pack(side=ctk.RIGHT, fill=ctk.Y)
 
         self.h_scrollbar = ctk.CTkScrollbar(self.canvas_frame, orientation="horizontal")
@@ -239,7 +249,7 @@ class Brushshe(ctk.CTk):
         self.canvas = ctk.CTkCanvas(
             self.canvas_frame, yscrollcommand=self.v_scrollbar.set, xscrollcommand=self.h_scrollbar.set
         )
-        self.canvas.pack(anchor="nw")  # As in most drawing programs
+        self.canvas.pack(anchor="center", expand=True)  # As in most drawing programs
 
         self.v_scrollbar.configure(command=self.v_scrollbar_command)
         self.h_scrollbar.configure(command=self.h_scrollbar_command)
@@ -576,8 +586,9 @@ class Brushshe(ctk.CTk):
         if self.zoom == 1:
             canvas_image = self.image
         elif self.zoom < 1:
+            # https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-filters
             canvas_image = self.image.resize(
-                (int(self.image.width * self.zoom), int(self.image.height * self.zoom)), Image.NEAREST
+                (int(self.image.width * self.zoom), int(self.image.height * self.zoom)), Image.BOX
             )
         else:  # self.zoom > 1:
             # It can be used for zoom == 1 with some corrected on other places.
