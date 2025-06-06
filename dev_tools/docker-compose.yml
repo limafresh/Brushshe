@@ -13,4 +13,5 @@ services:
     #command: ["bash"]
     command: ["python3", "./brushshe.py"]
     network_mode: none
+    # privileged: true      # It needs for access to /dev/input/events* (but not enough for the tablet work)
 
