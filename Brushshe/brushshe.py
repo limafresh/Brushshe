@@ -16,6 +16,7 @@ import translator
 from brush_palette import BrushPalette
 from color_picker import AskColor
 from core.bezier import make_bezier
+from core.bhbrush import bh_draw_line, bh_draw_recoloring_line
 from core.bhhistory import BhHistory, BhPoint
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
@@ -526,38 +527,7 @@ class Brushshe(ctk.CTk):
             # For shape, etc.
             color = self.brush_color
 
-        dx = abs(x2 - x1)
-        dy = abs(y2 - y1)
-        sx = 1 if x1 < x2 else -1
-        sy = 1 if y1 < y2 else -1
-        err = dx - dy
-
-        while True:
-            # Better variant for pixel compatible.
-            if self.tool_size <= 1:
-                self.draw.point([x1, y1], fill=color)
-            else:
-                self.draw.ellipse(
-                    [
-                        x1 - (self.tool_size - 1) // 2,
-                        y1 - (self.tool_size - 1) // 2,
-                        x1 + self.tool_size // 2,
-                        y1 + self.tool_size // 2,
-                    ],
-                    fill=color,
-                    outline=color,
-                )
-
-            if abs(x1 - x2) < 1 and abs(y1 - y2) < 1:
-                break
-
-            e2 = err * 2
-            if e2 > -dy:
-                err -= dy
-                x1 += sx
-            if e2 < dx:
-                err += dx
-                y1 += sy
+        bh_draw_line(self.draw, x1, y1, x2, y2, color, self.tool_size)
 
     def update_canvas(self):
         # Debug
@@ -1141,96 +1111,19 @@ class Brushshe(ctk.CTk):
             draw_brush_halo(x, y)
 
         def draw_recoloring_brush(x1, y1, x2, y2):
-            color = ImageColor.getrgb(self.brush_color)
+            color_to = ImageColor.getrgb(self.brush_color)
             color_from = ImageColor.getrgb(self.second_brush_color)
 
-            d1 = (self.tool_size - 1) // 2
-            d2 = self.tool_size // 2
-            # dd = (d2 - d1) / 2
-            max_x = self.image.width
-            max_y = self.image.height
-
-            x = x1
-            y = y1
-            dx = abs(x2 - x1)
-            dy = abs(y2 - y1)
-            sx = 1 if x1 < x2 else -1
-            sy = 1 if y1 < y2 else -1
-            err = dx - dy
-
-            # It's for circuit brush, but it work too slow.
-            # ((ii - x - dd) ** 2 + (jj - y - dd) ** 2 < ((d1 + d2 + .5)/2) ** 2
-
-            # buffer = set()
-            is_line = False
-
-            while True:
-                if self.tool_size <= 1:
-                    if self.image.getpixel((x, y)) == color_from:
-                        self.draw.point([x, y], fill=color)
-                else:
-                    if is_line is False:
-                        for ii in range(int(x - d1), int(x + d2 + 1)):
-                            for jj in range(int(y - d1), int(y + d2 + 1)):
-                                if (
-                                    ii >= 0
-                                    and ii < max_x
-                                    and jj >= 0
-                                    and jj < max_y
-                                    and self.image.getpixel((ii, jj)) == color_from
-                                ):
-                                    self.image.putpixel((ii, jj), color)
-                                    # buffer.add((ii, jj))
-                    else:
-                        # Now we can check firsts or lasts lines only.
-
-                        # Checking horizontal movement.
-                        if sx > 0:
-                            ii = int(x + d2)
-                        else:
-                            ii = int(x - d1)
-
-                        for jj in range(int(y - d1), int(y + d2 + 1)):
-                            if (
-                                ii >= 0
-                                and ii < max_x
-                                and jj >= 0
-                                and jj < max_y
-                                and self.image.getpixel((ii, jj)) == color_from
-                            ):
-                                self.image.putpixel((ii, jj), color)
-                                # buffer.add((ii, jj))
-
-                        # Checking vertical movement.
-                        if sy > 0:
-                            jj = int(y + d2)
-                        else:
-                            jj = int(y - d1)
-
-                        for ii in range(int(x - d1), int(x + d2 + 1)):
-                            if (
-                                ii >= 0
-                                and ii < max_x
-                                and jj >= 0
-                                and jj < max_y
-                                and self.image.getpixel((ii, jj)) == color_from
-                            ):
-                                self.image.putpixel((ii, jj), color)
-                                # buffer.add((ii, jj))
-
-                if abs(x - x2) < 1 and abs(y - y2) < 1:
-                    # self.draw.point([*buffer], fill=color)
-                    break
-
-                e2 = err * 2
-                if e2 > -dy:
-                    err -= dy
-                    x += sx
-                if e2 < dx:
-                    err += dx
-                    y += sy
-
-                is_line = True
+            bh_draw_recoloring_line(
+                self.image,
+                x1,
+                y1,
+                x2,
+                y2,
+                color_from,
+                color_to,
+                self.tool_size
+            )
 
         def draw_brush_halo(x, y):
             self.canvas.delete("tools")
