@@ -174,7 +174,7 @@ class Brushshe(ctk.CTk):
         other_dropdown.add_option(option=_("Settings"), command=self.settings)
         other_dropdown.add_option(option=_("About program"), command=self.about_program)
 
-        """Toolbar"""
+        """Top Bar"""
         tools_frame = ctk.CTkFrame(self)
         tools_frame.pack(side=ctk.TOP, fill=ctk.X, padx=5, pady=5)
         # tools_frame.configure(fg_color="transparent")
@@ -182,41 +182,84 @@ class Brushshe(ctk.CTk):
         # Brush size used to paint all the icons in the toolbar: 50
         # Width and height of all icons - 512 px
 
-        tools_dict = {
-            "Brush (B)": self.brush,
-            "Eraser (E)": self.eraser,
-            "Fill": self.start_fill,
-            "Recoloring Brush": self.recoloring_brush,
-            "Spray": self.spray,
-            "Undo (Ctrl+Z)": self.undo,
-            "Redo (Ctrl+Y)": self.redo,
-        }
+        tools_dict = [
+            {
+                "type": "button",
+                "name": _("New"),
+                "helper": _("New"),
+                "action": self.new_picture,  # TODO: Add dialog.
+                "icon_name": "new"
+            },
+            {
+                "type": "button",
+                "name": _("Open"),
+                "helper": _("Open"),
+                "action": self.open_from_file,
+                "icon_name": "open"
+            },
+            {
+                "type": "button",
+                "name": _("Save"),
+                "helper": _("Save") + " (Ctrl+S)",
+                "action": self.save_to_device,
+                "icon_name": "save"
+            },
+            # {"type": "separator"},
+            {
+                "type": "button",
+                "name": _("Undo"),
+                "helper": _("Undo") + " (Z)",
+                "action": self.undo,
+                "icon_name": "undo"
+            },
+            {
+                "type": "button",
+                "name": _("Redo"),
+                "helper": _("Redo") + " (Y)",
+                "action": self.redo,
+                "icon_name": "redo"
+            },
+        ]
 
-        for tool_name, tool_command in tools_dict.items():
-            tool_icon_name = tool_name.lower().replace(" ", "_").split("_(")[0]
-            tool_icon = ctk.CTkImage(
-                light_image=Image.open(resource(f"icons/{tool_icon_name}_light.png")),
-                dark_image=Image.open(resource(f"icons/{tool_icon_name}_dark.png")),
-                size=(22, 22),
-            )
-            if tool_name not in ["Undo (Ctrl+Z)", "Redo (Ctrl+Y)"]:
-                tool_button = ctk.CTkButton(tools_frame, text=None, width=30, image=tool_icon, command=tool_command)
-            else:
-                tool_button = ctk.CTkButton(
+        for tool in tools_dict:
+            if tool["type"] == "separator":
+                s = ctk.CTkFrame(
                     tools_frame,
-                    text=None,
-                    width=30,
-                    image=tool_icon,
-                    fg_color=tools_frame.cget("fg_color"),
-                    hover=False,
-                    command=tool_command,
+                    width=2,
+                    height=30,
                 )
+                s.pack(side=ctk.LEFT, padx=4)
+                continue
+
+            tool_helper = tool["helper"]
+            tool_command = tool["action"]
+            tool_icon_name = tool["icon_name"]
+
+            try:
+                tool_icon = ctk.CTkImage(
+                    light_image=Image.open(resource(f"icons/{tool_icon_name}_light.png")),
+                    dark_image=Image.open(resource(f"icons/{tool_icon_name}_dark.png")),
+                    size=(22, 22),
+                )
+            except Exception:
+                # tool_icon = None
+                tool_icon = ctk.CTkImage(
+                    light_image=Image.open(resource("icons/not_found_light.png")),
+                    dark_image=Image.open(resource("icons/not_found_dark.png")),
+                    size=(22, 22),
+                )
+
+            tool_button = ctk.CTkButton(
+                tools_frame,
+                text=None,
+                width=30,
+                image=tool_icon,
+                fg_color=tools_frame.cget("fg_color"),
+                hover=False,
+                command=tool_command,
+            )
             tool_button.pack(side=ctk.LEFT, padx=1)
-            if "(" in tool_name:
-                tooltip_message = _(tool_name.split(" (")[0]) + " (" + tool_name.split("(", 1)[-1]
-            else:
-                tooltip_message = _(tool_name.split(" (")[0])
-            Tooltip(tool_button, message=tooltip_message)
+            Tooltip(tool_button, message=tool_helper)
 
         self.tool_config_docker = ctk.CTkFrame(tools_frame)
         self.tool_config_docker.pack(side=ctk.LEFT, padx=5)
@@ -226,19 +269,124 @@ class Brushshe(ctk.CTk):
         save_to_gallery_btn.pack(side=ctk.RIGHT)
         Tooltip(save_to_gallery_btn, message=_("Save to gallery") + " (Ctrl+S)")
 
-        """Canvas"""
         self.canvas_frame = ctk.CTkFrame(self)
         self.canvas_frame.pack_propagate(False)
         self.canvas_frame.pack(fill=ctk.BOTH, expand=True)
 
+        self.canvas_frame_lb = ctk.CTkFrame(self.canvas_frame, fg_color="transparent", width=30)
+        self.canvas_frame_lb.pack(side=ctk.LEFT, fill=ctk.Y, padx=5)
+
         self.canvas_frame_rb = ctk.CTkFrame(self.canvas_frame, fg_color="transparent")
         self.canvas_frame_rb.pack(side=ctk.RIGHT, fill=ctk.Y)
+
         self.canvas_frame_rb_down = ctk.CTkFrame(
             self.canvas_frame_rb,
             width=16,
             height=16,
             bg_color="transparent"
         )
+
+        """Tools (Left) Bar"""
+        tools_list = [
+            {
+                "type": "button",
+                "name": _("Cut"),
+                "helper": _("Cut") + " (Ctrl+X)",
+                "action": None,
+                "icon_name": "cut"
+            },
+            {
+                "type": "button",
+                "name": _("Copy"),
+                "helper": _("Copy") + " (Ctrl+C)",
+                "action": None,
+                "icon_name": "copy"
+            },
+            {
+                "type": "button",
+                "name": _("Insert"),
+                "helper": _("Insert") + " (Ctrl+V)",
+                "action": None,
+                "icon_name": "insert"
+            },
+            # {"type": "separator"},
+            {
+                "type": "button",
+                "name": _("Brush"),
+                "helper": _("Brush") + " (B)",
+                "action": self.brush,
+                "icon_name": "brush"
+            },
+            {
+                "type": "button",
+                "name": _("Eraser"),
+                "helper": _("Eraser") + " (E)",
+                "action": self.eraser,
+                "icon_name": "eraser"
+            },
+            {
+                "type": "button",
+                "name": _("Fill"),
+                "helper": _("Fill"),
+                "action": self.start_fill,
+                "icon_name": "fill"
+            },
+            {
+                "type": "button",
+                "name": _("Recoloring Brush"),
+                "helper": _("Recoloring Brush"),
+                "action": self.recoloring_brush,
+                "icon_name": "recoloring_brush"
+            },
+            {
+                "type": "button",
+                "name": _("Spray"),
+                "helper": _("Spray"),
+                "action": self.spray,
+                "icon_name": "spray"
+            },
+        ]
+
+        for tool in tools_list:
+            if tool["type"] == "separator":
+                s = ctk.CTkFrame(
+                    self.canvas_frame_lb,
+                    width=30,
+                    height=2,
+                )
+                s.pack(side=ctk.TOP, pady=4)
+                continue
+
+            tool_helper = tool["helper"]
+            tool_command = tool["action"]
+            tool_icon_name = tool["icon_name"]
+
+            try:
+                tool_icon = ctk.CTkImage(
+                    light_image=Image.open(resource(f"icons/{tool_icon_name}_light.png")),
+                    dark_image=Image.open(resource(f"icons/{tool_icon_name}_dark.png")),
+                    size=(22, 22),
+                )
+            except Exception:
+                # tool_icon = None
+                tool_icon = ctk.CTkImage(
+                    light_image=Image.open(resource("icons/not_found_light.png")),
+                    dark_image=Image.open(resource("icons/not_found_dark.png")),
+                    size=(22, 22),
+                )
+
+            tool_button = ctk.CTkButton(
+                self.canvas_frame_lb,
+                text=None,
+                width=30,
+                height=30,
+                image=tool_icon,
+                command=tool_command
+            )
+            tool_button.pack(side=ctk.TOP, pady=1)
+            Tooltip(tool_button, message=tool_helper)
+
+        """Canvas"""
         self.canvas_frame_rb_down.pack(side=ctk.BOTTOM)
 
         self.v_scrollbar = ctk.CTkScrollbar(self.canvas_frame_rb, orientation="vertical")
@@ -1349,7 +1497,7 @@ class Brushshe(ctk.CTk):
         if about_msg.get() == "GitHub":
             webbrowser.open(r"https://github.com/limafresh/Brushshe")
 
-    def new_picture(self, color, first_time=False):
+    def new_picture(self, color="#FFFFFF", first_time=False):
         self.canvas.delete("tools")
         self.bg_color = color
 
