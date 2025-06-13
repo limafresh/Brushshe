@@ -186,21 +186,21 @@ class Brushshe(ctk.CTk):
             {
                 "type": "button",
                 "name": _("New"),
-                "helper": _("New"),
+                "helper": _("New") + " (Ctrl+N)",
                 "action": self.new_picture,  # TODO: Add dialog.
                 "icon_name": "new"
             },
             {
                 "type": "button",
                 "name": _("Open"),
-                "helper": _("Open"),
+                "helper": _("Open") + " (Ctrl+O)",
                 "action": self.open_from_file,
                 "icon_name": "open"
             },
             {
                 "type": "button",
                 "name": _("Save"),
-                "helper": _("Save") + " (Ctrl+S)",
+                "helper": _("Save to device"),  # + " (Ctrl+S)"
                 "action": self.save_to_device,
                 "icon_name": "save"
             },
@@ -290,28 +290,6 @@ class Brushshe(ctk.CTk):
         tools_list = [
             {
                 "type": "button",
-                "name": _("Cut"),
-                "helper": _("Cut") + " (Ctrl+X)",
-                "action": None,
-                "icon_name": "cut"
-            },
-            {
-                "type": "button",
-                "name": _("Copy"),
-                "helper": _("Copy") + " (Ctrl+C)",
-                "action": None,
-                "icon_name": "copy"
-            },
-            {
-                "type": "button",
-                "name": _("Insert"),
-                "helper": _("Insert") + " (Ctrl+V)",
-                "action": None,
-                "icon_name": "insert"
-            },
-            # {"type": "separator"},
-            {
-                "type": "button",
                 "name": _("Brush"),
                 "helper": _("Brush") + " (B)",
                 "action": self.brush,
@@ -344,6 +322,28 @@ class Brushshe(ctk.CTk):
                 "helper": _("Spray"),
                 "action": self.spray,
                 "icon_name": "spray"
+            },
+            {"type": "separator"},
+            {
+                "type": "button",
+                "name": _("Cut"),
+                "helper": _("Cut") + " (Ctrl+X)",
+                "action": None,
+                "icon_name": "cut"
+            },
+            {
+                "type": "button",
+                "name": _("Copy"),
+                "helper": _("Copy") + " (Ctrl+C)",
+                "action": None,
+                "icon_name": "copy"
+            },
+            {
+                "type": "button",
+                "name": _("Insert"),
+                "helper": _("Insert") + " (Ctrl+V)",
+                "action": None,
+                "icon_name": "insert"
             },
         ]
 
@@ -1421,19 +1421,36 @@ class Brushshe(ctk.CTk):
         gallery_frame.pack(padx=10, pady=10)
 
         def load_buttons():
+            preview_size = 160
             try:
                 row = 0
                 column = 0
                 is_image_found = False
 
-                for filename in os.listdir(self.gallery_folder):
-                    if filename.endswith(".png"):
+                gallery_file_list = sorted(Path(self.gallery_folder).iterdir(), key=os.path.getmtime, reverse=True)
+
+                for filename in gallery_file_list:
+                    if filename.suffix == ".png":
                         is_image_found = True
-                        img_path = self.gallery_folder / filename
+                        img_path = str(filename)
+
+                        image_tmp = Image.open(img_path)
+                        rate = image_tmp.width / image_tmp.height
+                        max_wh = max(image_tmp.width, image_tmp.height)
+                        if max_wh > preview_size:
+                            max_wh = preview_size
+                        if rate > 1:
+                            w = int(max_wh)
+                            h = int(max_wh / rate)
+                        else:
+                            h = int(max_wh)
+                            w = int(max_wh * rate)
 
                         image_button = ctk.CTkButton(
                             gallery_frame,
-                            image=ctk.CTkImage(Image.open(img_path), size=(250, 250)),
+                            image=ctk.CTkImage(image_tmp, size=(w, h)),
+                            width=preview_size + 10,
+                            height=preview_size + 10,
                             text=None,
                             command=lambda img_path=img_path: self.open_image(img_path),
                         )
@@ -1451,7 +1468,7 @@ class Brushshe(ctk.CTk):
                         Tooltip(delete_image_button, message=_("Delete"))
 
                         column += 1
-                        if column == 2:
+                        if column >= 3:
                             column = 0
                             row += 1
 
@@ -1460,8 +1477,8 @@ class Brushshe(ctk.CTk):
 
                 if not is_image_found:
                     gallery_scrollable_frame.configure(label_text=_("My gallery (empty)"))
-            except Exception:
-                pass
+            except Exception as e:
+                print(e)
 
         Thread(target=load_buttons, daemon=True).start()
 
