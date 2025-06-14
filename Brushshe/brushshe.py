@@ -1422,11 +1422,11 @@ class Brushshe(ctk.CTk):
 
         def load_buttons():
             preview_size = 160
+            row = 0
+            column = 0
+            is_image_found = False
+            
             try:
-                row = 0
-                column = 0
-                is_image_found = False
-
                 gallery_file_list = sorted(Path(self.gallery_folder).iterdir(), key=os.path.getmtime, reverse=True)
 
                 for filename in gallery_file_list:
@@ -1446,9 +1446,12 @@ class Brushshe(ctk.CTk):
                             h = int(max_wh)
                             w = int(max_wh * rate)
 
+                        image_tmp_2 = image_tmp.resize((w, h), Image.BOX)
+                        del image_tmp
+
                         image_button = ctk.CTkButton(
                             gallery_frame,
-                            image=ctk.CTkImage(image_tmp, size=(w, h)),
+                            image=ctk.CTkImage(image_tmp_2, size=(w, h)),
                             width=preview_size + 10,
                             height=preview_size + 10,
                             text=None,
@@ -1458,7 +1461,7 @@ class Brushshe(ctk.CTk):
 
                         delete_image_button = ctk.CTkButton(
                             image_button,
-                            text="x",
+                            text="X",
                             fg_color="red",
                             text_color="white",
                             width=30,
