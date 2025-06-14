@@ -327,21 +327,21 @@ class Brushshe(ctk.CTk):
             {
                 "type": "button",
                 "name": _("Cut"),
-                "helper": _("Cut") + " (Ctrl+X)",
-                "action": None,
+                "helper": _("Cut"),  # + " (Ctrl+X)",
+                "action": lambda: self.copy_simple(deleted=True),
                 "icon_name": "cut"
             },
             {
                 "type": "button",
                 "name": _("Copy"),
-                "helper": _("Copy") + " (Ctrl+C)",
-                "action": None,
+                "helper": _("Copy"),  # + " (Ctrl+C)",
+                "action": lambda: self.copy_simple(),
                 "icon_name": "copy"
             },
             {
                 "type": "button",
                 "name": _("Insert"),
-                "helper": _("Insert") + " (Ctrl+V)",
+                "helper": _("Insert"),  # + " (Ctrl+V)",
                 "action": None,
                 "icon_name": "insert"
             },
@@ -1307,6 +1307,113 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<Motion>", move)
         self.canvas.bind("<Leave>", leave)
 
+    def copy_simple(self, deleted=False):
+        if deleted is False:
+            self.set_tool("copy", "Copy", None, None, None, "cross")
+        else:
+            self.set_tool("cut", "Cut", None, None, None, "cross")
+
+        x_begin = None
+        y_begin = None
+        x_end = None
+        y_end = None
+
+        def selecting(event):
+            nonlocal x_begin, y_begin, x_end, y_end
+
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+
+            if x_begin is None or y_begin is None:
+                x_begin = x
+                y_begin = y
+
+            x_end = x
+            y_end = y
+
+            x_max = self.image.width - 1
+            y_max = self.image.height - 1
+
+            if x_begin < 0:
+                x_begin = 0
+            if x_begin > x_max:
+                x_begin = x_max
+            if y_begin < 0:
+                y_begin = 0
+            if y_begin > y_max:
+                y_begin = y_max
+            if x_end < 0:
+                x_end = 0
+            if x_end > x_max:
+                x_end = x_max
+            if y_end < 0:
+                y_end = 0
+            if y_end > y_max:
+                y_end = y_max
+
+            x1 = min(x_begin, x_end)
+            x2 = max(x_begin, x_end)
+            y1 = min(y_begin, y_end)
+            y2 = max(y_begin, y_end)
+
+            draw_tool(x1, y1, x2, y2)
+
+        def select_end(event):
+            nonlocal x_begin, y_begin, x_end, y_end
+
+            if x_begin is None or y_begin is None:
+                return
+
+            x1 = min(x_begin, x_end)
+            x2 = max(x_begin, x_end)
+            y1 = min(y_begin, y_end)
+            y2 = max(y_begin, y_end)
+
+            self.canvas.delete("tools")
+
+            x_begin = None
+            y_begin = None
+            x_end = None
+            y_end = None
+
+            self.buffer_local = self.image.crop((x1, y1, x2, y2))
+
+            if deleted is not False:
+                ImageDraw.Draw(self.image).rectangle(
+                    (x1, y1, x2, y2),
+                    fill=self.bg_color,
+                    outline=self.bg_color,
+                )
+                self.undo_stack.append(self.image.copy())  # Need only for cut.
+
+            self.update_canvas()
+
+        def draw_tool(x1, y1, x2, y2):
+            self.canvas.delete("tools")
+
+            self.canvas.create_rectangle(
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
+                outline="white",
+                width=1,
+                tag="tools",
+            )
+            self.canvas.create_rectangle(
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
+                outline="black",
+                width=1,
+                tag="tools",
+                dash=(5, 5),
+            )
+
+        self.canvas.bind("<Button-1>", selecting)
+        self.canvas.bind("<B1-Motion>", selecting)
+        self.canvas.bind("<ButtonRelease-1>", select_end)
+
     def effects(self):
         def post_actions():
             self.update_canvas()
@@ -1425,7 +1532,7 @@ class Brushshe(ctk.CTk):
             row = 0
             column = 0
             is_image_found = False
-            
+
             try:
                 gallery_file_list = sorted(Path(self.gallery_folder).iterdir(), key=os.path.getmtime, reverse=True)
 
