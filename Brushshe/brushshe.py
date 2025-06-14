@@ -342,7 +342,7 @@ class Brushshe(ctk.CTk):
                 "type": "button",
                 "name": _("Insert"),
                 "helper": _("Insert"),  # + " (Ctrl+V)",
-                "action": None,
+                "action": self.insert_simple,
                 "icon_name": "insert"
             },
         ]
@@ -1375,7 +1375,9 @@ class Brushshe(ctk.CTk):
             x_end = None
             y_end = None
 
-            self.buffer_local = self.image.crop((x1, y1, x2, y2))
+            # INFO: Float. From begin first pixel to end last pixel (begin last+1 pixel).
+            #       One first pixel look like (0, 0, 1, 1).
+            self.buffer_local = self.image.crop((x1, y1, x2 + 1, y2 + 1))
 
             if deleted is not False:
                 ImageDraw.Draw(self.image).rectangle(
@@ -1413,6 +1415,90 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<Button-1>", selecting)
         self.canvas.bind("<B1-Motion>", selecting)
         self.canvas.bind("<ButtonRelease-1>", select_end)
+
+    def insert_simple(self):
+
+        if hasattr(self, "buffer_local") is False or self.buffer_local is None:
+            return
+
+        self.set_tool("insert", "Insert", None, None, None, "cross")
+
+        image_tmp = self.buffer_local
+        current_zoom = None
+        image_tmp_view = None
+        image_tk = None
+        x1, y1 = None, None
+
+        def move(event):
+            nonlocal image_tmp, image_tmp_view, image_tk, current_zoom, x1, y1
+
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+
+            it_width = image_tmp.width
+            it_height = image_tmp.height
+            x1 = int(x - (it_width - 1) / 2)
+            y1 = int(y - (it_height - 1) / 2)
+            x2 = int(x1 + it_width - 1)
+            y2 = int(y1 + it_height - 1)
+
+            if current_zoom != self.zoom or image_tmp_view is None:
+                image_tmp_view = image_tmp.resize(
+                    (int(it_width * self.zoom), int(it_height * self.zoom)), Image.BOX
+                )
+                image_tk = ImageTk.PhotoImage(image_tmp_view)
+                current_zoom = self.zoom
+
+            draw_tool(x1, y1, x2, y2)
+
+        def insert_end(event):
+            nonlocal image_tmp, x1, y1
+
+            self.image.paste(image_tmp, (x1, y1))
+
+            self.update_canvas()
+            self.undo_stack.append(self.image.copy())
+
+        def leave(event):
+            self.canvas.delete("tools")
+
+        def draw_tool(x1, y1, x2, y2):
+            nonlocal image_tk
+
+            self.canvas.delete("tools")
+
+            self.canvas.create_image(
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                image=image_tk,
+                tag="tools",
+                anchor="nw",
+            )
+
+            self.canvas.create_rectangle(
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
+                outline="white",
+                width=1,
+                tag="tools",
+            )
+            self.canvas.create_rectangle(
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
+                outline="black",
+                width=1,
+                tag="tools",
+                dash=(5, 5),
+            )
+
+        # self.canvas.bind("<Button-1>", inserting)
+        # self.canvas.bind("<B1-Motion>", inserting)
+        self.canvas.bind("<ButtonRelease-1>", insert_end)
+        self.canvas.bind("<Motion>", move)
+        self.canvas.bind("<Leave>", leave)
 
     def effects(self):
         def post_actions():
