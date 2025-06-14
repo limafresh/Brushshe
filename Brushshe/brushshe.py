@@ -16,6 +16,7 @@ import translator
 from brush_palette import BrushPalette
 from color_picker import AskColor
 from core.bezier import make_bezier
+from core.bhbrush import bh_draw_line, bh_draw_recoloring_line
 from core.bhhistory import BhHistory, BhPoint
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
@@ -173,7 +174,7 @@ class Brushshe(ctk.CTk):
         other_dropdown.add_option(option=_("Settings"), command=self.settings)
         other_dropdown.add_option(option=_("About program"), command=self.about_program)
 
-        """Toolbar"""
+        """Top Bar"""
         tools_frame = ctk.CTkFrame(self)
         tools_frame.pack(side=ctk.TOP, fill=ctk.X, padx=5, pady=5)
         # tools_frame.configure(fg_color="transparent")
@@ -181,41 +182,84 @@ class Brushshe(ctk.CTk):
         # Brush size used to paint all the icons in the toolbar: 50
         # Width and height of all icons - 512 px
 
-        tools_dict = {
-            "Brush (B)": self.brush,
-            "Eraser (E)": self.eraser,
-            "Fill": self.start_fill,
-            "Recoloring Brush": self.recoloring_brush,
-            "Spray": self.spray,
-            "Undo (Ctrl+Z)": self.undo,
-            "Redo (Ctrl+Y)": self.redo,
-        }
+        tools_dict = [
+            {
+                "type": "button",
+                "name": _("New"),
+                "helper": _("New") + " (Ctrl+N)",
+                "action": self.new_picture,  # TODO: Add dialog.
+                "icon_name": "new"
+            },
+            {
+                "type": "button",
+                "name": _("Open"),
+                "helper": _("Open") + " (Ctrl+O)",
+                "action": self.open_from_file,
+                "icon_name": "open"
+            },
+            {
+                "type": "button",
+                "name": _("Save"),
+                "helper": _("Save to device"),  # + " (Ctrl+S)"
+                "action": self.save_to_device,
+                "icon_name": "save"
+            },
+            # {"type": "separator"},
+            {
+                "type": "button",
+                "name": _("Undo"),
+                "helper": _("Undo") + " (Z)",
+                "action": self.undo,
+                "icon_name": "undo"
+            },
+            {
+                "type": "button",
+                "name": _("Redo"),
+                "helper": _("Redo") + " (Y)",
+                "action": self.redo,
+                "icon_name": "redo"
+            },
+        ]
 
-        for tool_name, tool_command in tools_dict.items():
-            tool_icon_name = tool_name.lower().replace(" ", "_").split("_(")[0]
-            tool_icon = ctk.CTkImage(
-                light_image=Image.open(resource(f"icons/{tool_icon_name}_light.png")),
-                dark_image=Image.open(resource(f"icons/{tool_icon_name}_dark.png")),
-                size=(22, 22),
-            )
-            if tool_name not in ["Undo (Ctrl+Z)", "Redo (Ctrl+Y)"]:
-                tool_button = ctk.CTkButton(tools_frame, text=None, width=30, image=tool_icon, command=tool_command)
-            else:
-                tool_button = ctk.CTkButton(
+        for tool in tools_dict:
+            if tool["type"] == "separator":
+                s = ctk.CTkFrame(
                     tools_frame,
-                    text=None,
-                    width=30,
-                    image=tool_icon,
-                    fg_color=tools_frame.cget("fg_color"),
-                    hover=False,
-                    command=tool_command,
+                    width=2,
+                    height=30,
                 )
+                s.pack(side=ctk.LEFT, padx=4)
+                continue
+
+            tool_helper = tool["helper"]
+            tool_command = tool["action"]
+            tool_icon_name = tool["icon_name"]
+
+            try:
+                tool_icon = ctk.CTkImage(
+                    light_image=Image.open(resource(f"icons/{tool_icon_name}_light.png")),
+                    dark_image=Image.open(resource(f"icons/{tool_icon_name}_dark.png")),
+                    size=(22, 22),
+                )
+            except Exception:
+                # tool_icon = None
+                tool_icon = ctk.CTkImage(
+                    light_image=Image.open(resource("icons/not_found_light.png")),
+                    dark_image=Image.open(resource("icons/not_found_dark.png")),
+                    size=(22, 22),
+                )
+
+            tool_button = ctk.CTkButton(
+                tools_frame,
+                text=None,
+                width=30,
+                image=tool_icon,
+                fg_color=tools_frame.cget("fg_color"),
+                hover=False,
+                command=tool_command,
+            )
             tool_button.pack(side=ctk.LEFT, padx=1)
-            if "(" in tool_name:
-                tooltip_message = _(tool_name.split(" (")[0]) + " (" + tool_name.split("(", 1)[-1]
-            else:
-                tooltip_message = _(tool_name.split(" (")[0])
-            Tooltip(tool_button, message=tooltip_message)
+            Tooltip(tool_button, message=tool_helper)
 
         self.tool_config_docker = ctk.CTkFrame(tools_frame)
         self.tool_config_docker.pack(side=ctk.LEFT, padx=5)
@@ -225,19 +269,124 @@ class Brushshe(ctk.CTk):
         save_to_gallery_btn.pack(side=ctk.RIGHT)
         Tooltip(save_to_gallery_btn, message=_("Save to gallery") + " (Ctrl+S)")
 
-        """Canvas"""
         self.canvas_frame = ctk.CTkFrame(self)
         self.canvas_frame.pack_propagate(False)
         self.canvas_frame.pack(fill=ctk.BOTH, expand=True)
 
+        self.canvas_frame_lb = ctk.CTkFrame(self.canvas_frame, fg_color="transparent", width=30)
+        self.canvas_frame_lb.pack(side=ctk.LEFT, fill=ctk.Y, padx=5)
+
         self.canvas_frame_rb = ctk.CTkFrame(self.canvas_frame, fg_color="transparent")
         self.canvas_frame_rb.pack(side=ctk.RIGHT, fill=ctk.Y)
+
         self.canvas_frame_rb_down = ctk.CTkFrame(
             self.canvas_frame_rb,
             width=16,
             height=16,
             bg_color="transparent"
         )
+
+        """Tools (Left) Bar"""
+        tools_list = [
+            {
+                "type": "button",
+                "name": _("Brush"),
+                "helper": _("Brush") + " (B)",
+                "action": self.brush,
+                "icon_name": "brush"
+            },
+            {
+                "type": "button",
+                "name": _("Eraser"),
+                "helper": _("Eraser") + " (E)",
+                "action": self.eraser,
+                "icon_name": "eraser"
+            },
+            {
+                "type": "button",
+                "name": _("Fill"),
+                "helper": _("Fill"),
+                "action": self.start_fill,
+                "icon_name": "fill"
+            },
+            {
+                "type": "button",
+                "name": _("Recoloring Brush"),
+                "helper": _("Recoloring Brush"),
+                "action": self.recoloring_brush,
+                "icon_name": "recoloring_brush"
+            },
+            {
+                "type": "button",
+                "name": _("Spray"),
+                "helper": _("Spray"),
+                "action": self.spray,
+                "icon_name": "spray"
+            },
+            {"type": "separator"},
+            {
+                "type": "button",
+                "name": _("Cut"),
+                "helper": _("Cut"),  # + " (Ctrl+X)",
+                "action": lambda: self.copy_simple(deleted=True),
+                "icon_name": "cut"
+            },
+            {
+                "type": "button",
+                "name": _("Copy"),
+                "helper": _("Copy"),  # + " (Ctrl+C)",
+                "action": lambda: self.copy_simple(),
+                "icon_name": "copy"
+            },
+            {
+                "type": "button",
+                "name": _("Insert"),
+                "helper": _("Insert"),  # + " (Ctrl+V)",
+                "action": self.insert_simple,
+                "icon_name": "insert"
+            },
+        ]
+
+        for tool in tools_list:
+            if tool["type"] == "separator":
+                s = ctk.CTkFrame(
+                    self.canvas_frame_lb,
+                    width=30,
+                    height=2,
+                )
+                s.pack(side=ctk.TOP, pady=4)
+                continue
+
+            tool_helper = tool["helper"]
+            tool_command = tool["action"]
+            tool_icon_name = tool["icon_name"]
+
+            try:
+                tool_icon = ctk.CTkImage(
+                    light_image=Image.open(resource(f"icons/{tool_icon_name}_light.png")),
+                    dark_image=Image.open(resource(f"icons/{tool_icon_name}_dark.png")),
+                    size=(22, 22),
+                )
+            except Exception:
+                # tool_icon = None
+                tool_icon = ctk.CTkImage(
+                    light_image=Image.open(resource("icons/not_found_light.png")),
+                    dark_image=Image.open(resource("icons/not_found_dark.png")),
+                    size=(22, 22),
+                )
+
+            tool_button = ctk.CTkButton(
+                self.canvas_frame_lb,
+                text=None,
+                width=30,
+                height=30,
+                image=tool_icon,
+                command=tool_command
+            )
+            tool_button.pack(side=ctk.TOP, pady=1)
+            Tooltip(tool_button, message=tool_helper)
+
+        """Canvas"""
         self.canvas_frame_rb_down.pack(side=ctk.BOTTOM)
 
         self.v_scrollbar = ctk.CTkScrollbar(self.canvas_frame_rb, orientation="vertical")
@@ -526,38 +675,7 @@ class Brushshe(ctk.CTk):
             # For shape, etc.
             color = self.brush_color
 
-        dx = abs(x2 - x1)
-        dy = abs(y2 - y1)
-        sx = 1 if x1 < x2 else -1
-        sy = 1 if y1 < y2 else -1
-        err = dx - dy
-
-        while True:
-            # Better variant for pixel compatible.
-            if self.tool_size <= 1:
-                self.draw.point([x1, y1], fill=color)
-            else:
-                self.draw.ellipse(
-                    [
-                        x1 - (self.tool_size - 1) // 2,
-                        y1 - (self.tool_size - 1) // 2,
-                        x1 + self.tool_size // 2,
-                        y1 + self.tool_size // 2,
-                    ],
-                    fill=color,
-                    outline=color,
-                )
-
-            if abs(x1 - x2) < 1 and abs(y1 - y2) < 1:
-                break
-
-            e2 = err * 2
-            if e2 > -dy:
-                err -= dy
-                x1 += sx
-            if e2 < dx:
-                err += dx
-                y1 += sy
+        bh_draw_line(self.draw, x1, y1, x2, y2, color, self.tool_size)
 
     def update_canvas(self):
         # Debug
@@ -1141,96 +1259,19 @@ class Brushshe(ctk.CTk):
             draw_brush_halo(x, y)
 
         def draw_recoloring_brush(x1, y1, x2, y2):
-            color = ImageColor.getrgb(self.brush_color)
+            color_to = ImageColor.getrgb(self.brush_color)
             color_from = ImageColor.getrgb(self.second_brush_color)
 
-            d1 = (self.tool_size - 1) // 2
-            d2 = self.tool_size // 2
-            # dd = (d2 - d1) / 2
-            max_x = self.image.width
-            max_y = self.image.height
-
-            x = x1
-            y = y1
-            dx = abs(x2 - x1)
-            dy = abs(y2 - y1)
-            sx = 1 if x1 < x2 else -1
-            sy = 1 if y1 < y2 else -1
-            err = dx - dy
-
-            # It's for circuit brush, but it work too slow.
-            # ((ii - x - dd) ** 2 + (jj - y - dd) ** 2 < ((d1 + d2 + .5)/2) ** 2
-
-            # buffer = set()
-            is_line = False
-
-            while True:
-                if self.tool_size <= 1:
-                    if self.image.getpixel((x, y)) == color_from:
-                        self.draw.point([x, y], fill=color)
-                else:
-                    if is_line is False:
-                        for ii in range(int(x - d1), int(x + d2 + 1)):
-                            for jj in range(int(y - d1), int(y + d2 + 1)):
-                                if (
-                                    ii >= 0
-                                    and ii < max_x
-                                    and jj >= 0
-                                    and jj < max_y
-                                    and self.image.getpixel((ii, jj)) == color_from
-                                ):
-                                    self.image.putpixel((ii, jj), color)
-                                    # buffer.add((ii, jj))
-                    else:
-                        # Now we can check firsts or lasts lines only.
-
-                        # Checking horizontal movement.
-                        if sx > 0:
-                            ii = int(x + d2)
-                        else:
-                            ii = int(x - d1)
-
-                        for jj in range(int(y - d1), int(y + d2 + 1)):
-                            if (
-                                ii >= 0
-                                and ii < max_x
-                                and jj >= 0
-                                and jj < max_y
-                                and self.image.getpixel((ii, jj)) == color_from
-                            ):
-                                self.image.putpixel((ii, jj), color)
-                                # buffer.add((ii, jj))
-
-                        # Checking vertical movement.
-                        if sy > 0:
-                            jj = int(y + d2)
-                        else:
-                            jj = int(y - d1)
-
-                        for ii in range(int(x - d1), int(x + d2 + 1)):
-                            if (
-                                ii >= 0
-                                and ii < max_x
-                                and jj >= 0
-                                and jj < max_y
-                                and self.image.getpixel((ii, jj)) == color_from
-                            ):
-                                self.image.putpixel((ii, jj), color)
-                                # buffer.add((ii, jj))
-
-                if abs(x - x2) < 1 and abs(y - y2) < 1:
-                    # self.draw.point([*buffer], fill=color)
-                    break
-
-                e2 = err * 2
-                if e2 > -dy:
-                    err -= dy
-                    x += sx
-                if e2 < dx:
-                    err += dx
-                    y += sy
-
-                is_line = True
+            bh_draw_recoloring_line(
+                self.image,
+                x1,
+                y1,
+                x2,
+                y2,
+                color_from,
+                color_to,
+                self.tool_size
+            )
 
         def draw_brush_halo(x, y):
             self.canvas.delete("tools")
@@ -1263,6 +1304,199 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<Button-1>", drawing)
         self.canvas.bind("<B1-Motion>", drawing)
         self.canvas.bind("<ButtonRelease-1>", end)
+        self.canvas.bind("<Motion>", move)
+        self.canvas.bind("<Leave>", leave)
+
+    def copy_simple(self, deleted=False):
+        if deleted is False:
+            self.set_tool("copy", "Copy", None, None, None, "cross")
+        else:
+            self.set_tool("cut", "Cut", None, None, None, "cross")
+
+        x_begin = None
+        y_begin = None
+        x_end = None
+        y_end = None
+
+        def selecting(event):
+            nonlocal x_begin, y_begin, x_end, y_end
+
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+
+            if x_begin is None or y_begin is None:
+                x_begin = x
+                y_begin = y
+
+            x_end = x
+            y_end = y
+
+            x_max = self.image.width - 1
+            y_max = self.image.height - 1
+
+            if x_begin < 0:
+                x_begin = 0
+            if x_begin > x_max:
+                x_begin = x_max
+            if y_begin < 0:
+                y_begin = 0
+            if y_begin > y_max:
+                y_begin = y_max
+            if x_end < 0:
+                x_end = 0
+            if x_end > x_max:
+                x_end = x_max
+            if y_end < 0:
+                y_end = 0
+            if y_end > y_max:
+                y_end = y_max
+
+            x1 = min(x_begin, x_end)
+            x2 = max(x_begin, x_end)
+            y1 = min(y_begin, y_end)
+            y2 = max(y_begin, y_end)
+
+            draw_tool(x1, y1, x2, y2)
+
+        def select_end(event):
+            nonlocal x_begin, y_begin, x_end, y_end
+
+            if x_begin is None or y_begin is None:
+                return
+
+            x1 = min(x_begin, x_end)
+            x2 = max(x_begin, x_end)
+            y1 = min(y_begin, y_end)
+            y2 = max(y_begin, y_end)
+
+            self.canvas.delete("tools")
+
+            x_begin = None
+            y_begin = None
+            x_end = None
+            y_end = None
+
+            # INFO: Float. From begin first pixel to end last pixel (begin last+1 pixel).
+            #       One first pixel look like (0, 0, 1, 1).
+            self.buffer_local = self.image.crop((x1, y1, x2 + 1, y2 + 1))
+
+            if deleted is not False:
+                ImageDraw.Draw(self.image).rectangle(
+                    (x1, y1, x2, y2),
+                    fill=self.bg_color,
+                    outline=self.bg_color,
+                )
+                self.undo_stack.append(self.image.copy())  # Need only for cut.
+
+            self.update_canvas()
+
+        def draw_tool(x1, y1, x2, y2):
+            self.canvas.delete("tools")
+
+            self.canvas.create_rectangle(
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
+                outline="white",
+                width=1,
+                tag="tools",
+            )
+            self.canvas.create_rectangle(
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
+                outline="black",
+                width=1,
+                tag="tools",
+                dash=(5, 5),
+            )
+
+        self.canvas.bind("<Button-1>", selecting)
+        self.canvas.bind("<B1-Motion>", selecting)
+        self.canvas.bind("<ButtonRelease-1>", select_end)
+
+    def insert_simple(self):
+
+        if hasattr(self, "buffer_local") is False or self.buffer_local is None:
+            return
+
+        self.set_tool("insert", "Insert", None, None, None, "cross")
+
+        image_tmp = self.buffer_local
+        current_zoom = None
+        image_tmp_view = None
+        image_tk = None
+        x1, y1 = None, None
+
+        def move(event):
+            nonlocal image_tmp, image_tmp_view, image_tk, current_zoom, x1, y1
+
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+
+            it_width = image_tmp.width
+            it_height = image_tmp.height
+            x1 = int(x - (it_width - 1) / 2)
+            y1 = int(y - (it_height - 1) / 2)
+            x2 = int(x1 + it_width - 1)
+            y2 = int(y1 + it_height - 1)
+
+            if current_zoom != self.zoom or image_tmp_view is None:
+                image_tmp_view = image_tmp.resize(
+                    (int(it_width * self.zoom), int(it_height * self.zoom)), Image.BOX
+                )
+                image_tk = ImageTk.PhotoImage(image_tmp_view)
+                current_zoom = self.zoom
+
+            draw_tool(x1, y1, x2, y2)
+
+        def insert_end(event):
+            nonlocal image_tmp, x1, y1
+
+            self.image.paste(image_tmp, (x1, y1))
+
+            self.update_canvas()
+            self.undo_stack.append(self.image.copy())
+
+        def leave(event):
+            self.canvas.delete("tools")
+
+        def draw_tool(x1, y1, x2, y2):
+            nonlocal image_tk
+
+            self.canvas.delete("tools")
+
+            self.canvas.create_image(
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                image=image_tk,
+                tag="tools",
+                anchor="nw",
+            )
+
+            self.canvas.create_rectangle(
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
+                outline="white",
+                width=1,
+                tag="tools",
+            )
+            self.canvas.create_rectangle(
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
+                outline="black",
+                width=1,
+                tag="tools",
+                dash=(5, 5),
+            )
+
+        # self.canvas.bind("<Button-1>", inserting)
+        # self.canvas.bind("<B1-Motion>", inserting)
+        self.canvas.bind("<ButtonRelease-1>", insert_end)
         self.canvas.bind("<Motion>", move)
         self.canvas.bind("<Leave>", leave)
 
@@ -1380,19 +1614,39 @@ class Brushshe(ctk.CTk):
         gallery_frame.pack(padx=10, pady=10)
 
         def load_buttons():
-            try:
-                row = 0
-                column = 0
-                is_image_found = False
+            preview_size = 160
+            row = 0
+            column = 0
+            is_image_found = False
 
-                for filename in os.listdir(self.gallery_folder):
-                    if filename.endswith(".png"):
+            try:
+                gallery_file_list = sorted(Path(self.gallery_folder).iterdir(), key=os.path.getmtime, reverse=True)
+
+                for filename in gallery_file_list:
+                    if filename.suffix == ".png":
                         is_image_found = True
-                        img_path = self.gallery_folder / filename
+                        img_path = str(filename)
+
+                        image_tmp = Image.open(img_path)
+                        rate = image_tmp.width / image_tmp.height
+                        max_wh = max(image_tmp.width, image_tmp.height)
+                        if max_wh > preview_size:
+                            max_wh = preview_size
+                        if rate > 1:
+                            w = int(max_wh)
+                            h = int(max_wh / rate)
+                        else:
+                            h = int(max_wh)
+                            w = int(max_wh * rate)
+
+                        image_tmp_2 = image_tmp.resize((w, h), Image.BOX)
+                        del image_tmp
 
                         image_button = ctk.CTkButton(
                             gallery_frame,
-                            image=ctk.CTkImage(Image.open(img_path), size=(250, 250)),
+                            image=ctk.CTkImage(image_tmp_2, size=(w, h)),
+                            width=preview_size + 10,
+                            height=preview_size + 10,
                             text=None,
                             command=lambda img_path=img_path: self.open_image(img_path),
                         )
@@ -1400,7 +1654,7 @@ class Brushshe(ctk.CTk):
 
                         delete_image_button = ctk.CTkButton(
                             image_button,
-                            text="x",
+                            text="X",
                             fg_color="red",
                             text_color="white",
                             width=30,
@@ -1410,7 +1664,7 @@ class Brushshe(ctk.CTk):
                         Tooltip(delete_image_button, message=_("Delete"))
 
                         column += 1
-                        if column == 2:
+                        if column >= 3:
                             column = 0
                             row += 1
 
@@ -1419,8 +1673,8 @@ class Brushshe(ctk.CTk):
 
                 if not is_image_found:
                     gallery_scrollable_frame.configure(label_text=_("My gallery (empty)"))
-            except Exception:
-                pass
+            except Exception as e:
+                print(e)
 
         Thread(target=load_buttons, daemon=True).start()
 
@@ -1456,7 +1710,7 @@ class Brushshe(ctk.CTk):
         if about_msg.get() == "GitHub":
             webbrowser.open(r"https://github.com/limafresh/Brushshe")
 
-    def new_picture(self, color, first_time=False):
+    def new_picture(self, color="#FFFFFF", first_time=False):
         self.canvas.delete("tools")
         self.bg_color = color
 
