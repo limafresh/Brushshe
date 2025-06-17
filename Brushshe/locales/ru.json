@@ -100,5 +100,8 @@
 	"Vintage": "Винтаж",
 	"4bit": "4бит",
 	"Brush smoothing quality": "Качество сглаживания кисти",
-	"Brush smoothing factor (weight)": "Коэффициент сглаживания кисти (вес)"
+	"Brush smoothing factor (weight)": "Коэффициент сглаживания кисти (вес)",
+	"Cut": "Вырезать",
+	"Copy": "Копировать",
+	"Insert": "Вставить"
 }

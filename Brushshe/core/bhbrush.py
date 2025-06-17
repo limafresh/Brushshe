@@ -1,6 +1,4 @@
-
 def bh_draw_line(image_draw, x1, y1, x2, y2, color, size):
-
     dx = abs(x2 - x1)
     dy = abs(y2 - y1)
     sx = 1 if x1 < x2 else -1
@@ -36,7 +34,6 @@ def bh_draw_line(image_draw, x1, y1, x2, y2, color, size):
 
 
 def bh_draw_recoloring_line(image, x1, y1, x2, y2, color_from, color_to, size):
-
     d1 = (size - 1) // 2
     d2 = size // 2
     # dd = (d2 - d1) / 2
@@ -59,24 +56,13 @@ def bh_draw_recoloring_line(image, x1, y1, x2, y2, color_from, color_to, size):
 
     while True:
         if size <= 1:
-            if (
-                    x >= 0
-                    and x < max_x
-                    and y >= 0
-                    and y < max_y
-                    and image.getpixel((x, y)) == color_from):
+            if x >= 0 and x < max_x and y >= 0 and y < max_y and image.getpixel((x, y)) == color_from:
                 image.putpixel((int(x), int(y)), color_to)
         else:
             if is_line is False:
                 for ii in range(int(x - d1), int(x + d2 + 1)):
                     for jj in range(int(y - d1), int(y + d2 + 1)):
-                        if (
-                            ii >= 0
-                            and ii < max_x
-                            and jj >= 0
-                            and jj < max_y
-                            and image.getpixel((ii, jj)) == color_from
-                        ):
+                        if ii >= 0 and ii < max_x and jj >= 0 and jj < max_y and image.getpixel((ii, jj)) == color_from:
                             image.putpixel((ii, jj), color_to)
                             # buffer.add((ii, jj))
             else:
@@ -89,13 +75,7 @@ def bh_draw_recoloring_line(image, x1, y1, x2, y2, color_from, color_to, size):
                     ii = int(x - d1)
 
                 for jj in range(int(y - d1), int(y + d2 + 1)):
-                    if (
-                        ii >= 0
-                        and ii < max_x
-                        and jj >= 0
-                        and jj < max_y
-                        and image.getpixel((ii, jj)) == color_from
-                    ):
+                    if ii >= 0 and ii < max_x and jj >= 0 and jj < max_y and image.getpixel((ii, jj)) == color_from:
                         image.putpixel((ii, jj), color_to)
                         # buffer.add((ii, jj))
 
@@ -106,13 +86,7 @@ def bh_draw_recoloring_line(image, x1, y1, x2, y2, color_from, color_to, size):
                     jj = int(y - d1)
 
                 for ii in range(int(x - d1), int(x + d2 + 1)):
-                    if (
-                        ii >= 0
-                        and ii < max_x
-                        and jj >= 0
-                        and jj < max_y
-                        and image.getpixel((ii, jj)) == color_from
-                    ):
+                    if ii >= 0 and ii < max_x and jj >= 0 and jj < max_y and image.getpixel((ii, jj)) == color_from:
                         image.putpixel((ii, jj), color_to)
                         # buffer.add((ii, jj))
 

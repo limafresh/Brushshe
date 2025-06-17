@@ -58,6 +58,7 @@ pip install customtkinter Pillow
 + **Change size**: You can change the size by cropping or scaling.
 + **Palettes**: There are 3 built-in palette sets in the settings, and if there are not enough of them, you can load your own from .hex files.
 + **Brush smoothing**: Brush smoothing with params.
++ **Cut, copy and insert**: Cut, copy or insert fragments.
 
 ## Hotkeys
 + *Ctrl+Z*: undo
