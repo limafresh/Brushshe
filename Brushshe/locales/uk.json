@@ -104,5 +104,6 @@
 	"Brush smoothing factor (weight)": "Коефіцієнт згладжування пензля (вага)",
 	"Cut": "Вирізати",
 	"Copy": "Копіювати",
-	"Insert": "Вставити"
+	"Insert": "Вставити",
+	"Reset settings after exiting": "Скинути налаштування після виходу"
 }

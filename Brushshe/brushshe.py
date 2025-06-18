@@ -16,7 +16,7 @@ from color_picker import AskColor
 from core.bezier import make_bezier
 from core.bhbrush import bh_draw_line, bh_draw_recoloring_line
 from core.bhhistory import BhHistory, BhPoint
-from core.config_loader import config, write_config
+from core.config_loader import config, config_file_path, write_config
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
 from file_dialog import FileDialog
@@ -160,6 +160,7 @@ class Brushshe(ctk.CTk):
         other_menu = menu.add_cascade(_("More"))
         other_dropdown = CustomDropdownMenu(widget=other_menu)
         other_dropdown.add_option(option=_("Settings"), command=self.settings)
+        other_dropdown.add_option(option=_("Reset settings after exiting"), command=self.reset_settings_after_exiting)
         other_dropdown.add_option(option=_("About program"), command=self.about_program)
 
         """Top Bar"""
@@ -381,6 +382,7 @@ class Brushshe(ctk.CTk):
 
         self.prev_x, self.prev_y = (None, None)
         self.font_path = resource("assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
+        self.is_reset_settings_after_exiting = False
         self.canvas.bind("<Button-3>", self.eyedropper)
 
         self.bind("<Control-z>", lambda e: self.undo())
@@ -542,6 +544,8 @@ class Brushshe(ctk.CTk):
             sound=True,
         )
         if closing_msg.get() == _("Yes"):
+            if self.is_reset_settings_after_exiting:
+                os.remove(config_file_path)
             self.destroy()
 
     def scroll_on_canvasy(self, event):
@@ -2215,6 +2219,9 @@ class Brushshe(ctk.CTk):
             return
 
         self.make_color_palette(colors)
+
+    def reset_settings_after_exiting(self):
+        self.is_reset_settings_after_exiting = True
 
 
 ctk.set_appearance_mode(config.get("Brushshe", "theme"))

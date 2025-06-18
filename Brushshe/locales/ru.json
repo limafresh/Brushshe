@@ -103,5 +103,6 @@
 	"Brush smoothing factor (weight)": "Коэффициент сглаживания кисти (вес)",
 	"Cut": "Вырезать",
 	"Copy": "Копировать",
-	"Insert": "Вставить"
+	"Insert": "Вставить",
+	"Reset settings after exiting": "Сбросить настройки после выхода"
 }
