@@ -3,22 +3,20 @@ import os
 import random
 import sys
 import webbrowser
-
-# import time  # Need for debug.
 from collections import deque
-from configparser import ConfigParser
 from pathlib import Path
 from threading import Thread
 from tkinter import PhotoImage
 from uuid import uuid4
 
+# import time  # Need for debug.
 import customtkinter as ctk
-import translator
 from brush_palette import BrushPalette
 from color_picker import AskColor
 from core.bezier import make_bezier
 from core.bhbrush import bh_draw_line, bh_draw_recoloring_line
 from core.bhhistory import BhHistory, BhPoint
+from core.config_loader import config, write_config
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
 from file_dialog import FileDialog
@@ -36,15 +34,12 @@ from PIL import (
 )
 from spinbox import IntSpinbox
 from tooltip import Tooltip
+from translator import _
 
 
 def resource(relative_path):
     base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
-
-
-def _(key):
-    return translator.translations.get(key, key)
 
 
 class Brushshe(ctk.CTk):
@@ -107,32 +102,6 @@ class Brushshe(ctk.CTk):
             "#8f974a",
             "#8a6f30",
         ]
-
-        """Create or load config"""
-        self.config_file_path = Path.home() / ".brushshe_config.ini"
-        self.config = ConfigParser()
-
-        self.config.read(self.config_file_path)
-
-        default_options = {
-            "theme": "System",
-            "undo_levels": "10",
-            "smoothing": "False",
-            "brush_smoothing_factor": "10",
-            "brush_smoothing_quality": "20",
-            "palette": "default",
-        }
-
-        if not self.config.has_section("Brushshe"):
-            self.config.add_section("Brushshe")
-
-        for option, default_value in default_options.items():
-            if not self.config.has_option("Brushshe", option):
-                self.config.set("Brushshe", option, default_value)
-
-        self.write_config()
-
-        ctk.set_appearance_mode(self.config.get("Brushshe", "theme"))
 
         """ Menu """
         menu = CTkMenuBar(self)
@@ -375,7 +344,7 @@ class Brushshe(ctk.CTk):
         )
         self.palette_widget.pack(side=ctk.LEFT, fill=ctk.X, padx=2, pady=2)
 
-        self.import_palette(resource(f"assets/palettes/{self.config.get('Brushshe', 'palette')}_palette.hex"))
+        self.import_palette(resource(f"assets/palettes/{config.get('Brushshe', 'palette')}_palette.hex"))
 
         self.size_button = ctk.CTkButton(self.bottom_docker, text="640x480", command=self.change_size)
         self.size_button.pack(side=ctk.RIGHT, padx=1)
@@ -391,8 +360,8 @@ class Brushshe(ctk.CTk):
         self.brush_color = "black"
         self.second_brush_color = "white"
         self.bg_color = "white"
-        self.undo_stack = deque(maxlen=self.config.getint("Brushshe", "undo_levels"))
-        self.redo_stack = deque(maxlen=self.config.getint("Brushshe", "undo_levels"))
+        self.undo_stack = deque(maxlen=config.getint("Brushshe", "undo_levels"))
+        self.redo_stack = deque(maxlen=config.getint("Brushshe", "undo_levels"))
 
         self.brush_size = 2
         self.eraser_size = 4
@@ -402,9 +371,9 @@ class Brushshe(ctk.CTk):
         self.font_size = 24
         self.zoom = 1
 
-        self.is_brush_smoothing = self.config.getboolean("Brushshe", "smoothing")
-        self.brush_smoothing_factor = self.config.getint("Brushshe", "brush_smoothing_factor")  # Between: 3..64
-        self.brush_smoothing_quality = self.config.getint("Brushshe", "brush_smoothing_quality")  # Between: 1..64
+        self.is_brush_smoothing = config.getboolean("Brushshe", "smoothing")
+        self.brush_smoothing_factor = config.getint("Brushshe", "brush_smoothing_factor")  # Between: 3..64
+        self.brush_smoothing_quality = config.getint("Brushshe", "brush_smoothing_quality")  # Between: 1..64
 
         self.update()  # update interface before calculate picture size
         self.new_picture(self.bg_color, first_time=True)
@@ -481,10 +450,6 @@ class Brushshe(ctk.CTk):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
     """ Functionality """
-
-    def write_config(self):
-        with open(self.config_file_path, "w", encoding="utf-8") as config_file:
-            self.config.write(config_file)
 
     def change_tool_size_bind(self, event=None, delta=1):
         new_size = self.get_tool_size() + delta
@@ -1823,7 +1788,7 @@ class Brushshe(ctk.CTk):
             if not self.spraying or self.prev_x is None or self.prev_y is None:
                 return
 
-            for _ in range(self.tool_size * 2):
+            for i in range(self.tool_size * 2):
                 offset_x = random.randint(-self.tool_size, self.tool_size)
                 offset_y = random.randint(-self.tool_size, self.tool_size)
                 if offset_x**2 + offset_y**2 <= self.tool_size**2:
@@ -2100,34 +2065,34 @@ class Brushshe(ctk.CTk):
     def settings(self):
         def change_theme():
             ctk.set_appearance_mode(theme_var.get())
-            self.config.set("Brushshe", "theme", theme_var.get())
-            self.write_config()
+            config.set("Brushshe", "theme", theme_var.get())
+            write_config()
 
         def change_undo_levels():
             self.undo_stack = deque(self.undo_stack, maxlen=undo_levels_spinbox.get())
             self.redo_stack = deque(self.redo_stack, maxlen=undo_levels_spinbox.get())
-            self.config.set("Brushshe", "undo_levels", str(undo_levels_spinbox.get()))
-            self.write_config()
+            config.set("Brushshe", "undo_levels", str(undo_levels_spinbox.get()))
+            write_config()
 
         def smooth_switch_event():
             self.is_brush_smoothing = smooth_var.get()
-            self.config.set("Brushshe", "smoothing", str(self.is_brush_smoothing))
-            self.write_config()
+            config.set("Brushshe", "smoothing", str(self.is_brush_smoothing))
+            write_config()
 
         def brush_smoothing_factor_event(event):
             self.brush_smoothing_factor = brush_smoothing_factor_var.get()
-            self.config.set("Brushshe", "brush_smoothing_factor", str(self.brush_smoothing_factor))
-            self.write_config()
+            config.set("Brushshe", "brush_smoothing_factor", str(self.brush_smoothing_factor))
+            write_config()
 
         def brush_smoothing_quality_event(event):
             self.brush_smoothing_quality = brush_smoothing_quality_var.get()
-            self.config.set("Brushshe", "brush_smoothing_quality", str(self.brush_smoothing_quality))
-            self.write_config()
+            config.set("Brushshe", "brush_smoothing_quality", str(self.brush_smoothing_quality))
+            write_config()
 
         def palette_radiobutton_callback():
             self.import_palette(resource(f"assets/palettes/{palette_var.get()}_palette.hex"))
-            self.config.set("Brushshe", "palette", palette_var.get())
-            self.write_config()
+            config.set("Brushshe", "palette", palette_var.get())
+            write_config()
 
         settings_tl = ctk.CTkToplevel(self)
         settings_tl.geometry("400x650")
@@ -2142,7 +2107,7 @@ class Brushshe(ctk.CTk):
 
         ctk.CTkLabel(theme_frame, text=_("Theme")).pack(padx=10, pady=10)
 
-        theme_var = ctk.StringVar(value=self.config.get("Brushshe", "theme"))
+        theme_var = ctk.StringVar(value=config.get("Brushshe", "theme"))
         for theme_name in ["System", "Light", "Dark"]:
             ctk.CTkRadioButton(
                 theme_frame,
@@ -2201,7 +2166,7 @@ class Brushshe(ctk.CTk):
 
         ctk.CTkLabel(palette_frame, text=_("Palette")).pack(padx=10, pady=10)
 
-        palette_var = ctk.StringVar(value=self.config.get("Brushshe", "palette"))
+        palette_var = ctk.StringVar(value=config.get("Brushshe", "palette"))
         for palette_name in ["4bit", "default", "vintage"]:
             ctk.CTkRadioButton(
                 palette_frame,
@@ -2252,6 +2217,7 @@ class Brushshe(ctk.CTk):
         self.make_color_palette(colors)
 
 
+ctk.set_appearance_mode(config.get("Brushshe", "theme"))
 ctk.set_default_color_theme(resource("brushshe_theme.json"))
 app = Brushshe()
 app.mainloop()
