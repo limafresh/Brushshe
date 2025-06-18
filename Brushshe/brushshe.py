@@ -112,19 +112,27 @@ class Brushshe(ctk.CTk):
         self.config_file_path = Path.home() / ".brushshe_config.ini"
         self.config = ConfigParser()
 
-        if self.config_file_path.exists():
-            self.config.read(self.config_file_path)
-            ctk.set_appearance_mode(self.config.get("Brushshe", "theme"))
-        else:
-            self.config["Brushshe"] = {
-                "theme": "System",
-                "undo_levels": "10",
-                "smoothing": "False",
-                "brush_smoothing_factor": "10",
-                "brush_smoothing_quality": "20",
-                "palette": "default",
-            }
-            self.write_config()
+        self.config.read(self.config_file_path)
+
+        default_options = {
+            "theme": "System",
+            "undo_levels": "10",
+            "smoothing": "False",
+            "brush_smoothing_factor": "10",
+            "brush_smoothing_quality": "20",
+            "palette": "default",
+        }
+
+        if not self.config.has_section("Brushshe"):
+            self.config.add_section("Brushshe")
+
+        for option, default_value in default_options.items():
+            if not self.config.has_option("Brushshe", option):
+                self.config.set("Brushshe", option, default_value)
+
+        self.write_config()
+
+        ctk.set_appearance_mode(self.config.get("Brushshe", "theme"))
 
         """ Menu """
         menu = CTkMenuBar(self)
@@ -383,8 +391,8 @@ class Brushshe(ctk.CTk):
         self.brush_color = "black"
         self.second_brush_color = "white"
         self.bg_color = "white"
-        self.undo_stack = deque(maxlen=int(self.config.get("Brushshe", "undo_levels")))
-        self.redo_stack = deque(maxlen=int(self.config.get("Brushshe", "undo_levels")))
+        self.undo_stack = deque(maxlen=self.config.getint("Brushshe", "undo_levels"))
+        self.redo_stack = deque(maxlen=self.config.getint("Brushshe", "undo_levels"))
 
         self.brush_size = 2
         self.eraser_size = 4
@@ -395,8 +403,8 @@ class Brushshe(ctk.CTk):
         self.zoom = 1
 
         self.is_brush_smoothing = self.config.getboolean("Brushshe", "smoothing")
-        self.brush_smoothing_factor = int(self.config.get("Brushshe", "brush_smoothing_factor"))  # Between: 3..64
-        self.brush_smoothing_quality = int(self.config.get("Brushshe", "brush_smoothing_quality"))  # Between: 1..64
+        self.brush_smoothing_factor = self.config.getint("Brushshe", "brush_smoothing_factor")  # Between: 3..64
+        self.brush_smoothing_quality = self.config.getint("Brushshe", "brush_smoothing_quality")  # Between: 1..64
 
         self.update()  # update interface before calculate picture size
         self.new_picture(self.bg_color, first_time=True)
