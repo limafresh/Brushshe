@@ -39,11 +39,12 @@ Name[ru]=Брашше
 Comment=Painting app
 Comment[uk]=Програма для малювання
 Comment[ru]=Программа для рисования
-Exec=python3 /opt/Brushshe/brushshe.py
+Exec=python3 /opt/Brushshe/brushshe.py %f
 Icon=brushshe
 Terminal=false
 Categories=Graphics;
 StartupWMClass=Brushshe
+MimeType=image/png;image/jpeg;image/gif;image/bmp;image/tiff;image/webp;image/x-icon;image/x-portable-pixmap;image/x-portable-graymap;image/x-portable-bitmap;
 EOF
 
 echo 'Copying licenses and README...'

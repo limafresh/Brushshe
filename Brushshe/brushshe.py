@@ -451,6 +451,9 @@ class Brushshe(ctk.CTk):
 
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
+        if len(sys.argv) > 1:
+            self.open_image(sys.argv[1])
+
     """ Functionality """
 
     def change_tool_size_bind(self, event=None, delta=1):
