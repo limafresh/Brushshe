@@ -211,6 +211,11 @@ class Brushshe(ctk.CTk):
         self.tool_config_docker.pack(side=ctk.LEFT, padx=5)
         self.tool_config_docker.configure(height=30, fg_color="transparent")
 
+        self.brush_shape_btn = ctk.CTkSegmentedButton(
+            tools_frame, values=["●", "■"], command=self.brush_shape_btn_callback
+        )
+        self.brush_shape_btn.set("●")
+
         save_to_gallery_btn = ctk.CTkButton(tools_frame, text=_("Save to gallery"), command=self.save_to_gallery)
         save_to_gallery_btn.pack(side=ctk.RIGHT)
         Tooltip(save_to_gallery_btn, message=_("Save to gallery") + " (Ctrl+S)")
@@ -361,6 +366,7 @@ class Brushshe(ctk.CTk):
         self.brush_color = "black"
         self.second_brush_color = "white"
         self.bg_color = "white"
+        self.brush_shape = "circle"
         self.undo_stack = deque(maxlen=config.getint("Brushshe", "undo_levels"))
         self.redo_stack = deque(maxlen=config.getint("Brushshe", "undo_levels"))
 
@@ -611,7 +617,7 @@ class Brushshe(ctk.CTk):
             # For shape, etc.
             color = self.brush_color
 
-        bh_draw_line(self.draw, x1, y1, x2, y2, color, self.tool_size)
+        bh_draw_line(self.draw, x1, y1, x2, y2, color, self.tool_size, self.brush_shape, self.current_tool)
 
     def update_canvas(self):
         # Debug
@@ -1141,7 +1147,7 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<Motion>", drawing)
 
     def recoloring_brush(self):
-        self.set_tool("brush", "R. Brush", self.brush_size, 1, 50, "pencil")
+        self.set_tool("r-brush", "R. Brush", self.brush_size, 1, 50, "pencil")
 
         prev_x = None
         prev_y = None
@@ -1655,7 +1661,7 @@ class Brushshe(ctk.CTk):
 
     def change_tool_size(self, value):
         self.tool_size = int(value)
-        if self.current_tool == "brush":
+        if self.current_tool == "brush" or self.current_tool == "r-brush":
             self.brush_size = int(value)
         elif self.current_tool == "eraser":
             self.eraser_size = int(value)
@@ -1672,7 +1678,7 @@ class Brushshe(ctk.CTk):
 
     def get_tool_size(self):
         res = self.tool_size
-        if self.current_tool == "brush":
+        if self.current_tool == "brush" or self.current_tool == "r-brush":
             res = self.brush_size
         elif self.current_tool == "eraser":
             res = self.eraser_size
@@ -1754,7 +1760,13 @@ class Brushshe(ctk.CTk):
             d2 = self.tool_size // 2
 
             # TODO: Need use the pixel perfect halo for zoom >= 2 if it doesn't too slow.
-            self.canvas.create_oval(
+
+            if self.brush_shape == "circle":
+                canvas_create_shape = self.canvas.create_oval
+            elif self.brush_shape == "square":
+                canvas_create_shape = self.canvas.create_rectangle
+
+            canvas_create_shape(
                 int((x - d1) * self.zoom - 1),
                 int((y - d1) * self.zoom - 1),
                 int((x + d2 + 1) * self.zoom),
@@ -1763,7 +1775,7 @@ class Brushshe(ctk.CTk):
                 width=1,
                 tag="tools",
             )
-            self.canvas.create_oval(
+            canvas_create_shape(
                 int((x - d1) * self.zoom),
                 int((y - d1) * self.zoom),
                 int((x + d2 + 1) * self.zoom - 1),
@@ -1973,6 +1985,11 @@ class Brushshe(ctk.CTk):
             self.tool_size_label.configure(text=self.tool_size)
             self.tool_size_label.pack(side=ctk.LEFT, padx=5)
             self.tool_size_tooltip.configure(message=self.tool_size)
+
+        if self.current_tool in ["brush", "eraser"]:
+            self.brush_shape_btn.pack(side=ctk.LEFT, padx=5)
+        else:
+            self.brush_shape_btn.pack_forget()
 
         self.canvas.configure(cursor=cursor)
         self.canvas.delete("tools")
@@ -2225,6 +2242,12 @@ class Brushshe(ctk.CTk):
 
     def reset_settings_after_exiting(self):
         self.is_reset_settings_after_exiting = True
+
+    def brush_shape_btn_callback(self, value):
+        if value == "●":
+            self.brush_shape = "circle"
+        elif value == "■":
+            self.brush_shape = "square"
 
 
 ctk.set_appearance_mode(config.get("Brushshe", "theme"))

@@ -1,16 +1,21 @@
-def bh_draw_line(image_draw, x1, y1, x2, y2, color, size):
+def bh_draw_line(image_draw, x1, y1, x2, y2, color, size, brush_shape, tool):
     dx = abs(x2 - x1)
     dy = abs(y2 - y1)
     sx = 1 if x1 < x2 else -1
     sy = 1 if y1 < y2 else -1
     err = dx - dy
 
+    if brush_shape == "circle" or tool == "shape":
+        image_draw_shape = image_draw.ellipse
+    elif brush_shape == "square":
+        image_draw_shape = image_draw.rectangle
+
     while True:
         # Better variant for pixel compatible.
         if size <= 1:
             image_draw.point([x1, y1], fill=color)
         else:
-            image_draw.ellipse(
+            image_draw_shape(
                 [
                     x1 - (size - 1) // 2,
                     y1 - (size - 1) // 2,
