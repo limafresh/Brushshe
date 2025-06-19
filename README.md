@@ -15,6 +15,7 @@
 
 ## ⬇️ Installation
 ### Download Brushshe for Windows 64bit
+[![Static Badge](https://img.shields.io/badge/Download-.exe_file-blue?style=for-the-badge)](https://github.com/limafresh/Brushshe/releases)
 [![Static Badge](https://img.shields.io/badge/Download-portable_.exe_file-blue?style=for-the-badge)](https://github.com/limafresh/Brushshe/releases)
 
 **or**
