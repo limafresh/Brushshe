@@ -249,15 +249,27 @@ class Brushshe(ctk.CTk):
                 "action": self.eraser,
                 "icon_name": "eraser",
             },
-            {"type": "button", "name": _("Fill"), "helper": _("Fill"), "action": self.start_fill, "icon_name": "fill"},
+            {
+                "type": "button",
+                "name": _("Fill"),
+                "helper": _("Fill") + " (F)",
+                "action": self.start_fill,
+                "icon_name": "fill",
+            },
             {
                 "type": "button",
                 "name": _("Recoloring Brush"),
-                "helper": _("Recoloring Brush"),
+                "helper": _("Recoloring Brush") + " (R)",
                 "action": self.recoloring_brush,
                 "icon_name": "recoloring_brush",
             },
-            {"type": "button", "name": _("Spray"), "helper": _("Spray"), "action": self.spray, "icon_name": "spray"},
+            {
+                "type": "button",
+                "name": _("Spray"),
+                "helper": _("Spray") + " (S)",
+                "action": self.spray,
+                "icon_name": "spray",
+            },
             {"type": "separator"},
             {
                 "type": "button",
@@ -398,6 +410,9 @@ class Brushshe(ctk.CTk):
         self.bind("<Key-x>", lambda e: self.flip_brush_colors())
         self.bind("<Key-b>", lambda e: self.brush())
         self.bind("<Key-e>", lambda e: self.eraser())
+        self.bind("<Key-f>", lambda e: self.start_fill())
+        self.bind("<Key-r>", lambda e: self.recoloring_brush())
+        self.bind("<Key-s>", lambda e: self.spray())
 
         # Default zooming keys for mani painting programs.
         self.bind("<Key-equal>", lambda e: self.zoom_in(e))  # Key "=" -> ("+" without Shift)

@@ -36,7 +36,7 @@ pip install customtkinter Pillow
 
 ## 🚀 Features
 + **Open**: You can open a picture from a file.
-+ **Painting**: You can choose a color, change the brush thickness, and paint. You can change canvas size.
++ **Painting**: You can choose a color, change the brush thickness and shape, and paint. You can change canvas size.
 + **Recoloring brush (new!)**: Draws through contours.
 + **Save to device**: You can save picture to your PC in different formats (PNG, JPG, GIF, BMP, TIFF, WEBP, ICO, PPM, PGM, PBM).
 + **Undo and redo**: You can undo and redo 10 last actions.
@@ -67,6 +67,9 @@ pip install customtkinter Pillow
 + *X*: flip colors
 + *B*: brush
 + *E*: eraser
++ *F*: fill
++ *R*: recoloring brush
++ *S*: spray
 + *=*: zoom in
 + *-*: zoom out
 + *[*: down by 1 the brush or other tools size
