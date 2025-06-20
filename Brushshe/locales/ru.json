@@ -2,6 +2,8 @@
 	"Brushshe": "Брашше",
 	"File": "Файл",
 	"Open from file": "Открыть с файла",
+	"Save changes to this picture": "Сохранить изменения в этом рисунке",
+	"Save as new picture": "Сохранить как новый рисунок",
 	"Save to device": "Сохранить на устройство",
 	"New": "Новый",
 	"Other color": "Другой цвет",
@@ -103,5 +105,7 @@
 	"Cut": "Вырезать",
 	"Copy": "Копировать",
 	"Insert": "Вставить",
-	"Reset settings after exiting": "Сбросить настройки после выхода"
+	"Reset settings after exiting": "Сбросить настройки после выхода",
+	"Unnamed": "Безымянный",
+	"Changes to your existing picture have been saved successfully!": "Изменения в Вашем существующем рисунке успешно сохранены!"
 }

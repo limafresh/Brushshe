@@ -46,7 +46,7 @@ class Brushshe(ctk.CTk):
     def __init__(self):
         super().__init__(className="Brushshe")
         self.geometry("790x680")
-        self.title(_("Brushshe"))
+        self.title(_("Unnamed") + " - " + _("Brushshe"))
         if os.name == "nt":
             self.iconbitmap(resource("icons/icon.ico"))
         else:
@@ -74,7 +74,8 @@ class Brushshe(ctk.CTk):
         file_menu = menu.add_cascade(_("File"))
         file_dropdown = CustomDropdownMenu(widget=file_menu)
         file_dropdown.add_option(option=_("Open from file"), command=self.open_from_file)
-        file_dropdown.add_option(option=_("Save to device"), command=self.save_to_device)
+        file_dropdown.add_option(option=_("Save changes to this picture"), command=self.save_current)
+        file_dropdown.add_option(option=_("Save as new picture"), command=self.save_as)
         file_dropdown.add_separator()
         file_dropdown.add_option(option=_("Rotate right"), command=lambda: self.rotate(-90))
         file_dropdown.add_option(option=_("Rotate left"), command=lambda: self.rotate(90))
@@ -363,6 +364,7 @@ class Brushshe(ctk.CTk):
         self.prev_x, self.prev_y = (None, None)
         self.font_path = resource("assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
         self.is_reset_settings_after_exiting = False
+        self.current_file = None
         self.canvas.bind("<Button-3>", self.eyedropper)
 
         self.bind("<Control-z>", lambda e: self.undo())
@@ -748,7 +750,20 @@ class Brushshe(ctk.CTk):
             except Exception as e:
                 self.open_file_error(e)
 
-    def save_to_device(self):
+    def save_current(self):
+        if self.current_file is not None:
+            self.image.save(self.current_file)
+            CTkMessagebox(
+                title=_("Saved"),
+                message=_("Changes to your existing picture have been saved successfully!"),
+                icon=resource("icons/saved.png"),
+                icon_size=(100, 100),
+                sound=True,
+            )
+        else:
+            self.save_as()
+
+    def save_as(self):
         dialog = FileDialog(self, title=_("Save to device"), save=True)
         if dialog.path:
             self.image.save(dialog.path)
@@ -759,6 +774,8 @@ class Brushshe(ctk.CTk):
                 icon_size=(100, 100),
                 sound=True,
             )
+            self.current_file = dialog.path
+            self.title(self.current_file + " - " + _("Brushshe"))
 
     def other_bg_color(self):
         askcolor = AskColor(title=_("Choose a different background color"), initial_color="#ffffff")
@@ -1628,6 +1645,8 @@ class Brushshe(ctk.CTk):
         self.force_resize_canvas()
 
         self.undo_stack.append(self.image.copy())
+        self.title(_("Unnamed") + " - " + _("Brushshe"))
+        self.current_file = None
 
     def change_tool_size(self, value):
         self.tool_size = int(value)
@@ -1829,6 +1848,9 @@ class Brushshe(ctk.CTk):
             file_path = self.gallery_folder / f"{uuid4()}.png"
         self.image.save(file_path)
 
+        self.current_file = file_path
+        self.title(str(self.current_file) + " - " + _("Brushshe"))
+
         CTkMessagebox(
             title=_("Saved"),
             message=_('The picture has been successfully saved to the gallery ("My Gallery" in the menu at the top)!'),
@@ -1875,9 +1897,15 @@ class Brushshe(ctk.CTk):
         self.brush_palette.second_color = self.second_brush_color
 
     def open_image(self, openimage):
-        self.bg_color = "white"
-        self.image = Image.open(openimage)
-        self.picture_postconfigure()
+        try:
+            self.bg_color = "white"
+            self.image = Image.open(openimage)
+            self.picture_postconfigure()
+
+            self.current_file = openimage
+            self.title(self.current_file + " - " + _("Brushshe"))
+        except Exception as e:
+            self.open_error(e)
 
     def open_file_error(self, e):
         message_text = _("Error - cannot open file:")
@@ -1906,6 +1934,9 @@ class Brushshe(ctk.CTk):
         self.image = ImageGrab.grab()
         self.deiconify()
         self.picture_postconfigure()
+
+        self.title(_("Unnamed") + " - " + _("Brushshe"))
+        self.current_file = None
 
     def picture_postconfigure(self):
         self.canvas.delete("tools")
