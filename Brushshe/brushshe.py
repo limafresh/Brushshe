@@ -251,7 +251,7 @@ class Brushshe(ctk.CTk):
                 "type": "button",
                 "name": _("Insert"),
                 "helper": _("Insert"),  # + " (Ctrl+V)",
-                "action": self.insert_simple,
+                "action": self.start_insert,
                 "icon_name": "insert",
             },
         ]
@@ -815,21 +815,7 @@ class Brushshe(ctk.CTk):
 
     def set_current_sticker(self, sticker_image):  # Choose a sticker
         self.set_tool("sticker", "Stickers", self.sticker_size, 10, 175, "cross")
-        self.canvas.bind("<Button-1>", lambda event: self.add_sticker(event, sticker_image))
-
-    def add_sticker(self, event, sticker_image):  # Add a sticker
-        sticker_image = sticker_image.resize((self.tool_size, self.tool_size))
-        x, y = self.canvas_to_pict_xy(event.x, event.y)
-        x, y = int(x), int(y)
-        if sticker_image.mode == "RGBA":
-            self.image.paste(
-                sticker_image, (x - sticker_image.width // 2, y - sticker_image.height // 2), sticker_image
-            )
-        else:
-            self.image.paste(sticker_image, (x - sticker_image.width // 2, y - sticker_image.height // 2))
-
-        self.update_canvas()
-        self.undo_stack.append(self.image.copy())
+        self.insert_simple(sticker_image)
 
     def add_text(self, event, text):  # Add text
         x, y = self.canvas_to_pict_xy(event.x, event.y)
@@ -1326,13 +1312,14 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<B1-Motion>", selecting)
         self.canvas.bind("<ButtonRelease-1>", select_end)
 
-    def insert_simple(self):
+    def start_insert(self):
         if hasattr(self, "buffer_local") is False or self.buffer_local is None:
             return
-
         self.set_tool("insert", "Insert", None, None, None, "cross")
+        self.insert_simple(self.buffer_local)
 
-        image_tmp = self.buffer_local
+    def insert_simple(self, insert_image=None):
+        image_tmp = insert_image
         current_zoom = None
         image_tmp_view = None
         image_tk = None
@@ -1340,6 +1327,9 @@ class Brushshe(ctk.CTk):
 
         def move(event):
             nonlocal image_tmp, image_tmp_view, image_tk, current_zoom, x1, y1
+
+            if self.current_tool == "sticker":
+                image_tmp = image_tmp.resize((self.tool_size, self.tool_size))
 
             x, y = self.canvas_to_pict_xy(event.x, event.y)
 
@@ -1350,7 +1340,7 @@ class Brushshe(ctk.CTk):
             x2 = int(x1 + it_width - 1)
             y2 = int(y1 + it_height - 1)
 
-            if current_zoom != self.zoom or image_tmp_view is None:
+            if current_zoom != self.zoom or image_tmp_view is None or self.current_tool == "sticker":
                 image_tmp_view = image_tmp.resize((int(it_width * self.zoom), int(it_height * self.zoom)), Image.BOX)
                 image_tk = ImageTk.PhotoImage(image_tmp_view)
                 current_zoom = self.zoom
@@ -1360,7 +1350,10 @@ class Brushshe(ctk.CTk):
         def insert_end(event):
             nonlocal image_tmp, x1, y1
 
-            self.image.paste(image_tmp, (x1, y1))
+            if image_tmp.mode == "RGBA":
+                self.image.paste(image_tmp, (x1, y1), image_tmp)
+            else:
+                self.image.paste(image_tmp, (x1, y1))
 
             self.update_canvas()
             self.undo_stack.append(self.image.copy())
