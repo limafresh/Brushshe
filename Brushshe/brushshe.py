@@ -1346,7 +1346,7 @@ class Brushshe(ctk.CTk):
             nonlocal image_tmp, image_tmp_view, image_tk, current_zoom, x1, y1
 
             if self.current_tool == "sticker":
-                image_tmp = image_tmp.resize((self.tool_size, self.tool_size))
+                image_tmp = insert_image.resize((self.tool_size, self.tool_size))
 
             x, y = self.canvas_to_pict_xy(event.x, event.y)
 
