@@ -68,41 +68,6 @@ class Brushshe(ctk.CTk):
             "gray",
         ]
 
-        self.colors = [
-            "#000000",
-            "#222034",
-            "#45283c",
-            "#663931",
-            "#8f563b",
-            "#df7126",
-            "#d9a066",
-            "#eec39a",
-            "#fbf236",
-            "#99e550",
-            "#6abe30",
-            "#37946e",
-            "#4b692f",
-            "#524b24",
-            "#323c39",
-            "#3f3f74",
-            "#ffffff",
-            "#306082",
-            "#5b6ee1",
-            "#639bff",
-            "#5fcde4",
-            "#cbdbfc",
-            "#9badb7",
-            "#847e87",
-            "#696a6a",
-            "#595652",
-            "#76428a",
-            "#ac3232",
-            "#d95763",
-            "#d77bba",
-            "#8f974a",
-            "#8a6f30",
-        ]
-
         """ Menu """
         menu = CTkMenuBar(self)
 
@@ -115,9 +80,6 @@ class Brushshe(ctk.CTk):
         file_dropdown.add_option(option=_("Rotate left"), command=lambda: self.rotate(90))
         file_dropdown.add_separator()
         file_dropdown.add_option(option=_("Import palette (hex)"), command=self.import_palette)
-        file_dropdown.add_option(
-            option=_("Reset palette to default"), command=lambda: self.make_color_palette(self.colors)
-        )
 
         new_menu = menu.add_cascade(_("New"))
         new_dropdown = CustomDropdownMenu(widget=new_menu)
