@@ -73,25 +73,25 @@ class Brushshe(ctk.CTk):
 
         file_menu = menu.add_cascade(_("File"))
         file_dropdown = CustomDropdownMenu(widget=file_menu)
+
+        file_dropdown.add_option(option=_("New"), command=lambda: self.new_picture('white'))
+        file_dropdown.add_option(option=_("New with other color"), command=self.other_bg_color)  # TODO: Use dialog from there.
+
         file_dropdown.add_option(option=_("Open from file"), command=self.open_from_file)
         file_dropdown.add_option(option=_("Save changes to this picture"), command=self.save_current)
         file_dropdown.add_option(option=_("Save as new picture"), command=self.save_as)
         file_dropdown.add_separator()
-        file_dropdown.add_option(option=_("Rotate right"), command=lambda: self.rotate(-90))
-        file_dropdown.add_option(option=_("Rotate left"), command=lambda: self.rotate(90))
+        file_dropdown.add_option(option=_("Open my gallery"), command=self.show_gallery)
+        file_dropdown.add_option(option=_("Save to my gallery"), command=self.save_to_gallery)
         file_dropdown.add_separator()
         file_dropdown.add_option(option=_("Import palette (hex)"), command=self.import_palette)
 
-        new_menu = menu.add_cascade(_("New"))
-        new_dropdown = CustomDropdownMenu(widget=new_menu)
-
-        # TODO: Change to select bg_color as HEX as default.
-        for color in self.colors_vintage:
-            new_dropdown.add_option(option=None, bg_color=color, command=lambda c=color: self.new_picture(c))
-
-        new_dropdown.add_separator()
-        new_dropdown.add_option(option=_("Other color"), command=self.other_bg_color)
-        new_dropdown.add_option(option=_("Create screenshot"), command=self.create_screenshot)
+        image_menu = menu.add_cascade(_("Image"))
+        image_dropdown = CustomDropdownMenu(widget=image_menu)
+        image_dropdown.add_option(option=_("Rotate right"), command=lambda: self.rotate(-90))
+        image_dropdown.add_option(option=_("Rotate left"), command=lambda: self.rotate(90))
+        image_dropdown.add_separator()
+        image_dropdown.add_option(option=_("Create screenshot"), command=self.create_screenshot)
 
         view_menu = menu.add_cascade(_("View"))
         view_dropdown = CustomDropdownMenu(widget=view_menu)
@@ -100,23 +100,37 @@ class Brushshe(ctk.CTk):
         view_dropdown.add_separator()
         view_dropdown.add_option(option=_("Reset"), command=self.reset_zoom)
 
-        add_menu = menu.add_cascade(_("Add"))
-        add_dropdown = CustomDropdownMenu(widget=add_menu)
-        smile_icon = ctk.CTkImage(Image.open(resource("icons/smile.png")), size=(50, 50))
-        add_dropdown.add_option(option=_("Stickers"), image=smile_icon, command=self.show_stickers_choice)
-        text_icon = ctk.CTkImage(Image.open(resource("icons/text.png")), size=(50, 50))
-        add_dropdown.add_option(option=_("Text"), image=text_icon, command=self.show_text_window)
-        frame_icon = ctk.CTkImage(Image.open(resource("icons/frame.png")), size=(50, 50))
-        add_dropdown.add_option(option=_("Frames"), image=frame_icon, command=self.show_frame_choice)
-        effects_icon = ctk.CTkImage(Image.open(resource("icons/effects.png")), size=(50, 50))
-        add_dropdown.add_option(option=_("Effects"), image=effects_icon, command=self.effects)
+        tools_menu = menu.add_cascade(_("Tools"))
+        tools_dropdown = CustomDropdownMenu(widget=tools_menu)
 
-        shapes_menu = menu.add_cascade(_("Shapes"))
-        shapes_dropdown = CustomDropdownMenu(widget=shapes_menu)
-        shape_options = ["Rectangle", "Oval", "Line", "Fill rectangle", "Fill oval"]
+        draw_tools_submenu = tools_dropdown.add_submenu(_("Draw tools"))
+        draw_tools_submenu.add_option(option=_("Brush"), command=self.brush)
+        draw_tools_submenu.add_option(option=_("Eraser"), command=self.eraser)
+        draw_tools_submenu.add_option(option=_("Fill"), command=self.fill)
+        draw_tools_submenu.add_option(option=_("Recoloring brush"), command=self.recoloring_brush)
+        draw_tools_submenu.add_option(option=_("Spray"), command=self.spray)
+
+        shapes_submenu = tools_dropdown.add_submenu(_("Shapes"))
+        shape_options = ["Rectangle", "Oval", "Fill rectangle", "Fill oval", "Line"]
         for shape in shape_options:
-            shapes_dropdown.add_option(option=_(shape), command=lambda shape=shape: self.create_shape(shape))
-        shapes_dropdown.add_option(option=_("Bezier curve"), command=self.bezier_shape)
+            shapes_submenu.add_option(option=_(shape), command=lambda shape=shape: self.create_shape(shape))
+        shapes_submenu.add_option(option=_("Bezier curve"), command=self.bezier_shape)
+
+        edit_submenu = tools_dropdown.add_submenu(_("Edit tools"))
+        edit_submenu.add_option(option=_("Cut"), command=lambda: self.copy_simple(deleted=True))
+        edit_submenu.add_option(option=_("Copy"), command=lambda: self.copy_simple())
+        edit_submenu.add_option(option=_("Insert"), command=lambda: self.start_insert())
+
+        tools_icon_size = (20, 20)
+        tools_dropdown.add_separator()
+        smile_icon = ctk.CTkImage(Image.open(resource("icons/smile.png")), size=tools_icon_size)
+        tools_dropdown.add_option(option=_("Stickers"), image=smile_icon, command=self.show_stickers_choice)
+        text_icon = ctk.CTkImage(Image.open(resource("icons/text.png")), size=tools_icon_size)
+        tools_dropdown.add_option(option=_("Text"), image=text_icon, command=self.show_text_window)
+        frame_icon = ctk.CTkImage(Image.open(resource("icons/frame.png")), size=tools_icon_size)
+        tools_dropdown.add_option(option=_("Frames"), image=frame_icon, command=self.show_frame_choice)
+        effects_icon = ctk.CTkImage(Image.open(resource("icons/effects.png")), size=tools_icon_size)
+        tools_dropdown.add_option(option=_("Effects"), image=effects_icon, command=self.effects)
 
         menu.add_cascade(_("My Gallery"), command=self.show_gallery)
 
@@ -236,6 +250,49 @@ class Brushshe(ctk.CTk):
             {"type": "separator"},
             {
                 "type": "button",
+                "name": _("Rectangle"),
+                "helper": _("Rectangle"),
+                "action": lambda: self.create_shape("Rectangle"),
+                "icon_name": "rectangle",
+            },
+            {
+                "type": "button",
+                "name": _("Oval"),
+                "helper": _("Oval"),
+                "action": lambda: self.create_shape("Oval"),
+                "icon_name": "oval",
+            },
+            {
+                "type": "button",
+                "name": _("Fill rectangle"),
+                "helper": _("Fill rectangle"),
+                "action": lambda: self.create_shape("Fill rectangle"),
+                "icon_name": "fill_rectangle",
+            },
+            {
+                "type": "button",
+                "name": _("Fill oval"),
+                "helper": _("Fill oval"),
+                "action": lambda: self.create_shape("Fill oval"),
+                "icon_name": "fill_oval",
+            },
+            {
+                "type": "button",
+                "name": _("Line"),
+                "helper": _("Line"),
+                "action": lambda: self.create_shape("Line"),
+                "icon_name": "line",
+            },
+            {
+                "type": "button",
+                "name": _("Bezier"),
+                "helper": _("Bezier"),
+                "action": self.bezier_shape,
+                "icon_name": "bezier",
+            },
+            {"type": "separator"},
+            {
+                "type": "button",
                 "name": _("Cut"),
                 "helper": _("Cut"),  # + " (Ctrl+X)",
                 "action": lambda: self.copy_simple(deleted=True),
@@ -255,41 +312,17 @@ class Brushshe(ctk.CTk):
                 "action": self.start_insert,
                 "icon_name": "insert",
             },
+            # {"type": "separator"},
+            # {
+            #     "type": "button",
+            #     "name": _("test"),
+            #     "helper": _("test"),
+            #     "action": None,
+            #     "icon_name": "test",
+            # },
         ]
 
-        for tool in tools_list:
-            if tool["type"] == "separator":
-                s = ctk.CTkFrame(
-                    self.canvas_frame_lb,
-                    width=30,
-                    height=2,
-                )
-                s.pack(side=ctk.TOP, pady=4)
-                continue
-
-            tool_helper = tool["helper"]
-            tool_command = tool["action"]
-            tool_icon_name = tool["icon_name"]
-
-            try:
-                tool_icon = ctk.CTkImage(
-                    light_image=Image.open(resource(f"icons/{tool_icon_name}_light.png")),
-                    dark_image=Image.open(resource(f"icons/{tool_icon_name}_dark.png")),
-                    size=(22, 22),
-                )
-            except Exception:
-                # tool_icon = None
-                tool_icon = ctk.CTkImage(
-                    light_image=Image.open(resource("icons/not_found_light.png")),
-                    dark_image=Image.open(resource("icons/not_found_dark.png")),
-                    size=(22, 22),
-                )
-
-            tool_button = ctk.CTkButton(
-                self.canvas_frame_lb, text=None, width=30, height=30, image=tool_icon, command=tool_command
-            )
-            tool_button.pack(side=ctk.TOP, pady=1)
-            Tooltip(tool_button, message=tool_helper)
+        self.set_tools_docker(tools_list, 2)
 
         """Canvas"""
         self.canvas_frame_rb_down.pack(side=ctk.BOTTOM)
@@ -440,6 +473,52 @@ class Brushshe(ctk.CTk):
             self.open_image(sys.argv[1])
 
     """ Functionality """
+
+    def set_tools_docker(self, tools_list, columns=1):
+        row = 0
+        column = 0
+
+        for tool in tools_list:
+            if tool["type"] == "separator":
+                column = 0
+                row += 1
+                s = ctk.CTkFrame(
+                    self.canvas_frame_lb,
+                    width=30,
+                    height=4,
+                )
+                s.grid(column=column, row=row, pady=1, padx=1)
+                row += 1
+                continue
+
+            tool_helper = tool["helper"]
+            tool_command = tool["action"]
+            tool_icon_name = tool["icon_name"]
+
+            try:
+                tool_icon = ctk.CTkImage(
+                    light_image=Image.open(resource(f"icons/{tool_icon_name}_light.png")),
+                    dark_image=Image.open(resource(f"icons/{tool_icon_name}_dark.png")),
+                    size=(22, 22),
+                )
+            except Exception:
+                # tool_icon = None
+                tool_icon = ctk.CTkImage(
+                    light_image=Image.open(resource("icons/not_found_light.png")),
+                    dark_image=Image.open(resource("icons/not_found_dark.png")),
+                    size=(22, 22),
+                )
+
+            tool_button = ctk.CTkButton(
+                self.canvas_frame_lb, text=None, width=30, height=30, image=tool_icon, command=tool_command
+            )
+            tool_button.grid(column=column, row=row, pady=1, padx=1)
+            Tooltip(tool_button, message=tool_helper)
+
+            column += 1
+            if column >= columns:
+                column = 0
+                row += 1
 
     def change_tool_size_bind(self, event=None, delta=1):
         new_size = self.get_tool_size() + delta
@@ -1366,6 +1445,9 @@ class Brushshe(ctk.CTk):
 
         def insert_end(event):
             nonlocal image_tmp, x1, y1
+
+            if x1 is None or y1 is None:
+                return
 
             if image_tmp.mode == "RGBA":
                 self.image.paste(image_tmp, (x1, y1), image_tmp)
