@@ -13,7 +13,7 @@
 AppId={{EF032D4B-48F7-44D3-B5B7-DD749EDA3A1D}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-;AppVerName={#MyAppName} {#MyAppVersion}
+AppVerName=Brushshe 2.0.0 "Skopje"
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
