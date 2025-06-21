@@ -7,7 +7,7 @@
 </p>
 
 ## Description
-**Brushshe** is a raster graphical editor, written on Python 3, CustomTkinter and PIL.
+**Brushshe** is a simple and user-friendly raster graphics editor. Available for Windows and Linux.
 
 ![Screenshot](https://raw.githubusercontent.com/limafresh/Brushshe/main/screenshot.png)
 

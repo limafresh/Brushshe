@@ -74,8 +74,10 @@ class Brushshe(ctk.CTk):
         file_menu = menu.add_cascade(_("File"))
         file_dropdown = CustomDropdownMenu(widget=file_menu)
 
-        file_dropdown.add_option(option=_("New"), command=lambda: self.new_picture('white'))
-        file_dropdown.add_option(option=_("New with other color"), command=self.other_bg_color)  # TODO: Use dialog from there.
+        file_dropdown.add_option(option=_("New"), command=lambda: self.new_picture("white"))
+        file_dropdown.add_option(
+            option=_("New with other color"), command=self.other_bg_color
+        )  # TODO: Use dialog from there.
 
         file_dropdown.add_option(option=_("Open from file"), command=self.open_from_file)
         file_dropdown.add_option(option=_("Save changes to this picture"), command=self.save_current)
@@ -107,7 +109,7 @@ class Brushshe(ctk.CTk):
         draw_tools_submenu.add_option(option=_("Brush"), command=self.brush)
         draw_tools_submenu.add_option(option=_("Eraser"), command=self.eraser)
         draw_tools_submenu.add_option(option=_("Fill"), command=self.fill)
-        draw_tools_submenu.add_option(option=_("Recoloring brush"), command=self.recoloring_brush)
+        draw_tools_submenu.add_option(option=_("Recoloring Brush"), command=self.recoloring_brush)
         draw_tools_submenu.add_option(option=_("Spray"), command=self.spray)
 
         shapes_submenu = tools_dropdown.add_submenu(_("Shapes"))

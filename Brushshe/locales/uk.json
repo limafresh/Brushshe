@@ -6,7 +6,7 @@
 	"Save as new picture": "Зберегти як новий малюнок",
 	"Save to device": "Зберегти на пристрій",
 	"New": "Новий",
-	"Other color": "Інший колір",
+	"New with other color": "Новий з іншим кольором",
 	"Add": "Додати",
 	"Stickers": "Наліпки",
 	"Text": "Текст",
@@ -108,5 +108,12 @@
 	"Insert": "Вставити",
 	"Reset settings after exiting": "Скинути налаштування після виходу",
 	"Unnamed": "Безіменний",
-	"Changes to your existing picture have been saved successfully!": "Зміни у Вашому існуючому малюнку успішно збережено!"
+	"Changes to your existing picture have been saved successfully!": "Зміни у Вашому існуючому малюнку успішно збережено!",
+	"Tools": "Инструменты",
+	"Draw tools": "Інструменти малювання",
+	"Edit tools": "Інструменти редагування",
+	"Image": "Зображення",
+	"Open my gallery": "Відкрити мою галерею",
+	"Save to my gallery": "Зберегти в мою галерею"
+
 }

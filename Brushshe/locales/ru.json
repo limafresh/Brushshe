@@ -6,7 +6,7 @@
 	"Save as new picture": "Сохранить как новый рисунок",
 	"Save to device": "Сохранить на устройство",
 	"New": "Новый",
-	"Other color": "Другой цвет",
+	"New with other color": "Новый с другим цветом",
 	"Add": "Добавить",
 	"Stickers": "Наклейки",
 	"Text": "Текст",
@@ -107,5 +107,11 @@
 	"Insert": "Вставить",
 	"Reset settings after exiting": "Сбросить настройки после выхода",
 	"Unnamed": "Безымянный",
-	"Changes to your existing picture have been saved successfully!": "Изменения в Вашем существующем рисунке успешно сохранены!"
+	"Changes to your existing picture have been saved successfully!": "Изменения в Вашем существующем рисунке успешно сохранены!",
+	"Tools": "Инструменты",
+	"Draw tools": "Инструменты рисования",
+	"Edit tools": "Инструменты редактирования",
+	"Image": "Изображение",
+	"Open my gallery": "Открыть мою галерею",
+	"Save to my gallery": "Сохранить в мою галерею"
 }
