@@ -826,10 +826,7 @@ class Brushshe(ctk.CTk):
     def open_from_file(self):
         dialog = FileDialog(self, title=_("Open from file"))
         if dialog.path:
-            try:
-                self.open_image(dialog.path)
-            except Exception as e:
-                self.open_file_error(e)
+            self.open_image(dialog.path)
 
     def save_current(self):
         if self.current_file is not None:
@@ -1989,7 +1986,7 @@ class Brushshe(ctk.CTk):
             self.current_file = openimage
             self.title(self.current_file + " - " + _("Brushshe"))
         except Exception as e:
-            self.open_error(e)
+            self.open_file_error(e)
 
     def open_file_error(self, e):
         message_text = _("Error - cannot open file:")
