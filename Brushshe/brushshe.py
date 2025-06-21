@@ -853,7 +853,7 @@ class Brushshe(ctk.CTk):
                 sound=True,
             )
             self.current_file = dialog.path
-            self.title(self.current_file + " - " + _("Brushshe"))
+            self.title(os.path.basename(self.current_file) + " - " + _("Brushshe"))
 
     def other_bg_color(self):
         askcolor = AskColor(title=_("Choose a different background color"), initial_color="#ffffff")
@@ -1929,8 +1929,8 @@ class Brushshe(ctk.CTk):
             file_path = self.gallery_folder / f"{uuid4()}.png"
         self.image.save(file_path)
 
-        self.current_file = file_path
-        self.title(str(self.current_file) + " - " + _("Brushshe"))
+        self.current_file = str(file_path)
+        self.title(os.path.basename(self.current_file) + " - " + _("Brushshe"))
 
         CTkMessagebox(
             title=_("Saved"),
@@ -1984,7 +1984,7 @@ class Brushshe(ctk.CTk):
             self.picture_postconfigure()
 
             self.current_file = openimage
-            self.title(self.current_file + " - " + _("Brushshe"))
+            self.title(os.path.basename(self.current_file) + " - " + _("Brushshe"))
         except Exception as e:
             self.open_file_error(e)
 
