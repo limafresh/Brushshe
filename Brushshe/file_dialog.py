@@ -133,10 +133,10 @@ class FileDialog(ctk.CTkToplevel):
                 sound=True,
             )
             if overwrite_msg.get() == _("Yes"):
-                self.path = selected_path + self.extension
+                self.path = entered_path
                 self.destroy()
         else:
-            self.path = selected_path + self.extension
+            self.path = entered_path
             self.destroy()
 
     def _up(self):

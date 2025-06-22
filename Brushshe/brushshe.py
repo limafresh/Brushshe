@@ -830,30 +830,49 @@ class Brushshe(ctk.CTk):
 
     def save_current(self):
         if self.current_file is not None:
-            self.image.save(self.current_file)
-            CTkMessagebox(
-                title=_("Saved"),
-                message=_("Changes to your existing picture have been saved successfully!"),
-                icon=resource("icons/saved.png"),
-                icon_size=(100, 100),
-                sound=True,
-            )
+            try:
+                self.image.save(self.current_file)
+                CTkMessagebox(
+                    title=_("Saved"),
+                    message=_("Changes to your existing picture have been saved successfully!"),
+                    icon=resource("icons/saved.png"),
+                    icon_size=(100, 100),
+                    sound=True,
+                )
+            except Exception as e:
+                CTkMessagebox(
+                    title=_("Oh, unfortunately, it happened"),
+                    message=f"{_('Error - cannot save file:')} {e}",
+                    icon=resource("icons/cry.png"),
+                    icon_size=(100, 100),
+                    sound=True,
+                )
         else:
             self.save_as()
 
     def save_as(self):
         dialog = FileDialog(self, title=_("Save to device"), save=True)
         if dialog.path:
-            self.image.save(dialog.path)
-            CTkMessagebox(
-                title=_("Saved"),
-                message=_("The picture has been successfully saved to your device in format") + f" {dialog.extension}!",
-                icon=resource("icons/saved.png"),
-                icon_size=(100, 100),
-                sound=True,
-            )
-            self.current_file = dialog.path
-            self.title(os.path.basename(self.current_file) + " - " + _("Brushshe"))
+            try:
+                self.image.save(dialog.path)
+                CTkMessagebox(
+                    title=_("Saved"),
+                    message=_("The picture has been successfully saved to your device in format")
+                    + f" {dialog.extension}!",
+                    icon=resource("icons/saved.png"),
+                    icon_size=(100, 100),
+                    sound=True,
+                )
+                self.current_file = dialog.path
+                self.title(os.path.basename(self.current_file) + " - " + _("Brushshe"))
+            except Exception as e:
+                CTkMessagebox(
+                    title=_("Oh, unfortunately, it happened"),
+                    message=f"{_('Error - cannot save file:')} {e}",
+                    icon=resource("icons/cry.png"),
+                    icon_size=(100, 100),
+                    sound=True,
+                )
 
     def other_bg_color(self):
         askcolor = AskColor(title=_("Choose a different background color"), initial_color="#ffffff")
@@ -1989,10 +2008,9 @@ class Brushshe(ctk.CTk):
             self.open_file_error(e)
 
     def open_file_error(self, e):
-        message_text = _("Error - cannot open file:")
         CTkMessagebox(
             title=_("Oh, unfortunately, it happened"),
-            message=f"{message_text} {e}",
+            message=f"{_('Error - cannot open file:')} {e}",
             icon=resource("icons/cry.png"),
             icon_size=(100, 100),
             sound=True,
