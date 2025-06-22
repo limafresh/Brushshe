@@ -113,5 +113,7 @@
 	"Edit tools": "Инструменты редактирования",
 	"Image": "Изображение",
 	"Open my gallery": "Открыть мою галерею",
-	"Save to my gallery": "Сохранить в мою галерею"
+	"Save to my gallery": "Сохранить в мою галерею",
+	"A file with this name already exists": "Файл с этим именем уже существует",
+	"Overwrite this file?": "Перезаписать этот файл?"
 }
