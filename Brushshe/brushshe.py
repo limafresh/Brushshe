@@ -840,13 +840,7 @@ class Brushshe(ctk.CTk):
                     sound=True,
                 )
             except Exception as e:
-                CTkMessagebox(
-                    title=_("Oh, unfortunately, it happened"),
-                    message=f"{_('Error - cannot save file:')} {e}",
-                    icon=resource("icons/cry.png"),
-                    icon_size=(100, 100),
-                    sound=True,
-                )
+                self.save_file_error(e)
         else:
             self.save_as()
 
@@ -866,13 +860,16 @@ class Brushshe(ctk.CTk):
                 self.current_file = dialog.path
                 self.title(os.path.basename(self.current_file) + " - " + _("Brushshe"))
             except Exception as e:
-                CTkMessagebox(
-                    title=_("Oh, unfortunately, it happened"),
-                    message=f"{_('Error - cannot save file:')} {e}",
-                    icon=resource("icons/cry.png"),
-                    icon_size=(100, 100),
-                    sound=True,
-                )
+                self.save_file_error(e)
+
+    def save_file_error(self, e):
+        CTkMessagebox(
+            title=_("Oh, unfortunately, it happened"),
+            message=f"{_('Error - cannot save file:')} {e}",
+            icon=resource("icons/cry.png"),
+            icon_size=(100, 100),
+            sound=True,
+        )
 
     def other_bg_color(self):
         askcolor = AskColor(title=_("Choose a different background color"), initial_color="#ffffff")
@@ -2033,9 +2030,6 @@ class Brushshe(ctk.CTk):
         self.image = ImageGrab.grab()
         self.deiconify()
         self.picture_postconfigure()
-
-        self.title(_("Unnamed") + " - " + _("Brushshe"))
-        self.current_file = None
 
     def picture_postconfigure(self):
         self.canvas.delete("tools")
