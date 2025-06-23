@@ -55,6 +55,7 @@ pip install customtkinter Pillow
 + **Dark theme**: There is a light and dark theme.
 + **Rotate**: Rotate right, rotate left.
 + **Create screenshot**: You can take a screenshot and draw on it. Not work on Linux with Wayland.
++ **Paste image from clipboard**: You can paste image from clipboard.
 + **View**: Zoom in, zoom out, reset zoom.
 + **Change size**: You can change the size by cropping or scaling.
 + **Palettes**: There are 3 built-in palette sets in the settings, and if there are not enough of them, you can load your own from .hex files.
@@ -100,5 +101,7 @@ The internationalization of this program has a simple principle - it determines 
 ## For developers
 ### Linter
 [Ruff](https://github.com/astral-sh/ruff) is used to maintain code cleanliness.
+
+Starting from version 2.0.0, each version (except for bug fixes) will be given a codename based on city names.
 
 ## 🎨🦅💪

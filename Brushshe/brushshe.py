@@ -94,6 +94,7 @@ class Brushshe(ctk.CTk):
         image_dropdown.add_option(option=_("Rotate left"), command=lambda: self.rotate(90))
         image_dropdown.add_separator()
         image_dropdown.add_option(option=_("Create screenshot"), command=self.create_screenshot)
+        image_dropdown.add_option(option=_("Paste image from clipboard"), command=self.paste_image_from_clipboard)
 
         view_menu = menu.add_cascade(_("View"))
         view_dropdown = CustomDropdownMenu(widget=view_menu)
@@ -402,7 +403,7 @@ class Brushshe(ctk.CTk):
         self.bind("<Control-y>", lambda e: self.redo())
         self.bind("<Control-s>", lambda e: self.save_to_gallery())
 
-        # I chacget the hotkeys because they don't work if the layout is not Latin,
+        # I changed the hotkeys because they don't work if the layout is not Latin,
         # and they are also intercepted when entering text
         self.bind("<Control-f>", lambda e: self.flip_brush_colors())
         self.bind("<Control-b>", lambda e: self.brush())
@@ -2339,6 +2340,21 @@ class Brushshe(ctk.CTk):
             self.brush_shape = "circle"
         elif value == "■":
             self.brush_shape = "square"
+
+    def paste_image_from_clipboard(self):
+        try:
+            pasted_img = ImageGrab.grabclipboard()
+            self.bg_color = "white"
+            self.image = pasted_img
+            self.picture_postconfigure()
+        except Exception as e:
+            CTkMessagebox(
+                title=_("Oh, unfortunately, it happened"),
+                message=f"{_('Error - cannot paste image:')} {e}",
+                icon=resource("icons/cry.png"),
+                icon_size=(100, 100),
+                sound=True,
+            )
 
 
 ctk.set_appearance_mode(config.get("Brushshe", "theme"))
