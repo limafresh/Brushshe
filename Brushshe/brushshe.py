@@ -541,8 +541,8 @@ class Brushshe(ctk.CTk):
             if new_size > 96:
                 new_size = 96
         else:
-            if new_size > 175:
-                new_size = 175
+            if new_size > 250:
+                new_size = 250
         self.change_tool_size(new_size)
         self.tool_size_slider.set(int(new_size))
 
@@ -928,7 +928,7 @@ class Brushshe(ctk.CTk):
         ).pack(padx=10, pady=10)
 
     def set_current_sticker(self, sticker_image):  # Choose a sticker
-        self.set_tool("sticker", "Stickers", self.sticker_size, 10, 175, "cross")
+        self.set_tool("sticker", "Stickers", self.sticker_size, 10, 250, "cross")
         self.insert_simple(sticker_image)
 
     def text_tool(self):
@@ -1419,7 +1419,8 @@ class Brushshe(ctk.CTk):
             nonlocal image_tmp, image_tmp_view, image_tk, current_zoom, x1, y1
 
             if self.current_tool == "sticker":
-                image_tmp = insert_image.resize((self.tool_size, self.tool_size))
+                sticker_height = int(insert_image.height * self.tool_size / insert_image.width)
+                image_tmp = insert_image.resize((self.tool_size, sticker_height))
 
             x, y = self.canvas_to_pict_xy(event.x, event.y)
 
