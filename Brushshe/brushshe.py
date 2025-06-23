@@ -945,15 +945,15 @@ class Brushshe(ctk.CTk):
         x, y = self.canvas_to_pict_xy(event.x, event.y)
         imagefont = ImageFont.truetype(self.font_path, self.tool_size)
 
-        bbox = self.draw.textbbox((x, y), self.tx_entry.get(), font=imagefont)
+        bbox = self.draw.textbbox((0, 0), self.tx_entry.get(), font=imagefont)
 
-        # Text size
         text_width = bbox[2] - bbox[0]
         text_height = bbox[3] - bbox[1]
 
-        self.draw.text(
-            (x - text_width // 2, y - text_height // 2), self.tx_entry.get(), fill=self.brush_color, font=imagefont
-        )
+        start_x = x - text_width // 2 - bbox[0]
+        start_y = y - text_height // 2 - bbox[1]
+
+        self.draw.text((start_x, start_y), self.tx_entry.get(), fill=self.brush_color, font=imagefont)
 
         self.update_canvas()
         self.undo_stack.append(self.image.copy())
