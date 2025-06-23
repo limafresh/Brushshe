@@ -190,11 +190,6 @@ class Brushshe(ctk.CTk):
         self.tool_config_docker.pack(side=ctk.LEFT, padx=5)
         self.tool_config_docker.configure(height=30, fg_color="transparent")
 
-        self.brush_shape_btn = ctk.CTkSegmentedButton(
-            tools_frame, values=["●", "■"], command=self.brush_shape_btn_callback
-        )
-        self.brush_shape_btn.set("●")
-
         save_to_gallery_btn = ctk.CTkButton(tools_frame, text=_("Save to gallery"), command=self.save_to_gallery)
         save_to_gallery_btn.pack(side=ctk.RIGHT)
         Tooltip(save_to_gallery_btn, message=_("Save to gallery") + " (Ctrl+S)")
@@ -2081,9 +2076,14 @@ class Brushshe(ctk.CTk):
             self.tool_size_tooltip.configure(message=self.tool_size)
 
         if self.current_tool in ["brush", "eraser"]:
-            self.brush_shape_btn.pack(side=ctk.LEFT, padx=5)
-        else:
-            self.brush_shape_btn.pack_forget()
+            brush_shape_btn = ctk.CTkSegmentedButton(
+                self.tool_config_docker, values=["●", "■"], command=self.brush_shape_btn_callback
+            )
+            if self.brush_shape == "circle":
+                brush_shape_btn.set("●")
+            elif self.brush_shape == "square":
+                brush_shape_btn.set("■")
+            brush_shape_btn.pack(side=ctk.LEFT, padx=5)
 
         self.canvas.configure(cursor=cursor)
         self.canvas.delete("tools")
