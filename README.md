@@ -65,12 +65,9 @@ pip install customtkinter Pillow
 + *Ctrl+Z*: undo
 + *Ctrl+Y*: redo
 + *Ctrl+S*: save to gallery
-+ *X*: flip colors
-+ *B*: brush
-+ *E*: eraser
-+ *F*: fill
-+ *R*: recoloring brush
-+ *S*: spray
++ *Ctrl+F*: flip colors
++ *Ctrl+B*: brush
++ *Ctrl+E*: eraser
 + *=*: zoom in
 + *-*: zoom out
 + *[*: down by 1 the brush or other tools size

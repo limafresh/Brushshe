@@ -128,7 +128,7 @@ class Brushshe(ctk.CTk):
         smile_icon = ctk.CTkImage(Image.open(resource("icons/smile.png")), size=tools_icon_size)
         tools_dropdown.add_option(option=_("Stickers"), image=smile_icon, command=self.show_stickers_choice)
         text_icon = ctk.CTkImage(Image.open(resource("icons/text.png")), size=tools_icon_size)
-        tools_dropdown.add_option(option=_("Text"), image=text_icon, command=self.show_text_window)
+        tools_dropdown.add_option(option=_("Text"), image=text_icon, command=self.text_tool)
         frame_icon = ctk.CTkImage(Image.open(resource("icons/frame.png")), size=tools_icon_size)
         tools_dropdown.add_option(option=_("Frames"), image=frame_icon, command=self.show_frame_choice)
         effects_icon = ctk.CTkImage(Image.open(resource("icons/effects.png")), size=tools_icon_size)
@@ -212,35 +212,35 @@ class Brushshe(ctk.CTk):
             {
                 "type": "button",
                 "name": _("Brush"),
-                "helper": _("Brush") + " (B)",
+                "helper": _("Brush") + " (Ctrl+B)",
                 "action": self.brush,
                 "icon_name": "brush",
             },
             {
                 "type": "button",
                 "name": _("Eraser"),
-                "helper": _("Eraser") + " (E)",
+                "helper": _("Eraser") + " (Ctrl+E)",
                 "action": self.eraser,
                 "icon_name": "eraser",
             },
             {
                 "type": "button",
                 "name": _("Fill"),
-                "helper": _("Fill") + " (F)",
+                "helper": _("Fill"),
                 "action": self.start_fill,
                 "icon_name": "fill",
             },
             {
                 "type": "button",
                 "name": _("Recoloring Brush"),
-                "helper": _("Recoloring Brush") + " (R)",
+                "helper": _("Recoloring Brush"),
                 "action": self.recoloring_brush,
                 "icon_name": "recoloring_brush",
             },
             {
                 "type": "button",
                 "name": _("Spray"),
-                "helper": _("Spray") + " (S)",
+                "helper": _("Spray"),
                 "action": self.spray,
                 "icon_name": "spray",
             },
@@ -392,6 +392,7 @@ class Brushshe(ctk.CTk):
         self.brush()
 
         self.prev_x, self.prev_y = (None, None)
+        self.current_font = "Open Sans"
         self.font_path = resource("assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
         self.is_reset_settings_after_exiting = False
         self.current_file = None
@@ -401,12 +402,11 @@ class Brushshe(ctk.CTk):
         self.bind("<Control-y>", lambda e: self.redo())
         self.bind("<Control-s>", lambda e: self.save_to_gallery())
 
-        self.bind("<Key-x>", lambda e: self.flip_brush_colors())
-        self.bind("<Key-b>", lambda e: self.brush())
-        self.bind("<Key-e>", lambda e: self.eraser())
-        self.bind("<Key-f>", lambda e: self.start_fill())
-        self.bind("<Key-r>", lambda e: self.recoloring_brush())
-        self.bind("<Key-s>", lambda e: self.spray())
+        # I chacget the hotkeys because they don't work if the layout is not Latin,
+        # and they are also intercepted when entering text
+        self.bind("<Control-f>", lambda e: self.flip_brush_colors())
+        self.bind("<Control-b>", lambda e: self.brush())
+        self.bind("<Control-e>", lambda e: self.eraser())
 
         # Default zooming keys for mani painting programs.
         self.bind("<Key-equal>", lambda e: self.zoom_in(e))  # Key "=" -> ("+" without Shift)
@@ -463,6 +463,14 @@ class Brushshe(ctk.CTk):
             "flower2",
         ]
         self.stickers = [Image.open(resource(f"assets/stickers/{name}.png")) for name in stickers_names]
+
+        self.fonts_dict = {
+            "Open Sans": "assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf",
+            "Sigmar": "assets/fonts/Sigmar/Sigmar-Regular.ttf",
+            "Playwrite IT Moderna": "assets/fonts/Playwrite_IT_Moderna/PlaywriteITModerna-VariableFont_wght.ttf",
+            "Monomakh": "assets/fonts/Monomakh/Monomakh-Regular.ttf",
+        }
+        self.fonts = list(self.fonts_dict.keys())
 
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
@@ -923,55 +931,31 @@ class Brushshe(ctk.CTk):
         self.set_tool("sticker", "Stickers", self.sticker_size, 10, 175, "cross")
         self.insert_simple(sticker_image)
 
-    def add_text(self, event, text):  # Add text
+    def text_tool(self):
+        self.set_tool("text", "Text", self.font_size, 11, 96, "cross")
+        self.canvas.bind("<Button-1>", self.add_text)
+
+    def font_optionmenu_callback(self, value):
+        self.current_font = value
+        self.font_path = resource(self.fonts_dict.get(value))
+        self.imagefont = ImageFont.truetype(self.font_path, self.tool_size)
+
+    def add_text(self, event):
         x, y = self.canvas_to_pict_xy(event.x, event.y)
         imagefont = ImageFont.truetype(self.font_path, self.tool_size)
 
-        bbox = self.draw.textbbox((x, y), text, font=imagefont)
+        bbox = self.draw.textbbox((x, y), self.tx_entry.get(), font=imagefont)
 
         # Text size
         text_width = bbox[2] - bbox[0]
         text_height = bbox[3] - bbox[1]
 
-        self.draw.text((x - text_width // 2, y - text_height // 2), text, fill=self.brush_color, font=imagefont)
+        self.draw.text(
+            (x - text_width // 2, y - text_height // 2), self.tx_entry.get(), fill=self.brush_color, font=imagefont
+        )
 
         self.update_canvas()
         self.undo_stack.append(self.image.copy())
-        if self.tx_message_label.winfo_exists():
-            self.tx_message_label.configure(text="\n")
-
-    def show_text_window(self):
-        def optionmenu_callback(value):
-            self.font_path = resource(fonts_dict.get(value))
-            self.imagefont = ImageFont.truetype(self.font_path, self.tool_size)
-
-        def add_text_ready():
-            self.tx_message_label.configure(text=_("Now click where you\nwant it on the picture"))
-            text = tx_entry.get()
-            self.set_tool("text", "Text", self.font_size, 11, 96, "cross")
-            self.canvas.bind("<Button-1>", lambda event, t=text: self.add_text(event, text))
-
-        text_win = ctk.CTkToplevel(self)
-        text_win.title(_("Add text to a picture"))
-
-        tx_entry = ctk.CTkEntry(text_win, placeholder_text=_("Enter text..."))
-        tx_entry.pack(padx=10, pady=10)
-
-        ctk.CTkLabel(text_win, text=_("Fonts:")).pack(padx=10, pady=10)
-
-        fonts_dict = {
-            "Open Sans": "assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf",
-            "Sigmar": "assets/fonts/Sigmar/Sigmar-Regular.ttf",
-            "Playwrite IT Moderna": "assets/fonts/Playwrite_IT_Moderna/PlaywriteITModerna-VariableFont_wght.ttf",
-            "Monomakh": "assets/fonts/Monomakh/Monomakh-Regular.ttf",
-        }
-        fonts = list(fonts_dict.keys())
-
-        ctk.CTkOptionMenu(text_win, values=fonts, command=optionmenu_callback).pack(padx=10, pady=10)
-        ctk.CTkButton(text_win, text="OK", command=add_text_ready).pack(padx=10, pady=10)
-
-        self.tx_message_label = ctk.CTkLabel(text_win, text="\n")
-        self.tx_message_label.pack(padx=10, pady=10)
 
     def show_frame_choice(self):
         def on_frames_click(index):
@@ -2084,6 +2068,18 @@ class Brushshe(ctk.CTk):
             elif self.brush_shape == "square":
                 brush_shape_btn.set("■")
             brush_shape_btn.pack(side=ctk.LEFT, padx=5)
+        elif self.current_tool == "text":
+            self.tx_entry = ctk.CTkEntry(self.tool_config_docker, placeholder_text=_("Enter text..."))
+            self.tx_entry.pack(side=ctk.LEFT, padx=5)
+
+            font_optionmenu = ctk.CTkOptionMenu(
+                self.tool_config_docker,
+                values=self.fonts,
+                dynamic_resizing=False,
+                command=self.font_optionmenu_callback,
+            )
+            font_optionmenu.set(self.current_font)
+            font_optionmenu.pack(side=ctk.LEFT, padx=1)
 
         self.canvas.configure(cursor=cursor)
         self.canvas.delete("tools")
