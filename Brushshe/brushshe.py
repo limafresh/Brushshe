@@ -382,6 +382,7 @@ class Brushshe(ctk.CTk):
         self.sticker_size = 100
         self.font_size = 24
         self.zoom = 1
+        self.zoom_before = self.zoom
 
         self.is_brush_smoothing = config.getboolean("Brushshe", "smoothing")
         self.brush_smoothing_factor = config.getint("Brushshe", "brush_smoothing_factor")  # Between: 3..64
@@ -397,6 +398,9 @@ class Brushshe(ctk.CTk):
         self.is_reset_settings_after_exiting = False
         self.current_file = None
         self.canvas.bind("<Button-3>", self.eyedropper)
+
+        self.canvas.bind("<Button-2>", self.begin_moving_canvas)
+        self.canvas.bind("<B2-Motion>", self.continue_moving_canvas)
 
         self.bind("<Control-z>", lambda e: self.undo())
         self.bind("<Control-y>", lambda e: self.redo())
@@ -638,32 +642,48 @@ class Brushshe(ctk.CTk):
         if self.canvas_tails_area is not None and self.get_canvas_tails_area() != self.canvas_tails_area:
             self.update_canvas()
 
+    def begin_moving_canvas(self, event):
+        self.canvas.scan_mark(event.x, event.y)
+
+    def continue_moving_canvas(self, event):
+        self.canvas.scan_dragto(event.x, event.y, gain=1)
+        if self.canvas_tails_area is not None and self.get_canvas_tails_area() != self.canvas_tails_area:
+            self.update_canvas()
+
     def zoom_in(self, event=None):
         self.canvas.delete("tools")
+
+        self.zoom_before = self.zoom
         if 1 < self.zoom < 2:  # Need if zoom not integer but more 1 and less 2
             self.zoom = 1
-
-        if 1 <= self.zoom < 8:  # Zooming limited up by 8.
+        if 1 <= self.zoom < 8:
             self.zoom += 1
         elif self.zoom < 1:
             self.zoom *= 2
-        self.update_canvas()
+
         self.force_resize_canvas()
+        self.update_canvas()
 
     def zoom_out(self, event=None):
         self.canvas.delete("tools")
+
+        self.zoom_before = self.zoom
         if 1 < self.zoom:
             self.zoom -= 1
         elif 0.05 < self.zoom <= 1:  # Zooming limited down by 0.05.
             self.zoom /= 2
-        self.update_canvas()
+
         self.force_resize_canvas()
+        self.update_canvas()
 
     def reset_zoom(self, event=None):
         self.canvas.delete("tools")
+
+        self.zoom_before = self.zoom
         self.zoom = 1
-        self.update_canvas()
+
         self.force_resize_canvas()
+        self.update_canvas()
 
     def canvas_to_pict_xy(self, x, y):
         return self.canvas.canvasx(x) // self.zoom, self.canvas.canvasy(y) // self.zoom
