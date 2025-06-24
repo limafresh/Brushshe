@@ -53,21 +53,6 @@ class Brushshe(ctk.CTk):
             self.iconphoto(True, PhotoImage(file=resource("icons/icon.png")))
         self.protocol("WM_DELETE_WINDOW", self.when_closing)
 
-        self.colors_vintage = [
-            "white",
-            "black",
-            "red",
-            "#2eff00",
-            "blue",
-            "yellow",
-            "purple",
-            "cyan",
-            "pink",
-            "orange",
-            "brown",
-            "gray",
-        ]
-
         """ Menu """
         menu = CTkMenuBar(self)
 
