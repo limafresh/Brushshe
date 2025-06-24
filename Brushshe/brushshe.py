@@ -922,30 +922,58 @@ class Brushshe(ctk.CTk):
         self.insert_simple(sticker_image)
 
     def text_tool(self):
+        def add_text(event):
+            self.draw.text((self.text_x, self.text_y), self.tx_entry.get(), fill=self.brush_color, font=self.imagefont)
+            self.update_canvas()
+            self.undo_stack.append(self.image.copy())
+
+        def draw_text_halo(event):
+            self.canvas.delete("tools")
+
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+            self.imagefont = ImageFont.truetype(self.font_path, self.tool_size)
+
+            bbox = self.draw.textbbox((0, 0), self.tx_entry.get(), font=self.imagefont)
+
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+
+            self.text_x = x - text_width // 2 - bbox[0]
+            self.text_y = y - text_height // 2 - bbox[1]
+
+            self.canvas.create_rectangle(
+                x - text_width // 2,
+                y - text_height // 2,
+                x + text_width // 2,
+                y + text_height // 2,
+                outline="white",
+                width=1,
+                tag="tools",
+            )
+
+            self.canvas.create_rectangle(
+                x - text_width // 2,
+                y - text_height // 2,
+                x + text_width // 2,
+                y + text_height // 2,
+                outline="black",
+                width=1,
+                tag="tools",
+                dash=(5, 5),
+            )
+
+        def leave(event):
+            self.canvas.delete("tools")
+
         self.set_tool("text", "Text", self.font_size, 11, 96, "cross")
-        self.canvas.bind("<Button-1>", self.add_text)
+        self.canvas.bind("<Button-1>", add_text)
+        self.canvas.bind("<Motion>", draw_text_halo)
+        self.canvas.bind("<Leave>", leave)
 
     def font_optionmenu_callback(self, value):
         self.current_font = value
         self.font_path = resource(self.fonts_dict.get(value))
         self.imagefont = ImageFont.truetype(self.font_path, self.tool_size)
-
-    def add_text(self, event):
-        x, y = self.canvas_to_pict_xy(event.x, event.y)
-        imagefont = ImageFont.truetype(self.font_path, self.tool_size)
-
-        bbox = self.draw.textbbox((0, 0), self.tx_entry.get(), font=imagefont)
-
-        text_width = bbox[2] - bbox[0]
-        text_height = bbox[3] - bbox[1]
-
-        start_x = x - text_width // 2 - bbox[0]
-        start_y = y - text_height // 2 - bbox[1]
-
-        self.draw.text((start_x, start_y), self.tx_entry.get(), fill=self.brush_color, font=imagefont)
-
-        self.update_canvas()
-        self.undo_stack.append(self.image.copy())
 
     def show_frame_choice(self):
         def on_frames_click(index):
