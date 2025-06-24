@@ -356,7 +356,10 @@ class Brushshe(ctk.CTk):
         )
         self.palette_widget.pack(side=ctk.LEFT, fill=ctk.X, padx=2, pady=2)
 
-        self.import_palette(resource(f"assets/palettes/{config.get('Brushshe', 'palette')}_palette.hex"))
+        if config.get("Brushshe", "palette") in ["4bit", "default", "vintage"]:
+            self.import_palette(resource(f"assets/palettes/{config.get('Brushshe', 'palette')}_palette.hex"))
+        else:
+            self.import_palette(resource(config.get("Brushshe", "palette")))
 
         self.size_button = ctk.CTkButton(self.bottom_docker, text="640x480", command=self.change_size)
         self.size_button.pack(side=ctk.RIGHT, padx=1)
@@ -2315,6 +2318,8 @@ class Brushshe(ctk.CTk):
                 return
 
             palette_path = dialog.path
+            config.set("Brushshe", "palette", palette_path)
+            write_config()
         else:
             palette_path = value
 
