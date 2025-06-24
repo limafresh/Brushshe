@@ -942,20 +942,20 @@ class Brushshe(ctk.CTk):
             self.text_y = y - text_height // 2 - bbox[1]
 
             self.canvas.create_rectangle(
-                x - text_width // 2,
-                y - text_height // 2,
-                x + text_width // 2,
-                y + text_height // 2,
+                (x - text_width // 2) * self.zoom,
+                (y - text_height // 2) * self.zoom,
+                (x + text_width // 2) * self.zoom,
+                (y + text_height // 2) * self.zoom,
                 outline="white",
                 width=1,
                 tag="tools",
             )
 
             self.canvas.create_rectangle(
-                x - text_width // 2,
-                y - text_height // 2,
-                x + text_width // 2,
-                y + text_height // 2,
+                (x - text_width // 2) * self.zoom,
+                (y - text_height // 2) * self.zoom,
+                (x + text_width // 2) * self.zoom,
+                (y + text_height // 2) * self.zoom,
                 outline="black",
                 width=1,
                 tag="tools",
