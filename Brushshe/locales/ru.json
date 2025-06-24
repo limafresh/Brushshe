@@ -116,5 +116,6 @@
 	"A file with this name already exists": "Файл с этим именем уже существует",
 	"Overwrite this file?": "Перезаписать этот файл?",
 	"Paste image from clipboard": "Вставить изображение из буфера обмена",
-	"Error - cannot paste image:": "Ошибка: невозможно вставить изображение"
+	"Error - cannot paste image:": "Ошибка: невозможно вставить изображение",
+	"Use real size": "Использовать реальный размер"
 }

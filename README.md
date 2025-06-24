@@ -60,7 +60,7 @@ pip install customtkinter Pillow
 + **Change size**: You can change the size by cropping or scaling.
 + **Palettes**: There are 3 built-in palette sets in the settings, and if there are not enough of them, you can load your own from .hex files.
 + **Brush smoothing**: Brush smoothing with params.
-+ **Cut, copy and insert**: Cut, copy or insert fragments.
++ **Cut, copy and insert**: Cut, copy or insert fragments. Works on Windows, but on Linux you need to install `xclip` (X11) or `wl-paste` (Wayland). If they are not installed, everything else will work, but when you try to paste from the buffer, you will get a message that this is impossible.
 
 ## Hotkeys
 + *Ctrl+Z*: undo
@@ -102,6 +102,12 @@ The internationalization of this program has a simple principle - it determines 
 ### Linter
 [Ruff](https://github.com/astral-sh/ruff) is used to maintain code cleanliness.
 
-Starting from version 2.0.0, each version (except for bug fixes) will be given a codename based on city names.
+Starting with version 2.0.0, each version will be given a code name based on the names of cities in alphabetical order. 2.0.0 starts with "S" because it is the 18th letter of the alphabet, and since 1.0.0 there have been 18 versions. Example:
+2.0.0 - Skopje
+2.1.0 - T..
+2.1.1 - T..
+2.2.0 - U..
+2.x.x - Z..
+2.x.x - A..
 
 ## 🎨🦅💪

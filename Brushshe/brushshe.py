@@ -397,6 +397,7 @@ class Brushshe(ctk.CTk):
         self.font_path = resource("assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
         self.is_reset_settings_after_exiting = False
         self.current_file = None
+        self.is_sticker_use_real_size = ctk.StringVar(value="off")
         self.canvas.bind("<Button-3>", self.eyedropper)
 
         self.bind("<Control-z>", lambda e: self.undo())
@@ -1420,8 +1421,11 @@ class Brushshe(ctk.CTk):
             nonlocal image_tmp, image_tmp_view, image_tk, current_zoom, x1, y1
 
             if self.current_tool == "sticker":
-                sticker_height = int(insert_image.height * self.tool_size / insert_image.width)
-                image_tmp = insert_image.resize((self.tool_size, sticker_height))
+                if self.is_sticker_use_real_size.get() == "off":
+                    sticker_height = int(insert_image.height * self.tool_size / insert_image.width)
+                    image_tmp = insert_image.resize((self.tool_size, sticker_height))
+                else:
+                    image_tmp = insert_image
 
             x, y = self.canvas_to_pict_xy(event.x, event.y)
 
@@ -2082,6 +2086,14 @@ class Brushshe(ctk.CTk):
             )
             font_optionmenu.set(self.current_font)
             font_optionmenu.pack(side=ctk.LEFT, padx=1)
+        elif self.current_tool == "sticker":
+            ctk.CTkCheckBox(
+                self.tool_config_docker,
+                text=_("Use real size"),
+                variable=self.is_sticker_use_real_size,
+                onvalue="on",
+                offvalue="off",
+            ).pack(side=ctk.LEFT, padx=5)
 
         self.canvas.configure(cursor=cursor)
         self.canvas.delete("tools")
