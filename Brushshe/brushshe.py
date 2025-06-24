@@ -53,21 +53,6 @@ class Brushshe(ctk.CTk):
             self.iconphoto(True, PhotoImage(file=resource("icons/icon.png")))
         self.protocol("WM_DELETE_WINDOW", self.when_closing)
 
-        self.colors_vintage = [
-            "white",
-            "black",
-            "red",
-            "#2eff00",
-            "blue",
-            "yellow",
-            "purple",
-            "cyan",
-            "pink",
-            "orange",
-            "brown",
-            "gray",
-        ]
-
         """ Menu """
         menu = CTkMenuBar(self)
 
@@ -94,6 +79,7 @@ class Brushshe(ctk.CTk):
         image_dropdown.add_option(option=_("Rotate left"), command=lambda: self.rotate(90))
         image_dropdown.add_separator()
         image_dropdown.add_option(option=_("Create screenshot"), command=self.create_screenshot)
+        image_dropdown.add_option(option=_("Paste image from clipboard"), command=self.paste_image_from_clipboard)
 
         view_menu = menu.add_cascade(_("View"))
         view_dropdown = CustomDropdownMenu(widget=view_menu)
@@ -364,7 +350,10 @@ class Brushshe(ctk.CTk):
         )
         self.palette_widget.pack(side=ctk.LEFT, fill=ctk.X, padx=2, pady=2)
 
-        self.import_palette(resource(f"assets/palettes/{config.get('Brushshe', 'palette')}_palette.hex"))
+        if config.get("Brushshe", "palette") in ["4bit", "default", "vintage"]:
+            self.import_palette(resource(f"assets/palettes/{config.get('Brushshe', 'palette')}_palette.hex"))
+        else:
+            self.import_palette(resource(config.get("Brushshe", "palette")))
 
         self.size_button = ctk.CTkButton(self.bottom_docker, text="640x480", command=self.change_size)
         self.size_button.pack(side=ctk.RIGHT, padx=1)
@@ -405,6 +394,7 @@ class Brushshe(ctk.CTk):
         self.font_path = resource("assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
         self.is_reset_settings_after_exiting = False
         self.current_file = None
+        self.is_sticker_use_real_size = ctk.StringVar(value="off")
         self.canvas.bind("<Button-3>", self.eyedropper)
 
         self.canvas.bind("<Button-2>", self.begin_moving_canvas)
@@ -414,7 +404,7 @@ class Brushshe(ctk.CTk):
         self.bind("<Control-y>", lambda e: self.redo())
         self.bind("<Control-s>", lambda e: self.save_to_gallery())
 
-        # I chacget the hotkeys because they don't work if the layout is not Latin,
+        # I changed the hotkeys because they don't work if the layout is not Latin,
         # and they are also intercepted when entering text
         self.bind("<Control-f>", lambda e: self.flip_brush_colors())
         self.bind("<Control-b>", lambda e: self.brush())
@@ -478,9 +468,11 @@ class Brushshe(ctk.CTk):
 
         self.fonts_dict = {
             "Open Sans": "assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf",
-            "Sigmar": "assets/fonts/Sigmar/Sigmar-Regular.ttf",
-            "Playwrite IT Moderna": "assets/fonts/Playwrite_IT_Moderna/PlaywriteITModerna-VariableFont_wght.ttf",
             "Monomakh": "assets/fonts/Monomakh/Monomakh-Regular.ttf",
+            "Pacifico": "assets/fonts/Pacifico/Pacifico-Regular.ttf",
+            "Comforter": "assets/fonts/Comforter/Comforter-Regular.ttf",
+            "Rubik Bubbles": "assets/fonts/Rubik_Bubbles/RubikBubbles-Regular.ttf",
+            "Press Start 2P": "assets/fonts/Press_Start_2P/PressStart2P-Regular.ttf",
         }
         self.fonts = list(self.fonts_dict.keys())
 
@@ -978,30 +970,58 @@ class Brushshe(ctk.CTk):
         self.insert_simple(sticker_image)
 
     def text_tool(self):
+        def add_text(event):
+            self.draw.text((self.text_x, self.text_y), self.tx_entry.get(), fill=self.brush_color, font=self.imagefont)
+            self.update_canvas()
+            self.undo_stack.append(self.image.copy())
+
+        def draw_text_halo(event):
+            self.canvas.delete("tools")
+
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+            self.imagefont = ImageFont.truetype(self.font_path, self.tool_size)
+
+            bbox = self.draw.textbbox((0, 0), self.tx_entry.get(), font=self.imagefont)
+
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+
+            self.text_x = x - text_width // 2 - bbox[0]
+            self.text_y = y - text_height // 2 - bbox[1]
+
+            self.canvas.create_rectangle(
+                (x - text_width // 2) * self.zoom,
+                (y - text_height // 2) * self.zoom,
+                (x + text_width // 2) * self.zoom,
+                (y + text_height // 2) * self.zoom,
+                outline="white",
+                width=1,
+                tag="tools",
+            )
+
+            self.canvas.create_rectangle(
+                (x - text_width // 2) * self.zoom,
+                (y - text_height // 2) * self.zoom,
+                (x + text_width // 2) * self.zoom,
+                (y + text_height // 2) * self.zoom,
+                outline="black",
+                width=1,
+                tag="tools",
+                dash=(5, 5),
+            )
+
+        def leave(event):
+            self.canvas.delete("tools")
+
         self.set_tool("text", "Text", self.font_size, 11, 96, "cross")
-        self.canvas.bind("<Button-1>", self.add_text)
+        self.canvas.bind("<Button-1>", add_text)
+        self.canvas.bind("<Motion>", draw_text_halo)
+        self.canvas.bind("<Leave>", leave)
 
     def font_optionmenu_callback(self, value):
         self.current_font = value
         self.font_path = resource(self.fonts_dict.get(value))
         self.imagefont = ImageFont.truetype(self.font_path, self.tool_size)
-
-    def add_text(self, event):
-        x, y = self.canvas_to_pict_xy(event.x, event.y)
-        imagefont = ImageFont.truetype(self.font_path, self.tool_size)
-
-        bbox = self.draw.textbbox((x, y), self.tx_entry.get(), font=imagefont)
-
-        # Text size
-        text_width = bbox[2] - bbox[0]
-        text_height = bbox[3] - bbox[1]
-
-        self.draw.text(
-            (x - text_width // 2, y - text_height // 2), self.tx_entry.get(), fill=self.brush_color, font=imagefont
-        )
-
-        self.update_canvas()
-        self.undo_stack.append(self.image.copy())
 
     def show_frame_choice(self):
         def on_frames_click(index):
@@ -1465,8 +1485,11 @@ class Brushshe(ctk.CTk):
             nonlocal image_tmp, image_tmp_view, image_tk, current_zoom, x1, y1
 
             if self.current_tool == "sticker":
-                sticker_height = int(insert_image.height * self.tool_size / insert_image.width)
-                image_tmp = insert_image.resize((self.tool_size, sticker_height))
+                if self.is_sticker_use_real_size.get() == "off":
+                    sticker_height = int(insert_image.height * self.tool_size / insert_image.width)
+                    image_tmp = insert_image.resize((self.tool_size, sticker_height))
+                else:
+                    image_tmp = insert_image
 
             x, y = self.canvas_to_pict_xy(event.x, event.y)
 
@@ -2127,6 +2150,14 @@ class Brushshe(ctk.CTk):
             )
             font_optionmenu.set(self.current_font)
             font_optionmenu.pack(side=ctk.LEFT, padx=1)
+        elif self.current_tool == "sticker":
+            ctk.CTkCheckBox(
+                self.tool_config_docker,
+                text=_("Use real size"),
+                variable=self.is_sticker_use_real_size,
+                onvalue="on",
+                offvalue="off",
+            ).pack(side=ctk.LEFT, padx=5)
 
         self.canvas.configure(cursor=cursor)
         self.canvas.delete("tools")
@@ -2348,6 +2379,8 @@ class Brushshe(ctk.CTk):
                 return
 
             palette_path = dialog.path
+            config.set("Brushshe", "palette", palette_path)
+            write_config()
         else:
             palette_path = value
 
@@ -2385,6 +2418,21 @@ class Brushshe(ctk.CTk):
             self.brush_shape = "circle"
         elif value == "■":
             self.brush_shape = "square"
+
+    def paste_image_from_clipboard(self):
+        try:
+            pasted_img = ImageGrab.grabclipboard()
+            self.bg_color = "white"
+            self.image = pasted_img
+            self.picture_postconfigure()
+        except Exception as e:
+            CTkMessagebox(
+                title=_("Oh, unfortunately, it happened"),
+                message=f"{_('Error - cannot paste image:')} {e}",
+                icon=resource("icons/cry.png"),
+                icon_size=(100, 100),
+                sound=True,
+            )
 
 
 ctk.set_appearance_mode(config.get("Brushshe", "theme"))
