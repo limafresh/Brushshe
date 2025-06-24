@@ -102,7 +102,7 @@ The internationalization of this program has a simple principle - it determines 
 ### Linter
 [Ruff](https://github.com/astral-sh/ruff) is used to maintain code cleanliness.
 
-Starting with version 2.0.0, each version will be given a code name based on the names of cities in alphabetical order. 2.0.0 starts with "S" because it is the 18th letter of the alphabet, and since 1.0.0 there have been 18 versions. Example:
+Starting with version 2.0.0, each version will be given a code name based on the names of cities in alphabetical order. 2.0.0 starts with "S" because it is the 19th letter of the alphabet, and since 1.0.0 there have been 18 versions. Example:
 2.0.0 - Skopje
 2.1.0 - T..
 2.1.1 - T..
