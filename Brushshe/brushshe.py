@@ -391,7 +391,6 @@ class Brushshe(ctk.CTk):
         self.sticker_size = 100
         self.font_size = 24
         self.zoom = 1
-        self.zoom_before = self.zoom
 
         self.is_brush_smoothing = config.getboolean("Brushshe", "smoothing")
         self.brush_smoothing_factor = config.getint("Brushshe", "brush_smoothing_factor")  # Between: 3..64
@@ -662,7 +661,6 @@ class Brushshe(ctk.CTk):
     def zoom_in(self, event=None):
         self.canvas.delete("tools")
 
-        self.zoom_before = self.zoom
         if 1 < self.zoom < 2:  # Need if zoom not integer but more 1 and less 2
             self.zoom = 1
         if 1 <= self.zoom < 8:
@@ -670,81 +668,26 @@ class Brushshe(ctk.CTk):
         elif self.zoom < 1:
             self.zoom *= 2
 
-        wd_x_1 = self.canvas.winfo_x()
-
-        cx_frame_1, cx_frame_2 = self.canvas.xview()
-        cy_frame_1, cy_frame_2 = self.canvas.yview()
-        dx_1 = (cx_frame_2 + cx_frame_1) / 2
-        dy_1 = (cy_frame_2 + cy_frame_1) / 2
-
-        # TODO: Continue...
-        print(wd_x_1)
-
-        self.force_resize_canvas()
-
-        cx_frame_1, cx_frame_2 = self.canvas.xview()
-        cy_frame_1, cy_frame_2 = self.canvas.yview()
-        dx_2 = (cx_frame_2 + cx_frame_1) / 2
-        dy_2 = (cy_frame_2 + cy_frame_1) / 2
-        cw_full = int(self.image.width * self.zoom)
-        ch_full = int(self.image.height * self.zoom)
-
-        self.canvas.scan_mark(int(dx_1 * cw_full), int(dy_1 * ch_full))
-        self.canvas.scan_dragto(int(dx_2 * cw_full), int(dy_2 * ch_full), gain=1)
-
+        self.force_resize_canvas_with_correct()
         self.update_canvas()
 
     def zoom_out(self, event=None):
         self.canvas.delete("tools")
 
-        self.zoom_before = self.zoom
         if 1 < self.zoom:
             self.zoom -= 1
         elif 0.05 < self.zoom <= 1:  # Zooming limited down by 0.05.
             self.zoom /= 2
 
-        cx_frame_1, cx_frame_2 = self.canvas.xview()
-        cy_frame_1, cy_frame_2 = self.canvas.yview()
-        dx_1 = (cx_frame_2 + cx_frame_1) / 2
-        dy_1 = (cy_frame_2 + cy_frame_1) / 2
-
-        self.force_resize_canvas()
-
-        cx_frame_1, cx_frame_2 = self.canvas.xview()
-        cy_frame_1, cy_frame_2 = self.canvas.yview()
-        dx_2 = (cx_frame_2 + cx_frame_1) / 2
-        dy_2 = (cy_frame_2 + cy_frame_1) / 2
-        cw_full = int(self.image.width * self.zoom)
-        ch_full = int(self.image.height * self.zoom)
-
-        self.canvas.scan_mark(int(dx_1 * cw_full), int(dy_1 * ch_full))
-        self.canvas.scan_dragto(int(dx_2 * cw_full), int(dy_2 * ch_full), gain=1)
-
+        self.force_resize_canvas_with_correct()
         self.update_canvas()
 
     def reset_zoom(self, event=None):
         self.canvas.delete("tools")
 
-        self.zoom_before = self.zoom
         self.zoom = 1
 
-        cx_frame_1, cx_frame_2 = self.canvas.xview()
-        cy_frame_1, cy_frame_2 = self.canvas.yview()
-        dx_1 = (cx_frame_2 + cx_frame_1) / 2
-        dy_1 = (cy_frame_2 + cy_frame_1) / 2
-
-        self.force_resize_canvas()
-
-        cx_frame_1, cx_frame_2 = self.canvas.xview()
-        cy_frame_1, cy_frame_2 = self.canvas.yview()
-        dx_2 = (cx_frame_2 + cx_frame_1) / 2
-        dy_2 = (cy_frame_2 + cy_frame_1) / 2
-        cw_full = int(self.image.width * self.zoom)
-        ch_full = int(self.image.height * self.zoom)
-
-        self.canvas.scan_mark(int(dx_1 * cw_full), int(dy_1 * ch_full))
-        self.canvas.scan_dragto(int(dx_2 * cw_full), int(dy_2 * ch_full), gain=1)
-
+        self.force_resize_canvas_with_correct()
         self.update_canvas()
 
     def canvas_to_pict_xy(self, x, y):
@@ -876,6 +819,27 @@ class Brushshe(ctk.CTk):
             height=ch_full,
         )
         self.size_button.configure(text=f"{self.image.width}x{self.image.height}")
+
+    def force_resize_canvas_with_correct(self):
+        wd_x_1 = self.canvas.winfo_x()
+        wd_y_1 = self.canvas.winfo_y()
+
+        cx_frame_1, cx_frame_2 = self.canvas.xview()
+        cy_frame_1, cy_frame_2 = self.canvas.yview()
+        dx_1 = (cx_frame_2 + cx_frame_1) / 2
+        dy_1 = (cy_frame_2 + cy_frame_1) / 2
+
+        self.force_resize_canvas()
+
+        cx_frame_1, cx_frame_2 = self.canvas.xview()
+        cy_frame_1, cy_frame_2 = self.canvas.yview()
+        dx_2 = (cx_frame_2 + cx_frame_1) / 2
+        dy_2 = (cy_frame_2 + cy_frame_1) / 2
+        cw_full = int(self.image.width * self.zoom)
+        ch_full = int(self.image.height * self.zoom)
+
+        self.canvas.scan_mark(int(dx_1 * cw_full - wd_x_1), int(dy_1 * ch_full - wd_y_1))
+        self.canvas.scan_dragto(int(dx_2 * cw_full), int(dy_2 * ch_full), gain=1)
 
     def crop_picture(self, new_width, new_height, event=None):
         new_image = Image.new("RGB", (new_width, new_height), self.bg_color)
