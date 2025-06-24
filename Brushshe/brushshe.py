@@ -195,17 +195,12 @@ class Brushshe(ctk.CTk):
         Tooltip(save_to_gallery_btn, message=_("Save to gallery") + " (Ctrl+S)")
 
         """Canvas frame"""
-        self.canvas_frame = ctk.CTkFrame(self)
-        self.canvas_frame.pack_propagate(False)
-        self.canvas_frame.pack(fill=ctk.BOTH, expand=True)
+        self.main_frame = ctk.CTkFrame(self)
+        self.main_frame.pack_propagate(False)
+        self.main_frame.pack(fill=ctk.BOTH, expand=True)
 
-        self.canvas_frame_lb = ctk.CTkFrame(self.canvas_frame, fg_color="transparent", width=30)
-        self.canvas_frame_lb.pack(side=ctk.LEFT, fill=ctk.Y, padx=5)
-
-        self.canvas_frame_rb = ctk.CTkFrame(self.canvas_frame, fg_color="transparent")
-        self.canvas_frame_rb.pack(side=ctk.RIGHT, fill=ctk.Y)
-
-        self.canvas_frame_rb_down = ctk.CTkFrame(self.canvas_frame_rb, width=16, height=16, bg_color="transparent")
+        self.tools_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent", width=30)
+        self.tools_frame.pack(side=ctk.LEFT, fill=ctk.Y, padx=5)
 
         """Tools (Left) Bar"""
         tools_list = [
@@ -322,18 +317,32 @@ class Brushshe(ctk.CTk):
         self.set_tools_docker(tools_list, 2)
 
         """Canvas"""
-        self.canvas_frame_rb_down.pack(side=ctk.BOTTOM)
+        self.canvas_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        self.canvas_frame.pack_propagate(False)
+        self.canvas_frame.pack(side=ctk.LEFT, fill=ctk.BOTH, expand=True)
 
-        self.v_scrollbar = ctk.CTkScrollbar(self.canvas_frame_rb, orientation="vertical")
+        self.canvas_frame_main = ctk.CTkFrame(self.canvas_frame, fg_color="transparent")
+        self.canvas_frame_main.pack_propagate(False)
+        self.canvas_frame_main.pack(side=ctk.LEFT, fill=ctk.BOTH, expand=True)
+
+        self.canvas_frame_right = ctk.CTkFrame(self.main_frame, fg_color="transparent", width=16)
+        self.canvas_frame_right.pack(side=ctk.RIGHT, fill=ctk.Y)
+
+        self.canvas_frame_rd = ctk.CTkFrame(self.canvas_frame_right, fg_color="transparent", width=16, height=16)
+        self.canvas_frame_rd.pack(side=ctk.BOTTOM)
+
+        self.v_scrollbar = ctk.CTkScrollbar(self.canvas_frame_right, orientation="vertical")
         self.v_scrollbar.pack(side=ctk.RIGHT, fill=ctk.Y)
 
-        self.h_scrollbar = ctk.CTkScrollbar(self.canvas_frame, orientation="horizontal")
+        self.h_scrollbar = ctk.CTkScrollbar(self.canvas_frame_main, orientation="horizontal")
         self.h_scrollbar.pack(side=ctk.BOTTOM, fill=ctk.X)
 
+        # Canvas and canvas_parent must have equivalent top-left coordinate.
         self.canvas = ctk.CTkCanvas(
-            self.canvas_frame, yscrollcommand=self.v_scrollbar.set, xscrollcommand=self.h_scrollbar.set
+            self.canvas_frame_main, yscrollcommand=self.v_scrollbar.set, xscrollcommand=self.h_scrollbar.set
         )
-        self.canvas.pack(anchor="center", expand=True)  # As in most drawing programs
+
+        self.canvas.pack(side=ctk.TOP, anchor="center", expand=True)  # As in most drawing programs
 
         self.v_scrollbar.configure(command=self.v_scrollbar_command)
         self.h_scrollbar.configure(command=self.h_scrollbar_command)
@@ -492,7 +501,7 @@ class Brushshe(ctk.CTk):
                 column = 0
                 row += 1
                 s = ctk.CTkFrame(
-                    self.canvas_frame_lb,
+                    self.tools_frame,
                     width=30,
                     height=4,
                 )
@@ -519,7 +528,7 @@ class Brushshe(ctk.CTk):
                 )
 
             tool_button = ctk.CTkButton(
-                self.canvas_frame_lb, text=None, width=30, height=30, image=tool_icon, command=tool_command
+                self.tools_frame, text=None, width=30, height=30, image=tool_icon, command=tool_command
             )
             tool_button.grid(column=column, row=row, pady=1, padx=1)
             Tooltip(tool_button, message=tool_helper)
@@ -661,7 +670,28 @@ class Brushshe(ctk.CTk):
         elif self.zoom < 1:
             self.zoom *= 2
 
+        wd_x_1 = self.canvas.winfo_x()
+
+        cx_frame_1, cx_frame_2 = self.canvas.xview()
+        cy_frame_1, cy_frame_2 = self.canvas.yview()
+        dx_1 = (cx_frame_2 + cx_frame_1) / 2
+        dy_1 = (cy_frame_2 + cy_frame_1) / 2
+
+        # TODO: Continue...
+        print(wd_x_1)
+
         self.force_resize_canvas()
+
+        cx_frame_1, cx_frame_2 = self.canvas.xview()
+        cy_frame_1, cy_frame_2 = self.canvas.yview()
+        dx_2 = (cx_frame_2 + cx_frame_1) / 2
+        dy_2 = (cy_frame_2 + cy_frame_1) / 2
+        cw_full = int(self.image.width * self.zoom)
+        ch_full = int(self.image.height * self.zoom)
+
+        self.canvas.scan_mark(int(dx_1 * cw_full), int(dy_1 * ch_full))
+        self.canvas.scan_dragto(int(dx_2 * cw_full), int(dy_2 * ch_full), gain=1)
+
         self.update_canvas()
 
     def zoom_out(self, event=None):
@@ -673,7 +703,23 @@ class Brushshe(ctk.CTk):
         elif 0.05 < self.zoom <= 1:  # Zooming limited down by 0.05.
             self.zoom /= 2
 
+        cx_frame_1, cx_frame_2 = self.canvas.xview()
+        cy_frame_1, cy_frame_2 = self.canvas.yview()
+        dx_1 = (cx_frame_2 + cx_frame_1) / 2
+        dy_1 = (cy_frame_2 + cy_frame_1) / 2
+
         self.force_resize_canvas()
+
+        cx_frame_1, cx_frame_2 = self.canvas.xview()
+        cy_frame_1, cy_frame_2 = self.canvas.yview()
+        dx_2 = (cx_frame_2 + cx_frame_1) / 2
+        dy_2 = (cy_frame_2 + cy_frame_1) / 2
+        cw_full = int(self.image.width * self.zoom)
+        ch_full = int(self.image.height * self.zoom)
+
+        self.canvas.scan_mark(int(dx_1 * cw_full), int(dy_1 * ch_full))
+        self.canvas.scan_dragto(int(dx_2 * cw_full), int(dy_2 * ch_full), gain=1)
+
         self.update_canvas()
 
     def reset_zoom(self, event=None):
@@ -682,7 +728,23 @@ class Brushshe(ctk.CTk):
         self.zoom_before = self.zoom
         self.zoom = 1
 
+        cx_frame_1, cx_frame_2 = self.canvas.xview()
+        cy_frame_1, cy_frame_2 = self.canvas.yview()
+        dx_1 = (cx_frame_2 + cx_frame_1) / 2
+        dy_1 = (cy_frame_2 + cy_frame_1) / 2
+
         self.force_resize_canvas()
+
+        cx_frame_1, cx_frame_2 = self.canvas.xview()
+        cy_frame_1, cy_frame_2 = self.canvas.yview()
+        dx_2 = (cx_frame_2 + cx_frame_1) / 2
+        dy_2 = (cy_frame_2 + cy_frame_1) / 2
+        cw_full = int(self.image.width * self.zoom)
+        ch_full = int(self.image.height * self.zoom)
+
+        self.canvas.scan_mark(int(dx_1 * cw_full), int(dy_1 * ch_full))
+        self.canvas.scan_dragto(int(dx_2 * cw_full), int(dy_2 * ch_full), gain=1)
+
         self.update_canvas()
 
     def canvas_to_pict_xy(self, x, y):
