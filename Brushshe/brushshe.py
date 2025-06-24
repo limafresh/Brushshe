@@ -456,9 +456,11 @@ class Brushshe(ctk.CTk):
 
         self.fonts_dict = {
             "Open Sans": "assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf",
-            "Sigmar": "assets/fonts/Sigmar/Sigmar-Regular.ttf",
-            "Playwrite IT Moderna": "assets/fonts/Playwrite_IT_Moderna/PlaywriteITModerna-VariableFont_wght.ttf",
             "Monomakh": "assets/fonts/Monomakh/Monomakh-Regular.ttf",
+            "Pacifico": "assets/fonts/Pacifico/Pacifico-Regular.ttf",
+            "Comforter": "assets/fonts/Comforter/Comforter-Regular.ttf",
+            "Rubik Bubbles": "assets/fonts/Rubik_Bubbles/RubikBubbles-Regular.ttf",
+            "Press Start 2P": "assets/fonts/Press_Start_2P/PressStart2P-Regular.ttf",
         }
         self.fonts = list(self.fonts_dict.keys())
 
