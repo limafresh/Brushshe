@@ -16,6 +16,7 @@ from color_picker import AskColor
 from core.bezier import make_bezier
 from core.bhbrush import bh_draw_line, bh_draw_recoloring_line
 from core.bhhistory import BhHistory, BhPoint
+from core.bhcomposer import BhComposer
 from core.config_loader import config, config_file_path, write_config
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
@@ -129,8 +130,8 @@ class Brushshe(ctk.CTk):
         other_dropdown.add_option(option=_("About program"), command=self.about_program)
 
         """Top Bar"""
-        tools_frame = ctk.CTkFrame(self)
-        tools_frame.pack(side=ctk.TOP, fill=ctk.X, padx=5, pady=5)
+        tools_frame = ctk.CTkFrame(self, corner_radius=0)
+        tools_frame.pack(side=ctk.TOP, fill=ctk.X)
 
         # Brush size used to paint all the icons in the toolbar: 50
         # Width and height of all icons - 512 px
@@ -173,11 +174,11 @@ class Brushshe(ctk.CTk):
         Tooltip(redo_button, message=_("Redo") + "(Ctrl+Y)")
 
         self.tool_config_docker = ctk.CTkFrame(tools_frame)
-        self.tool_config_docker.pack(side=ctk.LEFT, padx=5)
+        self.tool_config_docker.pack(side=ctk.LEFT, padx=4)
         self.tool_config_docker.configure(height=30, fg_color="transparent")
 
         save_to_gallery_btn = ctk.CTkButton(tools_frame, text=_("Save to gallery"), command=self.save_to_gallery)
-        save_to_gallery_btn.pack(side=ctk.RIGHT)
+        save_to_gallery_btn.pack(side=ctk.RIGHT, padx=1, pady=2)
         Tooltip(save_to_gallery_btn, message=_("Save to gallery") + " (Ctrl+S)")
 
         """Canvas frame"""
@@ -185,8 +186,8 @@ class Brushshe(ctk.CTk):
         self.main_frame.pack_propagate(False)
         self.main_frame.pack(fill=ctk.BOTH, expand=True)
 
-        self.tools_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent", width=30)
-        self.tools_frame.pack(side=ctk.LEFT, fill=ctk.Y, padx=5)
+        self.tools_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        self.tools_frame.pack(side=ctk.LEFT, fill=ctk.Y)
 
         """Tools (Left) Bar"""
         tools_list = [
@@ -385,6 +386,8 @@ class Brushshe(ctk.CTk):
         self.brush_smoothing_factor = config.getint("Brushshe", "brush_smoothing_factor")  # Between: 3..64
         self.brush_smoothing_quality = config.getint("Brushshe", "brush_smoothing_quality")  # Between: 1..64
 
+        self.composer = BhComposer(0, 0)  # Empty init.
+
         self.update()  # update interface before calculate picture size
         self.new_picture(self.bg_color, first_time=True)
         self.brush()
@@ -476,7 +479,8 @@ class Brushshe(ctk.CTk):
         }
         self.fonts = list(self.fonts_dict.keys())
 
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        self.force_resize_canvas()
+        self.update_canvas()
 
         if len(sys.argv) > 1:
             self.open_image(sys.argv[1])
@@ -717,7 +721,7 @@ class Brushshe(ctk.CTk):
             canvas_image = self.image
         else:
             canvas_image = self.image.resize(
-                (int(self.image.width * self.zoom), int(self.image.height * self.zoom)), Image.NEAREST
+                (int(self.image.width * self.zoom), int(self.image.height * self.zoom)), Image.BOX
             )
         self.img_tk = ImageTk.PhotoImage(canvas_image)
         self.canvas.itemconfig(self.canvas_image, image=self.img_tk)
@@ -775,6 +779,7 @@ class Brushshe(ctk.CTk):
         self.canvas.itemconfig(self.canvas_image, image=self.img_tk)
         self.canvas.moveto(self.canvas_image, 0, 0)
         self.canvas_tails_area = None
+
         return
 
     def get_canvas_tails_area(self):
@@ -810,6 +815,16 @@ class Brushshe(ctk.CTk):
             width=cw_full,
             height=ch_full,
         )
+
+        self.canvas.delete("background_tile")
+        t_size = self.composer.get_background_tile_size()
+        img_tk = self.composer.get_background_tile_image_tk()
+        self.canvas.create_image(0, 0, anchor=ctk.NW, image=img_tk, tag="background_tile")
+        for i_ in range(0, cw_full - 1,  t_size):
+            for j_ in range(0, ch_full - 1,  t_size):
+                self.canvas.create_image(i_, j_, anchor=ctk.NW, image=img_tk, tag="background_tile")
+        self.canvas.tag_lower("background_tile")
+
         self.size_button.configure(text=f"{self.image.width}x{self.image.height}")
 
     def force_resize_canvas_with_correct(self):
@@ -1779,7 +1794,6 @@ class Brushshe(ctk.CTk):
 
         self.image = Image.new("RGB", (640, 480), color)
         self.draw = ImageDraw.Draw(self.image)
-        self.canvas.configure(width=640, height=480, scrollregion=self.canvas.bbox("all"))
         self.canvas.xview_moveto(0)
         self.canvas.yview_moveto(0)
 
@@ -1787,8 +1801,10 @@ class Brushshe(ctk.CTk):
             self.img_tk = ImageTk.PhotoImage(self.image)
             self.canvas_image = self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.img_tk)
         else:
-            self.update_canvas()
+            pass
+
         self.force_resize_canvas()
+        self.update_canvas()
 
         self.undo_stack.append(self.image.copy())
         self.title(_("Unnamed") + " - " + _("Brushshe"))
@@ -2088,8 +2104,8 @@ class Brushshe(ctk.CTk):
         self.canvas.xview_moveto(0)
         self.canvas.yview_moveto(0)
 
-        self.update_canvas()
         self.force_resize_canvas()
+        self.update_canvas()
 
         self.undo_stack.append(self.image.copy())
 
