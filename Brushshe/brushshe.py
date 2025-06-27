@@ -64,6 +64,10 @@ class Brushshe(ctk.CTk):
         file_dropdown.add_option(
             option=_("New with other color"), command=self.other_bg_color
         )  # TODO: Use dialog from there.
+        file_dropdown.add_option(
+            option=_("New transparent"),
+            command=lambda: self.new_picture(color="#00000000", mode="RGBA"),
+        )
 
         file_dropdown.add_option(option=_("Open from file"), command=self.open_from_file)
         file_dropdown.add_option(option=_("Save changes to this picture"), command=self.save_current)
@@ -659,7 +663,7 @@ class Brushshe(ctk.CTk):
 
         if 1 < self.zoom < 2:  # Need if zoom not integer but more 1 and less 2
             self.zoom = 1
-        if 1 <= self.zoom < 8:
+        if 1 <= self.zoom < 12:
             self.zoom += 1
         elif self.zoom < 1:
             self.zoom *= 2
@@ -693,13 +697,15 @@ class Brushshe(ctk.CTk):
         return self.canvas.canvasx(x) / self.zoom, self.canvas.canvasy(y) / self.zoom
 
     def draw_line(self, x1, y1, x2, y2):
-        if self.current_tool == "brush":
-            color = self.brush_color
-        elif self.current_tool == "eraser":
+        if self.current_tool == "eraser":
             color = self.bg_color
+            if self.image.mode == "RGBA":
+                color = "#00000000"
         else:
             # For shape, etc.
             color = self.brush_color
+            if self.image.mode == "RGBA":
+                color = self.rgb_tuple_to_rgba_tuple(self.rgb_color_to_tuple(color), 255)
 
         bh_draw_line(self.draw, x1, y1, x2, y2, color, self.tool_size, self.brush_shape, self.current_tool)
 
@@ -849,8 +855,12 @@ class Brushshe(ctk.CTk):
         self.canvas.scan_dragto(int(dx_2 * cw_full), int(dy_2 * ch_full), gain=1)
 
     def crop_picture(self, new_width, new_height, event=None):
-        new_image = Image.new("RGB", (new_width, new_height), self.bg_color)
-        new_image.paste(self.image, (0, 0))
+        if self.image.mode == "RGBA":
+            new_image = Image.new("RGBA", (new_width, new_height), "#00000000")
+            new_image.paste(self.image, (0, 0), self.image)
+        else:
+            new_image = Image.new("RGB", (new_width, new_height), self.bg_color)
+            new_image.paste(self.image, (0, 0))
         self.image = new_image
         self.draw = ImageDraw.Draw(self.image)
 
@@ -875,7 +885,14 @@ class Brushshe(ctk.CTk):
 
     def fill(self, event):
         x, y = self.canvas_to_pict_xy(event.x, event.y)
-        ImageDraw.floodfill(self.image, (x, y), ImageColor.getrgb(self.brush_color))
+        if self.image.mode == "RGBA":
+            ImageDraw.floodfill(
+                self.image,
+                (x, y),
+                self.rgb_tuple_to_rgba_tuple(ImageColor.getrgb(self.brush_color), 255),
+            )
+        else:
+            ImageDraw.floodfill(self.image, (x, y), ImageColor.getrgb(self.brush_color))
         self.update_canvas()
         self.undo_stack.append(self.image.copy())
 
@@ -1338,6 +1355,11 @@ class Brushshe(ctk.CTk):
             color_to = ImageColor.getrgb(self.brush_color)
             color_from = ImageColor.getrgb(self.second_brush_color)
 
+            # FIXME: In current time it works only for 100% opacity color.
+            if self.image.mode == "RGBA":
+                color_from = self.rgb_tuple_to_rgba_tuple(color_from, 255)
+                color_to = self.rgb_tuple_to_rgba_tuple(color_to, 255)
+
             bh_draw_recoloring_line(self.image, x1, y1, x2, y2, color_from, color_to, self.tool_size)
 
         def draw_brush_halo(x, y):
@@ -1447,11 +1469,18 @@ class Brushshe(ctk.CTk):
             self.buffer_local = self.image.crop((x1, y1, x2 + 1, y2 + 1))
 
             if deleted is not False:
-                ImageDraw.Draw(self.image).rectangle(
-                    (x1, y1, x2, y2),
-                    fill=self.bg_color,
-                    outline=self.bg_color,
-                )
+                if self.image.mode != "RGBA":
+                    ImageDraw.Draw(self.image).rectangle(
+                        (x1, y1, x2, y2),
+                        fill=self.bg_color,
+                        outline=self.bg_color,
+                    )
+                else:
+                    ImageDraw.Draw(self.image).rectangle(
+                        (x1, y1, x2, y2),
+                        fill="#00000000",
+                        outline="#00000000",
+                    )
                 self.undo_stack.append(self.image.copy())  # Need only for cut.
 
             self.update_canvas()
@@ -1788,11 +1817,11 @@ class Brushshe(ctk.CTk):
         if about_msg.get() == "GitHub":
             webbrowser.open(r"https://github.com/limafresh/Brushshe")
 
-    def new_picture(self, color="#FFFFFF", first_time=False):
+    def new_picture(self, color="#FFFFFF", mode="RGB", first_time=False):
         self.canvas.delete("tools")
         self.bg_color = color
 
-        self.image = Image.new("RGB", (640, 480), color)
+        self.image = Image.new(mode, (640, 480), color)
         self.draw = ImageDraw.Draw(self.image)
         self.canvas.xview_moveto(0)
         self.canvas.yview_moveto(0)
@@ -2449,6 +2478,24 @@ class Brushshe(ctk.CTk):
                 icon_size=(100, 100),
                 sound=True,
             )
+
+    def rgb_color_to_tuple(self, color):
+        try:
+            rgb = self.winfo_rgb(color)
+            r = math.floor(rgb[0] / 256)
+            g = math.floor(rgb[1] / 256)
+            b = math.floor(rgb[2] / 256)
+        except Exception:
+            ret = (0, 0, 0)
+        return (r, g, b)
+
+    def rgb_tuple_to_rgba_tuple(self, color, alpha: int):
+        try:
+            res = (color[0], color[1], color[2], alpha)
+        except Exception:
+            print("Error: Wrong color.")
+            res = (0, 0, 0, 0)
+        return res
 
 
 ctk.set_appearance_mode(config.get("Brushshe", "theme"))
