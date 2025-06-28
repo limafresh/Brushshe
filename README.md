@@ -61,6 +61,7 @@ pip install customtkinter Pillow
 + **Palettes**: There are 3 built-in palette sets in the settings, and if there are not enough of them, you can load your own from .hex files.
 + **Brush smoothing**: Brush smoothing with params.
 + **Cut, copy and insert**: Cut, copy or insert fragments. Works on Windows, but on Linux you need to install `xclip` (X11) or `wl-paste` (Wayland). If they are not installed, everything else will work, but when you try to paste from the buffer, you will get a message that this is impossible.
++ **Remove white background**: Replace white or really light gray background to transparent.
 
 ## Hotkeys
 + *Ctrl+Z*: undo
@@ -76,6 +77,7 @@ pip install customtkinter Pillow
 + *{*: down by 10 the brush or other tools size
 + *}*: up by 10 the brush or other tools size
 + *Shift + mouse scroll*: scrolling the canvas horizontally
++ *Middle mouse button*: move canvas
 
 ## Goal of project
 The goal of the project is to provide a open-source, convenient, beautiful and multifunctional painting app using the CustomTkinter toolkit.

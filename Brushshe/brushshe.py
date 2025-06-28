@@ -124,6 +124,8 @@ class Brushshe(ctk.CTk):
         tools_dropdown.add_option(option=_("Frames"), image=frame_icon, command=self.show_frame_choice)
         effects_icon = ctk.CTkImage(Image.open(resource("icons/effects.png")), size=tools_icon_size)
         tools_dropdown.add_option(option=_("Effects"), image=effects_icon, command=self.effects)
+        tools_dropdown.add_separator()
+        tools_dropdown.add_option(option=_("Remove white background"), command=self.remove_white_background)
 
         menu.add_cascade(_("My Gallery"), command=self.show_gallery)
 
@@ -2119,6 +2121,21 @@ class Brushshe(ctk.CTk):
         self.after(200)
         self.image = ImageGrab.grab()
         self.deiconify()
+        self.picture_postconfigure()
+
+    def remove_white_background(self):
+        transparent_bg_img = self.image.convert("RGBA")
+        datas = transparent_bg_img.getdata()
+
+        new_data = []
+        for item in datas:
+            if item[0] > 240 and item[1] > 240 and item[2] > 240:
+                new_data.append((255, 255, 255, 0))
+            else:
+                new_data.append(item)
+
+        transparent_bg_img.putdata(new_data)
+        self.image = transparent_bg_img
         self.picture_postconfigure()
 
     def picture_postconfigure(self):

@@ -119,5 +119,6 @@
 	"Paste image from clipboard": "Вставити зображення з буферу обміну",
 	"Error - cannot paste image:": "Помилка: неможливо вставити зображення",
 	"Use real size": "Використовувати реальний розмір",
-	"New transparent": "Новий прозорий"
+	"New transparent": "Новий прозорий",
+	"Remove white background": "Видалити білий фон"
 }

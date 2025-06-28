@@ -118,5 +118,6 @@
 	"Paste image from clipboard": "Вставить изображение из буфера обмена",
 	"Error - cannot paste image:": "Ошибка: невозможно вставить изображение",
 	"Use real size": "Использовать реальный размер",
-	"New transparent": "Новый прозрачный"
+	"New transparent": "Новый прозрачный",
+	"Remove white background": "Удалить белый фон"
 }
