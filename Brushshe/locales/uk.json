@@ -118,5 +118,6 @@
 	"Overwrite this file?": "Перезаписати цей файл?",
 	"Paste image from clipboard": "Вставити зображення з буферу обміну",
 	"Error - cannot paste image:": "Помилка: неможливо вставити зображення",
-	"Use real size": "Використовувати реальний розмір"
+	"Use real size": "Використовувати реальний розмір",
+	"New transparent": "Новий прозорий"
 }

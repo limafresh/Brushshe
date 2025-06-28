@@ -15,8 +15,8 @@ from brush_palette import BrushPalette
 from color_picker import AskColor
 from core.bezier import make_bezier
 from core.bhbrush import bh_draw_line, bh_draw_recoloring_line
-from core.bhhistory import BhHistory, BhPoint
 from core.bhcomposer import BhComposer
+from core.bhhistory import BhHistory, BhPoint
 from core.config_loader import config, config_file_path, write_config
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox

@@ -1,8 +1,5 @@
 # import math
-from PIL import (
-    Image,
-    ImageDraw
-)
+from PIL import Image, ImageDraw
 
 
 class BhComposer:
@@ -40,7 +37,7 @@ class BhComposer:
                         i_ * self.background_tile_size,
                         j_ * self.background_tile_size,
                         i_ * self.background_tile_size + self.background_tile_size - 1,
-                        j_ * self.background_tile_size + self.background_tile_size - 1
+                        j_ * self.background_tile_size + self.background_tile_size - 1,
                     ),
                     fill=self.background_color_2,
                     outline=None,
@@ -76,9 +73,7 @@ class BhComposer:
         w = x2 - x1
         h = y2 - y1
 
-        if (self.background_image is None
-                or w != self.background_image.width
-                or h != self.background_image.height):
+        if self.background_image is None or w != self.background_image.width or h != self.background_image.height:
             # Background image MUST be RGB (without alpha) for optimization on tk (and ctk).
             self.background_image = Image.new("RGB", (w, h), self.background_color_1)
             for i_ in range(0, w - 1, self.background_size):
