@@ -357,7 +357,8 @@ class Brushshe(ctk.CTk):
         )
         self.palette_widget.pack(side=ctk.LEFT, fill=ctk.X, padx=2, pady=2)
 
-        if config.get("Brushshe", "palette") in ["4bit", "default", "vintage"]:
+        self.default_palettes = ["default", "4bit", "vintage", "seven"]
+        if config.get("Brushshe", "palette") in self.default_palettes:
             self.import_palette(resource(f"assets/palettes/{config.get('Brushshe', 'palette')}_palette.hex"))
         else:
             self.import_palette(resource(config.get("Brushshe", "palette")))
@@ -2417,7 +2418,7 @@ class Brushshe(ctk.CTk):
         ctk.CTkLabel(palette_frame, text=_("Palette")).pack(padx=10, pady=10)
 
         palette_var = ctk.StringVar(value=config.get("Brushshe", "palette"))
-        for palette_name in ["4bit", "default", "vintage"]:
+        for palette_name in self.default_palettes:
             ctk.CTkRadioButton(
                 palette_frame,
                 text=_(palette_name.capitalize()),

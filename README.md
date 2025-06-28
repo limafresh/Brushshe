@@ -62,6 +62,7 @@ pip install customtkinter Pillow
 + **Brush smoothing**: Brush smoothing with params.
 + **Cut, copy and insert**: Cut, copy or insert fragments. Works on Windows, but on Linux you need to install `xclip` (X11) or `wl-paste` (Wayland). If they are not installed, everything else will work, but when you try to paste from the buffer, you will get a message that this is impossible.
 + **Remove white background**: Replace white or really light gray background to transparent.
++ **Palettes**: use standard or custom HEX palettes.
 
 ## Hotkeys
 + *Ctrl+Z*: undo
