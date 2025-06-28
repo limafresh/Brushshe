@@ -16,6 +16,7 @@ from color_picker import AskColor
 from core.bezier import make_bezier
 from core.bhbrush import bh_draw_line, bh_draw_recoloring_line
 from core.bhhistory import BhHistory, BhPoint
+from core.bhcomposer import BhComposer
 from core.config_loader import config, config_file_path, write_config
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
@@ -63,6 +64,10 @@ class Brushshe(ctk.CTk):
         file_dropdown.add_option(
             option=_("New with other color"), command=self.other_bg_color
         )  # TODO: Use dialog from there.
+        file_dropdown.add_option(
+            option=_("New transparent"),
+            command=lambda: self.new_picture(color="#00000000", mode="RGBA"),
+        )
 
         file_dropdown.add_option(option=_("Open from file"), command=self.open_from_file)
         file_dropdown.add_option(option=_("Save changes to this picture"), command=self.save_current)
@@ -129,8 +134,8 @@ class Brushshe(ctk.CTk):
         other_dropdown.add_option(option=_("About program"), command=self.about_program)
 
         """Top Bar"""
-        tools_frame = ctk.CTkFrame(self)
-        tools_frame.pack(side=ctk.TOP, fill=ctk.X, padx=5, pady=5)
+        tools_frame = ctk.CTkFrame(self, corner_radius=0)
+        tools_frame.pack(side=ctk.TOP, fill=ctk.X)
 
         # Brush size used to paint all the icons in the toolbar: 50
         # Width and height of all icons - 512 px
@@ -173,11 +178,11 @@ class Brushshe(ctk.CTk):
         Tooltip(redo_button, message=_("Redo") + "(Ctrl+Y)")
 
         self.tool_config_docker = ctk.CTkFrame(tools_frame)
-        self.tool_config_docker.pack(side=ctk.LEFT, padx=5)
+        self.tool_config_docker.pack(side=ctk.LEFT, padx=4)
         self.tool_config_docker.configure(height=30, fg_color="transparent")
 
         save_to_gallery_btn = ctk.CTkButton(tools_frame, text=_("Save to gallery"), command=self.save_to_gallery)
-        save_to_gallery_btn.pack(side=ctk.RIGHT)
+        save_to_gallery_btn.pack(side=ctk.RIGHT, padx=1, pady=2)
         Tooltip(save_to_gallery_btn, message=_("Save to gallery") + " (Ctrl+S)")
 
         """Canvas frame"""
@@ -185,8 +190,8 @@ class Brushshe(ctk.CTk):
         self.main_frame.pack_propagate(False)
         self.main_frame.pack(fill=ctk.BOTH, expand=True)
 
-        self.tools_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent", width=30)
-        self.tools_frame.pack(side=ctk.LEFT, fill=ctk.Y, padx=5)
+        self.tools_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        self.tools_frame.pack(side=ctk.LEFT, fill=ctk.Y)
 
         """Tools (Left) Bar"""
         tools_list = [
@@ -385,6 +390,8 @@ class Brushshe(ctk.CTk):
         self.brush_smoothing_factor = config.getint("Brushshe", "brush_smoothing_factor")  # Between: 3..64
         self.brush_smoothing_quality = config.getint("Brushshe", "brush_smoothing_quality")  # Between: 1..64
 
+        self.composer = BhComposer(0, 0)  # Empty init.
+
         self.update()  # update interface before calculate picture size
         self.new_picture(self.bg_color, first_time=True)
         self.brush()
@@ -476,7 +483,8 @@ class Brushshe(ctk.CTk):
         }
         self.fonts = list(self.fonts_dict.keys())
 
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        self.force_resize_canvas()
+        self.update_canvas()
 
         if len(sys.argv) > 1:
             self.open_image(sys.argv[1])
@@ -655,7 +663,7 @@ class Brushshe(ctk.CTk):
 
         if 1 < self.zoom < 2:  # Need if zoom not integer but more 1 and less 2
             self.zoom = 1
-        if 1 <= self.zoom < 8:
+        if 1 <= self.zoom < 12:
             self.zoom += 1
         elif self.zoom < 1:
             self.zoom *= 2
@@ -689,13 +697,15 @@ class Brushshe(ctk.CTk):
         return self.canvas.canvasx(x) / self.zoom, self.canvas.canvasy(y) / self.zoom
 
     def draw_line(self, x1, y1, x2, y2):
-        if self.current_tool == "brush":
-            color = self.brush_color
-        elif self.current_tool == "eraser":
+        if self.current_tool == "eraser":
             color = self.bg_color
+            if self.image.mode == "RGBA":
+                color = "#00000000"
         else:
             # For shape, etc.
             color = self.brush_color
+            if self.image.mode == "RGBA":
+                color = self.rgb_tuple_to_rgba_tuple(self.rgb_color_to_tuple(color), 255)
 
         bh_draw_line(self.draw, x1, y1, x2, y2, color, self.tool_size, self.brush_shape, self.current_tool)
 
@@ -717,7 +727,7 @@ class Brushshe(ctk.CTk):
             canvas_image = self.image
         else:
             canvas_image = self.image.resize(
-                (int(self.image.width * self.zoom), int(self.image.height * self.zoom)), Image.NEAREST
+                (int(self.image.width * self.zoom), int(self.image.height * self.zoom)), Image.BOX
             )
         self.img_tk = ImageTk.PhotoImage(canvas_image)
         self.canvas.itemconfig(self.canvas_image, image=self.img_tk)
@@ -765,16 +775,23 @@ class Brushshe(ctk.CTk):
                 (int(tmp_canvas_image.width * self.zoom), int(tmp_canvas_image.height * self.zoom)), Image.NEAREST
             )
 
-            self.img_tk = ImageTk.PhotoImage(canvas_image)
+            self.composer.set_l_image(canvas_image)
+            compose_image = self.composer.get_compose_image(x1, y1, x2, y2)
+
+            self.img_tk = ImageTk.PhotoImage(compose_image)
             self.canvas.itemconfig(self.canvas_image, image=self.img_tk)
             self.canvas.moveto(self.canvas_image, x1_correct, y1_correct)
             self.canvas_tails_area = (x1, y1, x2, y2)
             return
 
-        self.img_tk = ImageTk.PhotoImage(canvas_image)
+        self.composer.set_l_image(canvas_image)
+        compose_image = self.composer.get_compose_image(0, 0, canvas_image.width - 1, canvas_image.height - 1)
+
+        self.img_tk = ImageTk.PhotoImage(compose_image)
         self.canvas.itemconfig(self.canvas_image, image=self.img_tk)
         self.canvas.moveto(self.canvas_image, 0, 0)
         self.canvas_tails_area = None
+
         return
 
     def get_canvas_tails_area(self):
@@ -804,12 +821,12 @@ class Brushshe(ctk.CTk):
         cw_full = int(self.image.width * self.zoom)
         ch_full = int(self.image.height * self.zoom)
 
-        # self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         self.canvas.config(
             scrollregion=(0, 0, cw_full - 1, ch_full - 1),
             width=cw_full,
             height=ch_full,
         )
+
         self.size_button.configure(text=f"{self.image.width}x{self.image.height}")
 
     def force_resize_canvas_with_correct(self):
@@ -834,8 +851,12 @@ class Brushshe(ctk.CTk):
         self.canvas.scan_dragto(int(dx_2 * cw_full), int(dy_2 * ch_full), gain=1)
 
     def crop_picture(self, new_width, new_height, event=None):
-        new_image = Image.new("RGB", (new_width, new_height), self.bg_color)
-        new_image.paste(self.image, (0, 0))
+        if self.image.mode == "RGBA":
+            new_image = Image.new("RGBA", (new_width, new_height), "#00000000")
+            new_image.paste(self.image, (0, 0), self.image)
+        else:
+            new_image = Image.new("RGB", (new_width, new_height), self.bg_color)
+            new_image.paste(self.image, (0, 0))
         self.image = new_image
         self.draw = ImageDraw.Draw(self.image)
 
@@ -860,7 +881,14 @@ class Brushshe(ctk.CTk):
 
     def fill(self, event):
         x, y = self.canvas_to_pict_xy(event.x, event.y)
-        ImageDraw.floodfill(self.image, (x, y), ImageColor.getrgb(self.brush_color))
+        if self.image.mode == "RGBA":
+            ImageDraw.floodfill(
+                self.image,
+                (x, y),
+                self.rgb_tuple_to_rgba_tuple(ImageColor.getrgb(self.brush_color), 255),
+            )
+        else:
+            ImageDraw.floodfill(self.image, (x, y), ImageColor.getrgb(self.brush_color))
         self.update_canvas()
         self.undo_stack.append(self.image.copy())
 
@@ -1323,6 +1351,11 @@ class Brushshe(ctk.CTk):
             color_to = ImageColor.getrgb(self.brush_color)
             color_from = ImageColor.getrgb(self.second_brush_color)
 
+            # FIXME: In current time it works only for 100% opacity color.
+            if self.image.mode == "RGBA":
+                color_from = self.rgb_tuple_to_rgba_tuple(color_from, 255)
+                color_to = self.rgb_tuple_to_rgba_tuple(color_to, 255)
+
             bh_draw_recoloring_line(self.image, x1, y1, x2, y2, color_from, color_to, self.tool_size)
 
         def draw_brush_halo(x, y):
@@ -1432,11 +1465,18 @@ class Brushshe(ctk.CTk):
             self.buffer_local = self.image.crop((x1, y1, x2 + 1, y2 + 1))
 
             if deleted is not False:
-                ImageDraw.Draw(self.image).rectangle(
-                    (x1, y1, x2, y2),
-                    fill=self.bg_color,
-                    outline=self.bg_color,
-                )
+                if self.image.mode != "RGBA":
+                    ImageDraw.Draw(self.image).rectangle(
+                        (x1, y1, x2, y2),
+                        fill=self.bg_color,
+                        outline=self.bg_color,
+                    )
+                else:
+                    ImageDraw.Draw(self.image).rectangle(
+                        (x1, y1, x2, y2),
+                        fill="#00000000",
+                        outline="#00000000",
+                    )
                 self.undo_stack.append(self.image.copy())  # Need only for cut.
 
             self.update_canvas()
@@ -1773,13 +1813,12 @@ class Brushshe(ctk.CTk):
         if about_msg.get() == "GitHub":
             webbrowser.open(r"https://github.com/limafresh/Brushshe")
 
-    def new_picture(self, color="#FFFFFF", first_time=False):
+    def new_picture(self, color="#FFFFFF", mode="RGB", first_time=False):
         self.canvas.delete("tools")
         self.bg_color = color
 
-        self.image = Image.new("RGB", (640, 480), color)
+        self.image = Image.new(mode, (640, 480), color)
         self.draw = ImageDraw.Draw(self.image)
-        self.canvas.configure(width=640, height=480, scrollregion=self.canvas.bbox("all"))
         self.canvas.xview_moveto(0)
         self.canvas.yview_moveto(0)
 
@@ -1787,8 +1826,10 @@ class Brushshe(ctk.CTk):
             self.img_tk = ImageTk.PhotoImage(self.image)
             self.canvas_image = self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.img_tk)
         else:
-            self.update_canvas()
+            pass
+
         self.force_resize_canvas()
+        self.update_canvas()
 
         self.undo_stack.append(self.image.copy())
         self.title(_("Unnamed") + " - " + _("Brushshe"))
@@ -2088,8 +2129,8 @@ class Brushshe(ctk.CTk):
         self.canvas.xview_moveto(0)
         self.canvas.yview_moveto(0)
 
-        self.update_canvas()
         self.force_resize_canvas()
+        self.update_canvas()
 
         self.undo_stack.append(self.image.copy())
 
@@ -2433,6 +2474,24 @@ class Brushshe(ctk.CTk):
                 icon_size=(100, 100),
                 sound=True,
             )
+
+    def rgb_color_to_tuple(self, color):
+        try:
+            rgb = self.winfo_rgb(color)
+            r = math.floor(rgb[0] / 256)
+            g = math.floor(rgb[1] / 256)
+            b = math.floor(rgb[2] / 256)
+        except Exception:
+            return (0, 0, 0)
+        return (r, g, b)
+
+    def rgb_tuple_to_rgba_tuple(self, color, alpha: int):
+        try:
+            res = (color[0], color[1], color[2], alpha)
+        except Exception:
+            print("Error: Wrong color.")
+            res = (0, 0, 0, 0)
+        return res
 
 
 ctk.set_appearance_mode(config.get("Brushshe", "theme"))
