@@ -1,9 +1,7 @@
 # import math
 from PIL import (
     Image,
-    # ImageColor,
-    ImageDraw,
-    ImageTk
+    ImageDraw
 )
 
 
@@ -25,7 +23,9 @@ class BhComposer:
         self.background_size = 256
         self.background_tile_size = 16
         self.background_tile_image = self.generate_tile_image()
-        self.background_tile_image_tk = ImageTk.PhotoImage(self.background_tile_image)
+
+        self.l_image = None
+        self.background_image = None
 
     def generate_tile_image(self):
         image_bg = Image.new("RGB", (self.background_size, self.background_size), self.background_color_1)
@@ -52,8 +52,44 @@ class BhComposer:
     def get_background_tile_image(self):
         return self.background_tile_image
 
-    def get_background_tile_image_tk(self):
-        return self.background_tile_image_tk
-
     def get_background_tile_size(self):
         return self.background_size
+
+    def set_l_image(self, image: Image):
+        self.l_image = image
+        self.width = image.width
+        self.height = image.height
+
+    def get_compose_image(self, x1, y1, x2, y2):
+        if self.l_image is None:
+            return
+
+        if x1 is None:
+            x1 = 0
+        if y1 is None:
+            y1 = 0
+        if x2 is None:
+            x2 = self.width - 1
+        if y2 is None:
+            y2 = self.height - 1
+
+        w = x2 - x1
+        h = y2 - y1
+
+        if (self.background_image is None
+                or w != self.background_image.width
+                or h != self.background_image.height):
+            # Background image MUST be RGB (without alpha) for optimization on tk (and ctk).
+            self.background_image = Image.new("RGB", (w, h), self.background_color_1)
+            for i_ in range(0, w - 1, self.background_size):
+                for j_ in range(0, h - 1, self.background_size):
+                    self.background_image.paste(self.background_tile_image, (i_, j_))
+
+        image = self.background_image.copy()
+
+        if self.l_image.mode == "RGBA":
+            image.paste(self.l_image, (0, 0), self.l_image)
+        else:
+            image.paste(self.l_image, (0, 0))
+
+        return image

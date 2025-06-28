@@ -775,13 +775,19 @@ class Brushshe(ctk.CTk):
                 (int(tmp_canvas_image.width * self.zoom), int(tmp_canvas_image.height * self.zoom)), Image.NEAREST
             )
 
-            self.img_tk = ImageTk.PhotoImage(canvas_image)
+            self.composer.set_l_image(canvas_image)
+            compose_image = self.composer.get_compose_image(x1, y1, x2, y2)
+
+            self.img_tk = ImageTk.PhotoImage(compose_image)
             self.canvas.itemconfig(self.canvas_image, image=self.img_tk)
             self.canvas.moveto(self.canvas_image, x1_correct, y1_correct)
             self.canvas_tails_area = (x1, y1, x2, y2)
             return
 
-        self.img_tk = ImageTk.PhotoImage(canvas_image)
+        self.composer.set_l_image(canvas_image)
+        compose_image = self.composer.get_compose_image(0, 0, canvas_image.width - 1, canvas_image.height - 1)
+
+        self.img_tk = ImageTk.PhotoImage(compose_image)
         self.canvas.itemconfig(self.canvas_image, image=self.img_tk)
         self.canvas.moveto(self.canvas_image, 0, 0)
         self.canvas_tails_area = None
@@ -815,21 +821,11 @@ class Brushshe(ctk.CTk):
         cw_full = int(self.image.width * self.zoom)
         ch_full = int(self.image.height * self.zoom)
 
-        # self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         self.canvas.config(
             scrollregion=(0, 0, cw_full - 1, ch_full - 1),
             width=cw_full,
             height=ch_full,
         )
-
-        self.canvas.delete("background_tile")
-        t_size = self.composer.get_background_tile_size()
-        img_tk = self.composer.get_background_tile_image_tk()
-        self.canvas.create_image(0, 0, anchor=ctk.NW, image=img_tk, tag="background_tile")
-        for i_ in range(0, cw_full - 1,  t_size):
-            for j_ in range(0, ch_full - 1,  t_size):
-                self.canvas.create_image(i_, j_, anchor=ctk.NW, image=img_tk, tag="background_tile")
-        self.canvas.tag_lower("background_tile")
 
         self.size_button.configure(text=f"{self.image.width}x{self.image.height}")
 
@@ -2486,7 +2482,7 @@ class Brushshe(ctk.CTk):
             g = math.floor(rgb[1] / 256)
             b = math.floor(rgb[2] / 256)
         except Exception:
-            ret = (0, 0, 0)
+            return (0, 0, 0)
         return (r, g, b)
 
     def rgb_tuple_to_rgba_tuple(self, color, alpha: int):
