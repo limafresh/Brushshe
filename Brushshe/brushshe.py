@@ -4,20 +4,19 @@ import random
 import sys
 import webbrowser
 from collections import deque
-from pathlib import Path
-from threading import Thread
 from tkinter import PhotoImage
 from uuid import uuid4
 
 # import time  # Need for debug.
 import customtkinter as ctk
+import gallery
 from brush_palette import BrushPalette
 from color_picker import AskColor
+from config_loader import config, config_file_path, write_config
 from core.bezier import make_bezier
 from core.bhbrush import bh_draw_line, bh_draw_recoloring_line
 from core.bhcomposer import BhComposer
 from core.bhhistory import BhHistory, BhPoint
-from core.config_loader import config, config_file_path, write_config
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
 from file_dialog import FileDialog
@@ -73,7 +72,7 @@ class Brushshe(ctk.CTk):
         file_dropdown.add_option(option=_("Save changes to this picture"), command=self.save_current)
         file_dropdown.add_option(option=_("Save as new picture"), command=self.save_as)
         file_dropdown.add_separator()
-        file_dropdown.add_option(option=_("Open my gallery"), command=self.show_gallery)
+        file_dropdown.add_option(option=_("Open my gallery"), command=lambda: gallery.show(self.open_image))
         file_dropdown.add_option(option=_("Save to my gallery"), command=self.save_to_gallery)
         file_dropdown.add_separator()
         file_dropdown.add_option(option=_("Import palette (hex)"), command=self.import_palette)
@@ -127,7 +126,7 @@ class Brushshe(ctk.CTk):
         tools_dropdown.add_separator()
         tools_dropdown.add_option(option=_("Remove white background"), command=self.remove_white_background)
 
-        menu.add_cascade(_("My Gallery"), command=self.show_gallery)
+        menu.add_cascade(_("My Gallery"), command=lambda: gallery.show(self.open_image))
 
         other_menu = menu.add_cascade(_("More"))
         other_dropdown = CustomDropdownMenu(widget=other_menu)
@@ -357,8 +356,8 @@ class Brushshe(ctk.CTk):
         )
         self.palette_widget.pack(side=ctk.LEFT, fill=ctk.X, padx=2, pady=2)
 
-        self.default_palettes = ["default", "4bit", "vintage", "seven"]
-        if config.get("Brushshe", "palette") in self.default_palettes:
+        self.standard_palettes = ["default", "4bit", "vintage", "seven"]
+        if config.get("Brushshe", "palette") in self.standard_palettes:
             self.import_palette(resource(f"assets/palettes/{config.get('Brushshe', 'palette')}_palette.hex"))
         else:
             self.import_palette(resource(config.get("Brushshe", "palette")))
@@ -441,17 +440,6 @@ class Brushshe(ctk.CTk):
 
         # Resize window (and canvas)
         self.bind("<Configure>", self.on_window_resize)
-
-        """Defining the Gallery Folder Path"""
-        if os.name == "nt":  # For Windows
-            images_folder = Path(os.environ["USERPROFILE"]) / "Pictures"
-        else:  # For macOS and Linux
-            images_folder = Path(os.environ.get("XDG_PICTURES_DIR", str(Path.home())))
-
-        self.gallery_folder = images_folder / "Brushshe Images"
-
-        if not self.gallery_folder.exists():
-            self.gallery_folder.mkdir(parents=True)
 
         # Width and height of all sticker images - 88 px
         stickers_names = [
@@ -1704,101 +1692,6 @@ class Brushshe(ctk.CTk):
 
         effects_win.grab_set()  # Disable main window
 
-    def show_gallery(self):
-        self.my_gallery = ctk.CTkToplevel(self)
-        self.my_gallery.title(_("Brushshe Gallery"))
-        self.my_gallery.geometry("650x580")
-
-        progressbar = ctk.CTkProgressBar(self.my_gallery, mode="intermediate")
-        progressbar.pack(padx=10, pady=10, fill="x")
-        progressbar.start()
-
-        gallery_scrollable_frame = ctk.CTkScrollableFrame(self.my_gallery, label_text=_("My Gallery"))
-        gallery_scrollable_frame.pack(fill=ctk.BOTH, expand=True, padx=10, pady=10)
-
-        gallery_frame = ctk.CTkFrame(gallery_scrollable_frame)
-        gallery_frame.pack(padx=10, pady=10)
-
-        def load_buttons():
-            preview_size = 160
-            row = 0
-            column = 0
-            is_image_found = False
-
-            try:
-                gallery_file_list = sorted(Path(self.gallery_folder).iterdir(), key=os.path.getmtime, reverse=True)
-
-                for filename in gallery_file_list:
-                    if filename.suffix == ".png":
-                        is_image_found = True
-                        img_path = str(filename)
-
-                        image_tmp = Image.open(img_path)
-                        rate = image_tmp.width / image_tmp.height
-                        max_wh = max(image_tmp.width, image_tmp.height)
-                        if max_wh > preview_size:
-                            max_wh = preview_size
-                        if rate > 1:
-                            w = int(max_wh)
-                            h = int(max_wh / rate)
-                        else:
-                            h = int(max_wh)
-                            w = int(max_wh * rate)
-
-                        image_tmp_2 = image_tmp.resize((w, h), Image.BOX)
-                        del image_tmp
-
-                        image_button = ctk.CTkButton(
-                            gallery_frame,
-                            image=ctk.CTkImage(image_tmp_2, size=(w, h)),
-                            width=preview_size + 10,
-                            height=preview_size + 10,
-                            text=None,
-                            command=lambda img_path=img_path: self.open_image(img_path),
-                        )
-                        image_button.grid(row=row, column=column, padx=10, pady=10)
-
-                        delete_image_button = ctk.CTkButton(
-                            image_button,
-                            text="X",
-                            fg_color="red",
-                            text_color="white",
-                            width=30,
-                            command=lambda img_path=img_path: self.delete_image(img_path),
-                        )
-                        delete_image_button.place(x=5, y=5)
-                        Tooltip(delete_image_button, message=_("Delete"))
-
-                        column += 1
-                        if column >= 3:
-                            column = 0
-                            row += 1
-
-                progressbar.stop()
-                progressbar.pack_forget()
-
-                if not is_image_found:
-                    gallery_scrollable_frame.configure(label_text=_("My gallery (empty)"))
-            except Exception as e:
-                print(e)
-
-        Thread(target=load_buttons, daemon=True).start()
-
-    def delete_image(self, img_path):
-        confirm_delete = CTkMessagebox(
-            title=_("Confirm delete"),
-            message=_("Are you sure you want to delete the picture?"),
-            icon=resource("icons/question.png"),
-            icon_size=(100, 100),
-            option_1=_("Yes"),
-            option_2=_("No"),
-            sound=True,
-        )
-        if confirm_delete.get() == _("Yes") and os.path.exists(str(img_path)):
-            os.remove(str(img_path))
-            self.my_gallery.destroy()
-            self.show_gallery()
-
     def about_program(self):
         about_text = _(
             "Brushshe is a painting program where you can create whatever you like.\n\n"
@@ -2033,9 +1926,9 @@ class Brushshe(ctk.CTk):
             self.update_canvas()
 
     def save_to_gallery(self):
-        file_path = self.gallery_folder / f"{uuid4()}.png"
+        file_path = gallery.gallery_folder / f"{uuid4()}.png"
         while file_path.exists():
-            file_path = self.gallery_folder / f"{uuid4()}.png"
+            file_path = gallery.gallery_folder / f"{uuid4()}.png"
         self.image.save(file_path)
 
         self.current_file = str(file_path)
@@ -2418,7 +2311,7 @@ class Brushshe(ctk.CTk):
         ctk.CTkLabel(palette_frame, text=_("Palette")).pack(padx=10, pady=10)
 
         palette_var = ctk.StringVar(value=config.get("Brushshe", "palette"))
-        for palette_name in self.default_palettes:
+        for palette_name in self.standard_palettes:
             ctk.CTkRadioButton(
                 palette_frame,
                 text=_(palette_name.capitalize()),
