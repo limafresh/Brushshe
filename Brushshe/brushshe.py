@@ -404,6 +404,7 @@ class Brushshe(ctk.CTk):
         self.is_reset_settings_after_exiting = False
         self.current_file = None
         self.is_sticker_use_real_size = ctk.StringVar(value="off")
+        self.your_version = '2.0.0 "Skopje"'
         self.canvas.bind("<Button-3>", self.eyedropper)
 
         self.canvas.bind("<Button-2>", self.begin_moving_canvas)
@@ -1699,7 +1700,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=_("About program"),
-            message=about_text + "v2.0.0 'Skopje'",
+            message=about_text + self.your_version,
             icon=resource("icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
@@ -2319,6 +2320,15 @@ class Brushshe(ctk.CTk):
                 value=palette_name,
                 command=palette_radiobutton_callback,
             ).pack(padx=10, pady=10)
+
+        check_new_version_frame = ctk.CTkFrame(settings_frame)
+        check_new_version_frame.pack(padx=10, pady=10, fill="x")
+
+        ctk.CTkButton(
+            check_new_version_frame,
+            text=f'{_("Check new versions (yours is")} {self.your_version})',
+            command=lambda: webbrowser.open(r"https://github.com/limafresh/Brushshe/releases"),
+        ).pack(padx=10, pady=10)
 
     def import_palette(self, value=None):
         if value is None:
