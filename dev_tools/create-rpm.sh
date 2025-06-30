@@ -99,7 +99,7 @@ find . | grep -E "(__pycache__|\.pyc$)" | xargs rm -rf
 tar -cvf brushshe.tar brushshe
 
 echo 'Creating .rpm package...'
-rpmbuild -tb brushshe.tar
+rpmbuild -tb brushshe.tar --define "_topdir $PWD"
 
 echo 'Removing the package folder and moving the .rpm file from the project folder...'
 mv RPMS/noarch/* ../../
