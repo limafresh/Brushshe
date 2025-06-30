@@ -52,7 +52,7 @@ class Brushshe(ctk.CTk):
         self.version_minor = "0"
         self.version_patch = "0"
         self.version_suffix = ' "Skopje"'
-        
+
         self.version_full = "{0}{1}.{2}.{3}{4}".format(
             self.version_prefix,
             self.version_major,

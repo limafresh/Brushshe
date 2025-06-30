@@ -1,6 +1,6 @@
+import hashlib
 import os
 import sys
-import hashlib
 from pathlib import Path
 from threading import Thread
 
@@ -40,7 +40,7 @@ def show(open_image):
         column = 0
         is_image_found = False
 
-        cache_folder = user_cache_dir('brushshe')
+        cache_folder = user_cache_dir("brushshe")
         try:
             os.makedirs(cache_folder, exist_ok=True)
         except Exception:
@@ -99,7 +99,7 @@ def show(open_image):
                         fg_color="transparent",
                         hover=None,
                         command=lambda img_path=img_path: open_image_func(img_path),
-                        cursor="hand1"
+                        cursor="hand1",
                     )
                     image_button.grid(row=row, column=column, padx=10, pady=10)
 
@@ -149,7 +149,7 @@ def delete_image(img_path):
 
 def get_cache_name(name, size, mtime):
     s_name = "{0}_{1}_{2}".format(name, size, mtime)
-    return hashlib.sha1(s_name.encode('utf-8')).hexdigest()
+    return hashlib.sha1(s_name.encode("utf-8")).hexdigest()
 
 
 def set_image_to_cache(cache_folder, image, name, size, mtime, suffix):
@@ -203,14 +203,14 @@ def _get_win_folder_from_environ(csidl_name):
 
 def _get_win_folder_from_registry(csidl_name):
     import winreg as _winreg
+
     shell_folder_name = {
         "CSIDL_APPDATA": "AppData",
         "CSIDL_COMMON_APPDATA": "Common AppData",
         "CSIDL_LOCAL_APPDATA": "Local AppData",
     }[csidl_name]
     key = _winreg.OpenKey(
-        _winreg.HKEY_CURRENT_USER,
-        r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
+        _winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
     )
     dir, type = _winreg.QueryValueEx(key, shell_folder_name)
     return dir
@@ -218,14 +218,14 @@ def _get_win_folder_from_registry(csidl_name):
 
 if platform == "windows":
     try:
-        import winreg as _winreg
+        import winreg as _winreg  # noqa: F401
     except ImportError:
         _get_win_folder = _get_win_folder_from_environ
     else:
         _get_win_folder = _get_win_folder_from_registry
 
 
-def user_cache_dir(app_name=None, app_author=None,  opinion=True):
+def user_cache_dir(app_name=None, app_author=None, opinion=True):
     if platform == "windows":
         if app_author is None:
             app_author = app_name
@@ -238,11 +238,11 @@ def user_cache_dir(app_name=None, app_author=None,  opinion=True):
             if opinion:
                 path = os.path.join(path, "Cache")
     elif platform == "macos":
-        path = os.path.expanduser('~/Library/Caches')
+        path = os.path.expanduser("~/Library/Caches")
         if app_name:
             path = os.path.join(path, app_name)
     else:
-        path = os.getenv('XDG_CACHE_HOME', os.path.expanduser('~/.cache'))
+        path = os.getenv("XDG_CACHE_HOME", os.path.expanduser("~/.cache"))
         if app_name:
             path = os.path.join(path, app_name)
     return path
