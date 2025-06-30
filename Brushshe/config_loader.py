@@ -29,6 +29,8 @@ def load_config():
     write_config()
 
 
+# FIXME: It's wrong way. It can be only for portable version.
+#   On linux the config must be on some like ~/.config/brushshe/brushshe_config.ini
 config_file_path = Path.home() / ".brushshe_config.ini"
 config = ConfigParser()
 

@@ -45,6 +45,23 @@ def resource(relative_path):
 class Brushshe(ctk.CTk):
     def __init__(self):
         super().__init__(className="Brushshe")
+
+        """ Version """
+        self.version_prefix = ""
+        self.version_major = "2"
+        self.version_minor = "0"
+        self.version_patch = "0"
+        self.version_suffix = ' "Skopje"'
+        
+        self.version_full = "{0}{1}.{2}.{3}{4}".format(
+            self.version_prefix,
+            self.version_major,
+            self.version_minor,
+            self.version_patch,
+            self.version_suffix,
+        )
+
+        """ Main Window """
         self.geometry("790x680")
         self.title(_("Unnamed") + " - " + _("Brushshe"))
         if os.name == "nt":
@@ -404,7 +421,7 @@ class Brushshe(ctk.CTk):
         self.is_reset_settings_after_exiting = False
         self.current_file = None
         self.is_sticker_use_real_size = ctk.StringVar(value="off")
-        self.your_version = '2.0.0 "Skopje"'
+
         self.canvas.bind("<Button-3>", self.eyedropper)
 
         self.canvas.bind("<Button-2>", self.begin_moving_canvas)
@@ -1700,7 +1717,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=_("About program"),
-            message=about_text + self.your_version,
+            message=about_text + self.version_full,
             icon=resource("icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",

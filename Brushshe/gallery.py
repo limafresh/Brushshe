@@ -1,5 +1,6 @@
 import os
 import sys
+import hashlib
 from pathlib import Path
 from threading import Thread
 
@@ -39,6 +40,13 @@ def show(open_image):
         column = 0
         is_image_found = False
 
+        cache_folder = user_cache_dir('brushshe')
+        try:
+            os.makedirs(cache_folder, exist_ok=True)
+        except Exception:
+            print("Warning: Can't use cache directory")
+            cache_folder = None
+
         try:
             gallery_file_list = sorted(Path(gallery_folder).iterdir(), key=os.path.getmtime, reverse=True)
 
@@ -47,20 +55,40 @@ def show(open_image):
                     is_image_found = True
                     img_path = str(filename)
 
-                    image_tmp = Image.open(img_path)
-                    rate = image_tmp.width / image_tmp.height
-                    max_wh = max(image_tmp.width, image_tmp.height)
-                    if max_wh > preview_size:
-                        max_wh = preview_size
-                    if rate > 1:
-                        w = int(max_wh)
-                        h = int(max_wh / rate)
-                    else:
-                        h = int(max_wh)
-                        w = int(max_wh * rate)
+                    image_tmp_2 = get_image_from_cache(
+                        cache_folder,
+                        img_path,
+                        os.path.getsize(img_path),
+                        os.path.getmtime(img_path),
+                        filename.suffix,
+                    )
+                    if image_tmp_2 is None:
+                        image_tmp = Image.open(img_path)
+                        rate = image_tmp.width / image_tmp.height
+                        max_wh = max(image_tmp.width, image_tmp.height)
+                        if max_wh > preview_size:
+                            max_wh = preview_size
+                        if rate > 1:
+                            w = int(max_wh)
+                            h = int(max_wh / rate)
+                        else:
+                            h = int(max_wh)
+                            w = int(max_wh * rate)
 
-                    image_tmp_2 = image_tmp.resize((w, h), Image.BOX)
-                    del image_tmp
+                        image_tmp_2 = image_tmp.resize((w, h), Image.BOX)
+                        del image_tmp
+
+                        set_image_to_cache(
+                            cache_folder,
+                            image_tmp_2,
+                            img_path,
+                            os.path.getsize(img_path),
+                            os.path.getmtime(img_path),
+                            filename.suffix,
+                        )
+                    else:
+                        w = image_tmp_2.width
+                        h = image_tmp_2.height
 
                     image_button = ctk.CTkButton(
                         gallery_frame,
@@ -68,7 +96,10 @@ def show(open_image):
                         width=preview_size + 10,
                         height=preview_size + 10,
                         text=None,
+                        fg_color="transparent",
+                        hover=None,
                         command=lambda img_path=img_path: open_image_func(img_path),
+                        cursor="hand1"
                     )
                     image_button.grid(row=row, column=column, padx=10, pady=10)
 
@@ -116,12 +147,113 @@ def delete_image(img_path):
         show(open_image_func)
 
 
-if os.name == "nt":  # For Windows
-    images_folder = Path(os.environ["USERPROFILE"]) / "Pictures"
-else:  # For macOS and Linux
-    images_folder = Path(os.environ.get("XDG_PICTURES_DIR", str(Path.home())))
+def get_cache_name(name, size, mtime):
+    s_name = "{0}_{1}_{2}".format(name, size, mtime)
+    return hashlib.sha1(s_name.encode('utf-8')).hexdigest()
 
+
+def set_image_to_cache(cache_folder, image, name, size, mtime, suffix):
+    if cache_folder is None:
+        return
+    im_name = get_cache_name(name, size, mtime)
+    try:
+        os.makedirs(os.path.normpath(cache_folder + "/thumbs/"), exist_ok=True)
+        image.save(os.path.normpath(cache_folder + "/thumbs/" + im_name + suffix))
+    except Exception:
+        # Can't be saved.
+        pass
+        # print("Warning: cached file can't be saved")
+
+
+# TODO: Add clear thumbs cache files.
+
+
+def get_image_from_cache(cache_folder, name, size, mtime, suffix):
+    if cache_folder is None:
+        return
+    im_name = get_cache_name(name, size, mtime)
+    try:
+        image = Image.open(os.path.normpath(cache_folder + "/thumbs/" + im_name + suffix))
+    except Exception:
+        # Cache not found
+        image = None
+        # print("Warning: cached file not found")
+    return image
+
+
+""" ------- """
+
+# FIXME: Need just use 'platformdirs' or 'appdirs' and do not go bananas.
+if sys.platform == "win32":
+    platform = "windows"
+elif sys.platform == "darwin":
+    platform = "macos"
+else:
+    platform = "linux"  # Can be Android or FreeBSD too.
+
+
+def _get_win_folder_from_environ(csidl_name):
+    env_var_name = {
+        "CSIDL_APPDATA": "APPDATA",
+        "CSIDL_COMMON_APPDATA": "ALLUSERSPROFILE",
+        "CSIDL_LOCAL_APPDATA": "LOCALAPPDATA",
+    }[csidl_name]
+    return os.environ[env_var_name]
+
+
+def _get_win_folder_from_registry(csidl_name):
+    import winreg as _winreg
+    shell_folder_name = {
+        "CSIDL_APPDATA": "AppData",
+        "CSIDL_COMMON_APPDATA": "Common AppData",
+        "CSIDL_LOCAL_APPDATA": "Local AppData",
+    }[csidl_name]
+    key = _winreg.OpenKey(
+        _winreg.HKEY_CURRENT_USER,
+        r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
+    )
+    dir, type = _winreg.QueryValueEx(key, shell_folder_name)
+    return dir
+
+
+if platform == "windows":
+    try:
+        import winreg as _winreg
+    except ImportError:
+        _get_win_folder = _get_win_folder_from_environ
+    else:
+        _get_win_folder = _get_win_folder_from_registry
+
+
+def user_cache_dir(app_name=None, app_author=None,  opinion=True):
+    if platform == "windows":
+        if app_author is None:
+            app_author = app_name
+        path = os.path.normpath(_get_win_folder("CSIDL_LOCAL_APPDATA"))
+        if app_name:
+            if app_author is not False:
+                path = os.path.join(path, app_author, app_name)
+            else:
+                path = os.path.join(path, app_name)
+            if opinion:
+                path = os.path.join(path, "Cache")
+    elif platform == "macos":
+        path = os.path.expanduser('~/Library/Caches')
+        if app_name:
+            path = os.path.join(path, app_name)
+    else:
+        path = os.getenv('XDG_CACHE_HOME', os.path.expanduser('~/.cache'))
+        if app_name:
+            path = os.path.join(path, app_name)
+    return path
+
+
+if platform == "windows":
+    images_folder = Path(os.environ["USERPROFILE"]) / "Pictures"
+else:
+    images_folder = Path(os.environ.get("XDG_PICTURES_DIR", str(Path.home())))
 gallery_folder = images_folder / "Brushshe Images"
+
 
 if not gallery_folder.exists():
     gallery_folder.mkdir(parents=True)
