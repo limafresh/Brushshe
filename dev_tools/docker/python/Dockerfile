@@ -13,7 +13,8 @@ RUN apt update \
 
 RUN mkdir /home/user \
   && useradd user --uid=1000  \
-  && chown 1000:1000 /home/user
+  && mkdir -p /home/user/.cache \
+  && chown -R 1000:1000 /home/user
 
 #COPY . .
 
