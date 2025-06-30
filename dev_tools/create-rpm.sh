@@ -3,14 +3,17 @@
 # Script for creating .rpm package Brushshe
 echo 'WARNING: this script must be executed from the dev_tools folder!'
 echo 'To build the package you need rpmbuild.'
-echo 'To build for Fedora you need pip (sudo dnf install python3-pip).'
-echo 'Enter the distribution for which you want to create an .rpm package (Fedora/OpenMandriva):'
+echo 'To build for Common you need pip (sudo dnf install python3-pip).'
+echo 'By "Common" we mean a file compatible with Fedora and Mageia.'
+echo 'Enter the distribution for which you want to create an .rpm package [Common/OpenMandriva]:'
 read distro
 
-if [ "$distro" == 'Fedora' ]; then
+if [ "$distro" == 'Common' ]; then
 	requires='python3 python3-tkinter python3-pillow python3-pillow-tk'
+	release_name=''
 elif [ "$distro" == 'OpenMandriva' ]; then
 	requires='python python-customtkinter python-pillow'
+	release_name='.openmandriva'
 else
 	echo 'Unsupported distribution or typo'
 	exit 1
@@ -39,7 +42,7 @@ echo 'Creating spec file...'
 cat <<EOF > brushshe.spec
 Name: brushshe
 Version: 2.0.0
-Release: 1.$distro
+Release: 1$release_name
 Summary: Raster graphical editor
 Summary(uk): Растровий графічний редактор
 Summary(ru):  Растровый графический редактор
@@ -89,7 +92,7 @@ cp -r ../Brushshe brushshe/Brushshe
 cp ../README.md ../LICENSE ../LICENSE_CC0 brushshe.desktop brushshe.spec brushshe
 cp ../Brushshe/icons/icon.png brushshe/brushshe.png
 
-if [ "$distro" == 'Fedora' ]; then
+if [ "$distro" == 'Common' ]; then
 	echo 'Installing customtkinter...'
 	pip install customtkinter --target=brushshe/Brushshe
 fi

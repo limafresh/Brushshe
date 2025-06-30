@@ -15,16 +15,16 @@
 
 ## ⬇️ Installation
 ### Download Brushshe for Windows 64bit
-[![Static Badge](https://img.shields.io/badge/Download-.exe_file-blue?style=for-the-badge)](https://github.com/limafresh/Brushshe/releases)
+[![Static Badge](https://img.shields.io/badge/Download-.exe_file-blue?style=for-the-badge)](https://github.com/limafresh/Brushshe/releases) or
 [![Static Badge](https://img.shields.io/badge/Download-portable_.exe_file-blue?style=for-the-badge)](https://github.com/limafresh/Brushshe/releases)
 
 **or**
 ### Download Brushshe for Linux
-[![Static Badge](https://img.shields.io/badge/Download-.deb_file-red?style=for-the-badge&logo=linux)](https://github.com/limafresh/Brushshe/releases)
-
-[![Static Badge](https://img.shields.io/badge/Download-.rpm_file_for_Fedora-blue?style=for-the-badge&logo=fedora)](https://github.com/limafresh/Brushshe/releases)
-
+[![Static Badge](https://img.shields.io/badge/Download-.deb_file-red?style=for-the-badge&logo=linux)](https://github.com/limafresh/Brushshe/releases) or
+[![Static Badge](https://img.shields.io/badge/Download-.rpm_file-blue?style=for-the-badge&logo=linux)](https://github.com/limafresh/Brushshe/releases) or
 [![Static Badge](https://img.shields.io/badge/Download-.rpm_file_for_OpenMandriva-blue?style=for-the-badge&logo=linux)](https://github.com/limafresh/Brushshe/releases)
+
+RPM file without distribution name - compatible with Fedora and Mageia.
 
 **or**
 ### Run via Python
