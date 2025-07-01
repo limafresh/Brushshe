@@ -1,8 +1,17 @@
 #!/usr/bin/env bash
 
+set -e
+
 # A simple script to create a .deb package of the Brushshe application
 echo 'WARNING: this script must be executed from the dev_tools folder!'
 echo 'Before running this script, make sure that python3-pip is installed: sudo apt install python3-pip'
+echo 'Continue (y/n)?'
+read answer
+if [ "$answer" == 'y' ]; then
+	:
+else
+	exit 0
+fi
 
 echo 'Creating control file...'
 mkdir -p brushshe/DEBIAN

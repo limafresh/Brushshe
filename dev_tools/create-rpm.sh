@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 # Script for creating .rpm package Brushshe
 echo 'WARNING: this script must be executed from the dev_tools folder!'
 echo 'To build the package you need rpmbuild.'
@@ -104,7 +106,7 @@ tar -cvf brushshe.tar brushshe
 echo 'Creating .rpm package...'
 rpmbuild -tb brushshe.tar --define "_topdir $PWD"
 
-echo 'Removing the package folder and moving the .rpm file from the project folder...'
+echo 'Deleting files and folders created during the build process and moving the .rpm package from the project folder...'
 mv RPMS/noarch/* ../../
 rm -rf BUILD BUILDROOT SPECS RPMS SRPMS brushshe
 rm brushshe.spec brushshe.desktop brushshe.tar 
