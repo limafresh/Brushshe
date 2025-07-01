@@ -5,16 +5,18 @@ set -e
 # Script for creating .rpm package Brushshe
 echo 'WARNING: this script must be executed from the dev_tools folder!'
 echo 'To build the package you need rpmbuild.'
-echo 'To build for Common you need pip (sudo dnf install python3-pip).'
-echo 'By "Common" we mean a file compatible with Fedora and Mageia.'
-echo 'Enter the distribution for which you want to create an .rpm package [Common/OpenMandriva]:'
+echo 'To build for Fedora or Mageia you need pip.'
+echo 'Enter the distribution for which you want to create an .rpm package [Fedora/Mageia/OpenMandriva]:'
 read distro
 
-if [ "$distro" == 'Common' ]; then
+if [ "$distro" == 'Fedora' ]; then
 	requires='python3 python3-tkinter python3-pillow python3-pillow-tk'
-	release_name=''
+	release_name='.fedora'
+elif [ "$distro" == 'Mageia' ]; then
+	requires='python3 tkinter3 python3-pillow python3-pillow-tk'
+	release_name='.mageia'
 elif [ "$distro" == 'OpenMandriva' ]; then
-	requires='python python-customtkinter python-pillow'
+	requires='python python-customtkinter python-imaging'
 	release_name='.openmandriva'
 else
 	echo 'Unsupported distribution or typo'
@@ -94,7 +96,7 @@ cp -r ../Brushshe brushshe/Brushshe
 cp ../README.md ../LICENSE ../LICENSE_CC0 brushshe.desktop brushshe.spec brushshe
 cp ../Brushshe/icons/icon.png brushshe/brushshe.png
 
-if [ "$distro" == 'Common' ]; then
+if [ "$distro" == 'Fedora' ] || [ "$distro" == 'Mageia' ]; then
 	echo 'Installing customtkinter...'
 	pip install customtkinter --target=brushshe/Brushshe
 fi
