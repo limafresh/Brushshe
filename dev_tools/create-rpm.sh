@@ -11,17 +11,15 @@ read distro
 
 if [ "$distro" == 'Fedora' ]; then
 	requires='python3 python3-tkinter python3-pillow python3-pillow-tk'
-	release_name='.fedora'
 elif [ "$distro" == 'Mageia' ]; then
 	requires='python3 tkinter3 python3-pillow python3-pillow-tk'
-	release_name='.mageia'
 elif [ "$distro" == 'OpenMandriva' ]; then
 	requires='python python-customtkinter python-imaging'
-	release_name='.openmandriva'
 else
 	echo 'Unsupported distribution or typo'
 	exit 1
 fi
+release_name="${distro,,}"
 
 echo 'Creating a .desktop file...'
 cat <<EOF > brushshe.desktop
@@ -46,7 +44,7 @@ echo 'Creating spec file...'
 cat <<EOF > brushshe.spec
 Name: brushshe
 Version: 2.0.0
-Release: 1$release_name
+Release: 1.$release_name
 Summary: Raster graphical editor
 Summary(uk): Растровий графічний редактор
 Summary(ru):  Растровый графический редактор
