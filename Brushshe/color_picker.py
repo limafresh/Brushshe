@@ -1,4 +1,4 @@
-# CTk Color Picker for customtkinter
+# CTk Color Picker for ctk
 # Original Author: Akash Bora (Akascape)
 # Contributers: Victor Vimbert-Guerlais (helloHackYnow)
 # Modifed by Brushshe developers for Brushshe app
@@ -7,7 +7,7 @@ import math
 import os
 import sys
 
-import customtkinter
+import customtkinter as ctk
 from PIL import Image, ImageTk
 
 
@@ -16,31 +16,11 @@ def resource(relative_path):
     return os.path.join(base_path, relative_path)
 
 
-class AskColor(customtkinter.CTkToplevel):
-    def __init__(
-        self,
-        width: int = 300,
-        title: str = "Choose Color",
-        initial_color: str = None,
-        bg_color: str = None,
-        fg_color: str = None,
-        button_color: str = None,
-        button_hover_color: str = None,
-        text: str = "OK",
-        corner_radius: str = None,
-        slider_border: int = 1,
-        **button_kwargs,
-    ):
+class AskColor(ctk.CTkToplevel):
+    def __init__(self, title: str = "Choose Color", initial_color: str = None):
         super().__init__()
 
         self.title(title)
-        WIDTH = width if width >= 200 else 200  # noqa: N806
-        HEIGHT = WIDTH + 148  # noqa: N806
-        self.image_dimension = self._apply_window_scaling(WIDTH - 72)
-        self.target_dimension = self._apply_window_scaling(20)
-
-        self.maxsize(WIDTH, HEIGHT)
-        self.minsize(WIDTH, HEIGHT)
         self.resizable(width=False, height=False)
         self.transient(self.master)
         self.lift()
@@ -53,39 +33,23 @@ class AskColor(customtkinter.CTkToplevel):
         self.default_rgb = [255, 255, 255]
         self.rgb_color = self.default_rgb[:]
 
-        self.bg_color = (
-            self._apply_appearance_mode(customtkinter.ThemeManager.theme["CTkFrame"]["fg_color"])
-            if bg_color is None
-            else bg_color
-        )
-        self.fg_color = self.fg_color = (
-            self._apply_appearance_mode(customtkinter.ThemeManager.theme["CTkFrame"]["top_fg_color"])
-            if fg_color is None
-            else fg_color
-        )
-        self.button_color = (
-            self._apply_appearance_mode(customtkinter.ThemeManager.theme["CTkButton"]["fg_color"])
-            if button_color is None
-            else button_color
-        )
-        self.button_hover_color = (
-            self._apply_appearance_mode(customtkinter.ThemeManager.theme["CTkButton"]["hover_color"])
-            if button_hover_color is None
-            else button_hover_color
-        )
-        self.button_text = text
-        self.corner_radius = corner_radius
-        self.slider_border = 10 if slider_border >= 10 else slider_border
+        self.image_dimension = self._apply_window_scaling(250)
+        self.target_dimension = self._apply_window_scaling(20)
 
-        self.config(bg=self.bg_color)
+        self.bg_color = self._apply_appearance_mode(ctk.ThemeManager.theme["CTkFrame"]["fg_color"])
 
-        self.frame = customtkinter.CTkFrame(master=self, fg_color=self.fg_color, bg_color=self.bg_color)
-        self.frame.grid(padx=20, pady=20, sticky="nswe")
+        """UI"""
+        self.frame = ctk.CTkFrame(master=self)
+        self.frame.grid(padx=10, pady=10, sticky="nswe")
 
-        self.canvas = customtkinter.CTkCanvas(
-            self.frame, height=self.image_dimension, width=self.image_dimension, highlightthickness=0, bg=self.fg_color
+        self.canvas = ctk.CTkCanvas(
+            self.frame,
+            height=self.image_dimension,
+            width=self.image_dimension,
+            highlightthickness=0,
+            bg=self.bg_color,
         )
-        self.canvas.pack(pady=20)
+        self.canvas.pack(padx=10, pady=10)
         self.canvas.bind("<Button-1>", self.on_mouse_drag)
         self.canvas.bind("<B1-Motion>", self.on_mouse_drag)
 
@@ -96,7 +60,7 @@ class AskColor(customtkinter.CTkToplevel):
             (self.target_dimension, self.target_dimension), Image.Resampling.LANCZOS
         )
 
-        self.brightness_slider_value = customtkinter.IntVar()
+        self.brightness_slider_value = ctk.IntVar()
         self.brightness_slider_value.set(255)
 
         self.img_tmp = self.get_real_circuit(self.img1, self.brightness_slider_value.get())
@@ -105,55 +69,34 @@ class AskColor(customtkinter.CTkToplevel):
         self.target = ImageTk.PhotoImage(self.img2)
 
         self.wheel_canvas_id = self.canvas.create_image(
-            self.image_dimension / 2,
-            self.image_dimension / 2,
-            image=self.wheel,
+            self.image_dimension / 2, self.image_dimension / 2, image=self.wheel
         )
 
-        self.slider = customtkinter.CTkSlider(
+        self.slider = ctk.CTkSlider(
             master=self.frame,
             height=20,
-            border_width=self.slider_border,
+            border_width=1,
             button_length=15,
             progress_color=self.default_hex_color,
             from_=0,
             to=255,
             variable=self.brightness_slider_value,
             number_of_steps=256,
-            button_corner_radius=self.corner_radius,
-            corner_radius=self.corner_radius,
-            button_color=self.button_color,
-            button_hover_color=self.button_hover_color,
             command=lambda x: self.update_colors(),
         )
-        self.slider.pack(fill="both", pady=(0, 15), padx=20 - self.slider_border)
+        self.slider.pack(fill="both", padx=10, pady=10)
 
-        self.entry = customtkinter.CTkEntry(
-            master=self.frame,
-            text_color="black",
-            fg_color=self.default_hex_color,
-            corner_radius=self.corner_radius,
-        )
-
-        self.entry.pack(fill="both", padx=10)
+        self.entry = ctk.CTkEntry(master=self.frame, text_color="black", fg_color=self.default_hex_color)
+        self.entry.pack(fill="both", padx=10, pady=10)
         self.entry.insert(0, self.default_hex_color)
         self.entry.bind("<Return>", self.entry_return)
 
-        self.button = customtkinter.CTkButton(
-            master=self.frame,
-            text=self.button_text,
-            fg_color=self.button_color,
-            hover_color=self.button_hover_color,
-            corner_radius=self.corner_radius,
-            command=self._ok_event,
-            **button_kwargs,
-        )
-        self.button.pack(fill="both", padx=10, pady=20)
+        self.button = ctk.CTkButton(master=self.frame, text="OK", command=self._ok_event)
+        self.button.pack(fill="both", padx=10, pady=10)
 
         self.set_initial_color(initial_color)
 
         self.after(150, lambda: self.entry.focus())
-
         self.grab_set()
 
     def entry_return(self, event):
@@ -263,7 +206,7 @@ class AskColor(customtkinter.CTkToplevel):
         self.slider.configure(progress_color=self.default_hex_color)
         self.entry.configure(fg_color=self.default_hex_color)
 
-        self.entry.delete(0, customtkinter.END)
+        self.entry.delete(0, ctk.END)
         self.entry.insert(0, str(self.default_hex_color))
 
         if self.brightness_slider_value.get() < 120:
