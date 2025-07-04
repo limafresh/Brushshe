@@ -33,8 +33,8 @@ mkdir -p brushshe/opt
 cp -r ../Brushshe brushshe/opt
 
 echo 'Copying the icon...'
-mkdir -p brushshe/usr/share/icons/hicolor/256x256/apps
-cp ../Brushshe/icons/icon.png brushshe/usr/share/icons/hicolor/256x256/apps/brushshe.png
+mkdir -p brushshe/usr/share/icons/hicolor/512x512/apps
+cp ../Brushshe/icons/icon.png brushshe/usr/share/icons/hicolor/512x512/apps/brushshe.png
 
 echo 'Creating a .desktop file...'
 mkdir -p brushshe/usr/share/applications

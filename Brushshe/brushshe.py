@@ -470,6 +470,7 @@ class Brushshe(ctk.CTk):
         self.bind("<Configure>", self.on_window_resize)
 
         # Width and height of all sticker images - 88 px
+        # Width and height of new sticker images - 512 px
         stickers_names = [
             "smile",
             "flower",
@@ -870,7 +871,6 @@ class Brushshe(ctk.CTk):
         self.canvas.scan_dragto(int(dx_2 * cw_full), int(dy_2 * ch_full), gain=1)
 
     def crop_picture(self, x1, y1, x2, y2, event=None):
-
         new_width = x2 - x1
         new_height = y2 - y1
 
