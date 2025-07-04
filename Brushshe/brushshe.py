@@ -1613,49 +1613,69 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<Leave>", leave)
 
     def effects(self):
-        def post_actions():
-            self.update_canvas()
-            self.draw = ImageDraw.Draw(self.image)
-            self.undo_stack.append(self.image.copy())
+        def set_effects_area_copy():
+            nonlocal area_copy
+            if effects_area.get() == 1:
+                area_copy = image_copy
+            else:
+                area_copy = buffer_local_copy
 
-        def remove_all_effects():
-            self.image = image_copy
-            post_actions()
+        def post_actions(result):
+            if effects_area.get() == 1:
+                self.image = result
+                self.update_canvas()
+                self.draw = ImageDraw.Draw(self.image)
+                self.undo_stack.append(self.image.copy())
+            else:
+                self.buffer_local = result
 
         def blur():
             radius = blur_slider.get()
-            self.image = image_copy.filter(ImageFilter.GaussianBlur(radius=radius))
-            post_actions()
+            result = area_copy.filter(ImageFilter.GaussianBlur(radius=radius))
+            post_actions(result)
 
         def detail():
             factor = detail_slider.get()
-            enhancer = ImageEnhance.Sharpness(image_copy)
-            self.image = enhancer.enhance(factor)
-            post_actions()
+            enhancer = ImageEnhance.Sharpness(area_copy)
+            result = enhancer.enhance(factor)
+            post_actions(result)
 
         def contour():
-            self.image = image_copy.filter(ImageFilter.CONTOUR)
-            post_actions()
+            result = area_copy.filter(ImageFilter.CONTOUR)
+            post_actions(result)
 
         def grayscale():
-            self.image = ImageOps.grayscale(image_copy)
-            post_actions()
+            result = ImageOps.grayscale(area_copy)
+            post_actions(result)
 
         def mirror():
-            self.image = ImageOps.mirror(image_copy)
-            post_actions()
+            result = ImageOps.mirror(area_copy)
+            post_actions(result)
 
         def metal():
-            self.image = image_copy.filter(ImageFilter.EMBOSS)
-            post_actions()
+            result = area_copy.filter(ImageFilter.EMBOSS)
+            post_actions(result)
 
         def inversion():
-            self.image = ImageOps.invert(image_copy)
-            post_actions()
+            result = ImageOps.invert(area_copy)
+            post_actions(result)
 
         effects_win = ctk.CTkToplevel(self)
         effects_win.title(_("Effects"))
         effects_win.geometry("250x500")
+
+        effects_area = ctk.IntVar(value=1)
+        whole_image_radiobutton = ctk.CTkRadioButton(
+            effects_win, text=_("Whole image"), command=set_effects_area_copy, variable=effects_area, value=1
+        )
+        whole_image_radiobutton.pack(padx=10, pady=10)
+        copied_area_radiobutton = ctk.CTkRadioButton(
+            effects_win, text=_("Copied area"), command=set_effects_area_copy, variable=effects_area, value=2
+        )
+        copied_area_radiobutton.pack(padx=10, pady=10)
+
+        if hasattr(self, "buffer_local") is False or self.buffer_local is None:
+            copied_area_radiobutton.configure(state="disabled")
 
         effects_frame = ctk.CTkScrollableFrame(effects_win)
         effects_frame.pack(fill=ctk.BOTH, expand=True, padx=10, pady=10)
@@ -1663,7 +1683,7 @@ class Brushshe(ctk.CTk):
         ctk.CTkButton(
             effects_win,
             text=_("Remove all effects"),
-            command=remove_all_effects,
+            command=lambda: post_actions(area_copy),
             fg_color="red",
             text_color="white",
         ).pack(padx=10, pady=10)
@@ -1677,7 +1697,7 @@ class Brushshe(ctk.CTk):
         blur_slider = ctk.CTkSlider(blur_frame, from_=0, to=20)
         blur_slider.pack(padx=10, pady=10)
 
-        ctk.CTkButton(blur_frame, text=_("Apply to picture"), command=blur).pack(padx=10, pady=10)
+        ctk.CTkButton(blur_frame, text=_("Apply"), command=blur).pack(padx=10, pady=10)
 
         # Detail
         detail_frame = ctk.CTkFrame(effects_frame)
@@ -1688,7 +1708,7 @@ class Brushshe(ctk.CTk):
         detail_slider = ctk.CTkSlider(detail_frame, from_=1, to=20)
         detail_slider.pack(padx=10, pady=10)
 
-        ctk.CTkButton(detail_frame, text=_("Apply to picture"), command=detail).pack(padx=10, pady=10)
+        ctk.CTkButton(detail_frame, text=_("Apply"), command=detail).pack(padx=10, pady=10)
 
         effects_dict = {  # dictionary for effects which without slider
             "Contour": contour,
@@ -1704,9 +1724,15 @@ class Brushshe(ctk.CTk):
 
             ctk.CTkLabel(effect_frame, text=_(effect_name)).pack(padx=10, pady=10)
 
-            ctk.CTkButton(effect_frame, text=_("Apply to picture"), command=effect_command).pack(padx=10, pady=10)
+            ctk.CTkButton(effect_frame, text=_("Apply"), command=effect_command).pack(padx=10, pady=10)
 
         image_copy = self.image.copy()
+
+        if hasattr(self, "buffer_local") and self.buffer_local is not None:
+            buffer_local_copy = self.buffer_local.copy()
+
+        area_copy = None
+        set_effects_area_copy()
 
         effects_win.grab_set()  # Disable main window
 

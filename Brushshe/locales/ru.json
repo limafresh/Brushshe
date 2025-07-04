@@ -47,7 +47,6 @@
 	"Color select": "Выбор цвета",
 	"The picture has been successfully saved to your device in format": "Рисунок успешно сохранён на Ваше устройство в формате",
 	"Effects": "Эффекты",
-	"Apply to picture": "Применить к рисунку",
 	"Blur": "Размытие",
 	"Detail": "Детализация",
 	"Contour": "Контур",
@@ -121,5 +120,7 @@
 	"Use real size": "Использовать реальный размер",
 	"New transparent": "Новый прозрачный",
 	"Remove white background": "Удалить белый фон",
-	"Check new versions (yours is": "Проверить новые версии (ваша -"
+	"Check new versions (yours is": "Проверить новые версии (ваша -",
+	"Whole image": "Всё изображение",
+	"Copied area": "Скопированная область"
 }
