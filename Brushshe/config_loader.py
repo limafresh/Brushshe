@@ -1,3 +1,4 @@
+import platform
 from configparser import ConfigParser
 from pathlib import Path
 
@@ -31,7 +32,14 @@ def load_config():
 
 # FIXME: It's wrong way. It can be only for portable version.
 #   On linux the config must be on some like ~/.config/brushshe/brushshe_config.ini
-config_file_path = Path.home() / ".brushshe_config.ini"
+
+if platform.system() == "Linux":
+    config_dir = Path.home() / ".config" / "brushshe"
+    config_dir.mkdir(parents=True, exist_ok=True)
+    config_file_path = config_dir / "brushshe_config.ini"
+else:
+    config_file_path = Path.home() / ".brushshe_config.ini"
+
 config = ConfigParser()
 
 load_config()
