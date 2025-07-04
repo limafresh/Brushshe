@@ -74,7 +74,7 @@ pip install customtkinter Pillow
 + *=*: zoom in
 + *-*: zoom out
 + *[*: down by 1 the brush or other tools size
-+ *]*:  by 1 the brush or other tools size
++ *]*: up by 1 the brush or other tools size
 + *{*: down by 10 the brush or other tools size
 + *}*: up by 10 the brush or other tools size
 + *Shift + mouse scroll*: scrolling the canvas horizontally
@@ -89,7 +89,7 @@ All contributions are welcome!
 
 ## Credits
 + Thanks [Akascape](https://github.com/Akascape) for CTkColorPicker, CTkMenuBar, CTkMessagebox and CTkToolTip.
-+ Thanks [Chip Viled](https://github.com/chipviled) for conributing.
++ Thanks [Chip Viled](https://github.com/chipviled) for contributing.
 
 ## Translations
 The internationalization of this program has a simple principle - it determines what the computer's localization is (for example, *en*, *ru*, etc.), and then applies the `Brushshe/locales/{localization}.json` file, where *localization* is the computer's localization.
