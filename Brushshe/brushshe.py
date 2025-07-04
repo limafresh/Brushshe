@@ -99,6 +99,8 @@ class Brushshe(ctk.CTk):
         image_dropdown.add_option(option=_("Rotate right"), command=lambda: self.rotate(-90))
         image_dropdown.add_option(option=_("Rotate left"), command=lambda: self.rotate(90))
         image_dropdown.add_separator()
+        image_dropdown.add_option(option=_("Change size"), command=self.change_size)
+        image_dropdown.add_separator()
         image_dropdown.add_option(option=_("Create screenshot"), command=self.create_screenshot)
         image_dropdown.add_option(option=_("Paste image from clipboard"), command=self.paste_image_from_clipboard)
 
@@ -129,6 +131,7 @@ class Brushshe(ctk.CTk):
         edit_submenu.add_option(option=_("Cut"), command=lambda: self.copy_simple(deleted=True))
         edit_submenu.add_option(option=_("Copy"), command=lambda: self.copy_simple())
         edit_submenu.add_option(option=_("Insert"), command=lambda: self.start_insert())
+        edit_submenu.add_option(option=_("Crop"), command=lambda: self.crop_simple())
 
         tools_icon_size = (20, 20)
         tools_dropdown.add_separator()
@@ -312,6 +315,13 @@ class Brushshe(ctk.CTk):
                 "helper": _("Insert"),  # + " (Ctrl+V)",
                 "action": self.start_insert,
                 "icon_name": "insert",
+            },
+            {
+                "type": "button",
+                "name": _("Crop"),
+                "helper": _("Crop"),
+                "action": self.crop_simple,
+                "icon_name": "crop",
             },
             # {"type": "separator"},
             # {
@@ -859,13 +869,17 @@ class Brushshe(ctk.CTk):
         self.canvas.scan_mark(int(dx_1 * cw_full - wd_x_1), int(dy_1 * ch_full - wd_y_1))
         self.canvas.scan_dragto(int(dx_2 * cw_full), int(dy_2 * ch_full), gain=1)
 
-    def crop_picture(self, new_width, new_height, event=None):
+    def crop_picture(self, x1, y1, x2, y2, event=None):
+
+        new_width = x2 - x1
+        new_height = y2 - y1
+
         if self.image.mode == "RGBA":
             new_image = Image.new("RGBA", (new_width, new_height), "#00000000")
-            new_image.paste(self.image, (0, 0), self.image)
+            new_image.paste(self.image, (-x1, -y1), self.image)
         else:
             new_image = Image.new("RGB", (new_width, new_height), self.bg_color)
-            new_image.paste(self.image, (0, 0))
+            new_image.paste(self.image, (-x1, -y1))
         self.image = new_image
         self.draw = ImageDraw.Draw(self.image)
 
@@ -1612,6 +1626,101 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<Motion>", move)
         self.canvas.bind("<Leave>", leave)
 
+    def crop_simple(self):
+        self.set_tool("crop", "Crop", None, None, None, "cross")
+
+        x_begin = None
+        y_begin = None
+        x_end = None
+        y_end = None
+
+        def cropping(event):
+            nonlocal x_begin, y_begin, x_end, y_end
+
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+
+            if x_begin is None or y_begin is None:
+                x_begin = x
+                y_begin = y
+
+            x_end = x
+            y_end = y
+            x_max = self.image.width - 1
+            y_max = self.image.height - 1
+
+            if x_begin < 0:
+                x_begin = 0
+            if x_begin > x_max:
+                x_begin = x_max
+            if y_begin < 0:
+                y_begin = 0
+            if y_begin > y_max:
+                y_begin = y_max
+            if x_end < 0:
+                x_end = 0
+            if x_end > x_max:
+                x_end = x_max
+            if y_end < 0:
+                y_end = 0
+            if y_end > y_max:
+                y_end = y_max
+
+            x1 = min(x_begin, x_end)
+            x2 = max(x_begin, x_end)
+            y1 = min(y_begin, y_end)
+            y2 = max(y_begin, y_end)
+
+            draw_tool(x1, y1, x2, y2)
+
+        def crop_end(event):
+            nonlocal x_begin, y_begin, x_end, y_end
+
+            if x_begin is None or y_begin is None:
+                return
+
+            x1 = min(x_begin, x_end)
+            x2 = max(x_begin, x_end)
+            y1 = min(y_begin, y_end)
+            y2 = max(y_begin, y_end)
+
+            self.canvas.delete("tools")
+
+            x_begin = None
+            y_begin = None
+            x_end = None
+            y_end = None
+
+            self.crop_picture(math.floor(x1), math.floor(y1), math.ceil(x2) + 1, math.ceil(y2) + 1)
+
+            self.update_canvas()
+
+        def draw_tool(x1, y1, x2, y2):
+            self.canvas.delete("tools")
+
+            self.canvas.create_rectangle(
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
+                outline="yellow",
+                width=1,
+                tag="tools",
+            )
+            self.canvas.create_rectangle(
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
+                outline="black",
+                width=1,
+                tag="tools",
+                dash=(2, 2),
+            )
+
+        self.canvas.bind("<Button-1>", cropping)
+        self.canvas.bind("<B1-Motion>", cropping)
+        self.canvas.bind("<ButtonRelease-1>", crop_end)
+
     def effects(self):
         def set_effects_area_copy():
             nonlocal area_copy
@@ -2068,7 +2177,7 @@ class Brushshe(ctk.CTk):
         new_data = []
         for item in datas:
             if item[0] > 240 and item[1] > 240 and item[2] > 240:
-                new_data.append((255, 255, 255, 0))
+                new_data.append((0, 0, 0, 0))  # Lines with zeroes compressed better.
             else:
                 new_data.append(item)
 
@@ -2164,6 +2273,8 @@ class Brushshe(ctk.CTk):
                 ready_size_button.configure(command=crop)
             elif value == _("Scale"):
                 ready_size_button.configure(command=scale)
+            else:
+                print("Oops")
 
         def crop():
             try:
@@ -2183,9 +2294,9 @@ class Brushshe(ctk.CTk):
                         sound=True,
                     )
                     if continue_size_msg.get() == _("Yes"):
-                        self.crop_picture(int(width_spinbox.get()), new_height)
+                        self.crop_picture(0, 0, int(width_spinbox.get()), new_height)
                 else:
-                    self.crop_picture(int(width_spinbox.get()), new_height)
+                    self.crop_picture(0, 0, int(width_spinbox.get()), new_height)
             except Exception as e:
                 print(e)
 
