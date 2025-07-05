@@ -4,6 +4,7 @@ import random
 import sys
 import webbrowser
 
+
 # import time  # Need for debug.
 from collections import deque
 from pathlib import Path
@@ -19,6 +20,7 @@ from color_picker import AskColor
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
 from file_dialog import FileDialog
+from tkinter import filedialog
 from PIL import (
     Image,
     ImageColor,
@@ -33,6 +35,12 @@ from PIL import (
 )
 from spinbox import IntSpinbox
 from tooltip import Tooltip
+import io
+import base64
+import requests
+from PIL import ImageGrab
+from customtkinter import CTkInputDialog
+from sd_api import txt2img,img2img
 
 
 def resource(relative_path):
@@ -128,6 +136,8 @@ class Brushshe(ctk.CTk):
         file_dropdown.add_option(
             option=_("Reset palette to default"), command=lambda: self.make_color_palette(self.colors)
         )
+        file_dropdown.add_option(option=_("Clear Canvas"), command=lambda: self.new_picture(self.bg_color))
+
 
         new_menu = menu.add_cascade(_("New"))
         new_dropdown = CustomDropdownMenu(widget=new_menu)
@@ -170,7 +180,10 @@ class Brushshe(ctk.CTk):
         other_menu = menu.add_cascade(_("More"))
         other_dropdown = CustomDropdownMenu(widget=other_menu)
         other_dropdown.add_option(option=_("Settings"), command=self.settings)
-        other_dropdown.add_option(option=_("About program"), command=self.about_program)
+        # other_dropdown.add_option(option=_("About program"), command=self.about_program)
+        clear_canvas=menu.add_cascade(_("clear"))
+        clear=CustomDropdownMenu(widget=clear_canvas)
+        clear.add_option(option=_("Clear Canvas"), command=lambda: self.new_picture(self.bg_color))
 
         """Toolbar"""
         tools_frame = ctk.CTkFrame(self)
@@ -269,6 +282,12 @@ class Brushshe(ctk.CTk):
         self.size_button.pack(side=ctk.RIGHT, padx=1)
 
         """ Initialization """
+        ai_menu = menu.add_cascade(_("AI"))
+        ai_dropdown = CustomDropdownMenu(widget=ai_menu)
+        ai_dropdown.add_option(option=_("Generate from Sketch + Prompt"), command=self.generate_from_sketch)
+        ai_dropdown.add_option(option=_("Generate from Prompt Only"), command=self.generate_from_prompt_only)
+        ai_dropdown.add_option(option=_("Generate from Uploaded Image"), command=self.upload_and_generate)
+
         self.brush_color = "black"
         self.second_brush_color = "white"
         self.bg_color = "white"
@@ -358,6 +377,137 @@ class Brushshe(ctk.CTk):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
     """ Functionality """
+    def _grab_canvas_image(self):
+        # get absolute coords of canvas on screen
+        x = self.canvas.winfo_rootx()
+        y = self.canvas.winfo_rooty()
+        w = self.canvas.winfo_width()
+        h = self.canvas.winfo_height()
+        im = ImageGrab.grab(bbox=(x, y, x + w, y + h))
+        return im
+
+
+    def generate_img_async(self, prompt, temp_path, loading_label):
+        try:
+            generated = img2img(temp_path, prompt)
+
+            # Save image
+            save_dir = os.path.join(os.getcwd(), "generated")
+            os.makedirs(save_dir, exist_ok=True)
+            save_path = os.path.join(save_dir, f"generated_img2img_{uuid4().hex[:8]}.png")
+            generated.save(save_path)
+
+            # Show image and message
+            self.set_generated_image(generated)
+            loading_label.destroy()
+            CTkMessagebox(title="Success", message=f"Image saved at:\n{save_path}")
+        except Exception as e:
+            loading_label.destroy()
+            CTkMessagebox(title="Error", message=str(e))
+
+    def export_canvas_as_image(self):
+    # Get coordinates of canvas relative to the screen
+        self.update()
+        x = self.canvas.winfo_rootx()
+        y = self.canvas.winfo_rooty()
+        w = self.canvas.winfo_width()
+        h = self.canvas.winfo_height()
+        return ImageGrab.grab(bbox=(x, y, x + w, y + h))
+
+    def set_generated_image(self, image):
+        self.generated_image = image
+        self.generated_photo = ImageTk.PhotoImage(image)
+
+        # Clear old image if exists
+        if hasattr(self, "generated_image_id"):
+            self.canvas.delete(self.generated_image_id)
+
+        # Display new image and save its ID
+        self.generated_image_id = self.canvas.create_image(0, 0, anchor="nw", image=self.generated_photo)
+
+        self.canvas.image = self.generated_photo  # prevent garbage collection
+
+
+
+    def generate_from_prompt_only(self):
+        prompt = CTkInputDialog(text="Enter your prompt", title="AI Text2Img Prompt").get_input()
+        if not prompt:
+            return
+        
+        loading_label = ctk.CTkLabel(self, text="Generating image from AI...", text_color="blue")
+        loading_label.pack(pady=10)
+        self.update_idletasks()  # Force the label to appear immediately
+
+        try:
+            # This will block the UI until done
+            generated = txt2img(prompt)
+
+            self.set_generated_image(generated)
+            loading_label.destroy()
+            CTkMessagebox(title="Success", message="Image generated successfully.")
+        except Exception as e:
+            loading_label.destroy()
+            CTkMessagebox(title="Error", message=str(e))
+
+
+
+
+    def generate_from_sketch(self):
+        prompt = CTkInputDialog(text="Enter your prompt", title="AI Img2Img Prompt").get_input()
+        if not prompt:
+            return
+
+        sketch_image = self.export_canvas_as_image()
+
+        # Show loading label
+        loading_label = ctk.CTkLabel(self, text="Generating image from AI...", text_color="blue")
+        loading_label.pack(pady=10)
+        self.update_idletasks()  # Force the label to appear immediately
+
+        try:
+            # This will block the UI until done
+            generated = img2img(sketch_image, prompt)
+
+            self.set_generated_image(generated)
+            loading_label.destroy()
+            CTkMessagebox(title="Success", message="Image generated successfully.")
+        except Exception as e:
+            loading_label.destroy()
+            CTkMessagebox(title="Error", message=str(e))
+
+    
+    
+
+    def upload_and_generate(self):
+    # Ask user to choose an image from their device
+        file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.png;*.jpg;*.jpeg")])
+        if not file_path:
+            return
+
+        prompt = CTkInputDialog(text="Enter prompt for uploaded image", title="AI Img2Img Prompt").get_input()
+        if not prompt:
+            return
+
+        loading_label = ctk.CTkLabel(self, text="Generating image from AI...", text_color="blue")
+        loading_label.pack(pady=10)
+        self.update_idletasks()
+        try:
+            image = Image.open(file_path).convert("RGB")
+            generated = img2img(image, prompt)  # Reuses your updated img2img
+            self.set_generated_image(generated)
+        except Exception as e:
+            CTkMessagebox(title="Error", message=f"Failed to generate: {e}", icon="cancel")
+    
+
+    def _display_pil_on_canvas(self, pil_img: Image.Image):
+        # resize to fit canvas if you like:
+        pil_img = pil_img.resize((self.canvas.winfo_width(), self.canvas.winfo_height()), Image.ANTIALIAS)
+        tk_img = ImageTk.PhotoImage(pil_img)
+        # keep a reference so it doesn’t get GC’d:
+        self._last_ai_image = tk_img
+        self.canvas.create_image(0, 0, image=tk_img, anchor="nw")
+        # push into undo stack if desired:
+        self.undo_stack.append(self.canvas.postscript())
 
     def change_tool_size_bind(self, event=None, delta=1):
         new_size = self.get_tool_size() + delta
@@ -949,8 +1099,16 @@ class Brushshe(ctk.CTk):
         image_points = []
         bezier_id = None
 
-        # Clear canvas.
+        
         self.update_canvas()
+        def clear_canvas(self):
+            self.canvas.delete("all")  # Remove all drawings
+            self.new_picture(self.bg_color)  # Reset background
+            self.redo_stack.clear()
+            self.undo_stack.clear()
+
+
+    
 
         def start(event):
             nonlocal canvas_points, image_points, bezier_id
@@ -1407,41 +1565,41 @@ class Brushshe(ctk.CTk):
             self.my_gallery.destroy()
             self.show_gallery()
 
-    def about_program(self):
-        about_text = _(
-            "Brushshe is a painting program where you can create whatever you like.\n\n"
-            "An eagle named Brucklin is its mascot.\n\n"
-        )
-        about_msg = CTkMessagebox(
-            title=_("About program"),
-            message=about_text + "v1.18.0",
-            icon=resource("icons/brucklin.png"),
-            icon_size=(150, 191),
-            option_1="OK",
-            option_2="GitHub",
-            height=400,
-        )
-        if about_msg.get() == "GitHub":
-            webbrowser.open(r"https://github.com/limafresh/Brushshe")
+   
 
-    def new_picture(self, color, first_time=False):
-        self.canvas.delete("tools")
+    def new_picture(self, color="white", first_time=False):
+        # Clear canvas items including AI-generated images or drawings
+        self.canvas.delete("all")
+
         self.bg_color = color
+        self.brush_color = self.brush_palette.main_color
+        self.second_brush_color = self.brush_palette.second_color
+        self.prev_x, self.prev_y = (None, None)
 
+        # Reset generated image attributes
+        if hasattr(self, "generated_image_id"):
+            del self.generated_image_id
+        if hasattr(self, "generated_image"):
+            del self.generated_image
+        if hasattr(self, "generated_photo"):
+            del self.generated_photo
+
+        # Create blank image for drawing
         self.image = Image.new("RGB", (640, 480), color)
         self.draw = ImageDraw.Draw(self.image)
+
+        # Set canvas size and scroll behavior
         self.canvas.configure(width=640, height=480, scrollregion=self.canvas.bbox("all"))
         self.canvas.xview_moveto(0)
         self.canvas.yview_moveto(0)
 
-        if first_time:
-            self.img_tk = ImageTk.PhotoImage(self.image)
-            self.canvas_image = self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.img_tk)
-        else:
-            self.update_canvas()
-        self.force_resize_canvas()
+        # Display initial image on canvas
+        self.img_tk = ImageTk.PhotoImage(self.image)
+        self.canvas_image = self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.img_tk)
 
+        self.force_resize_canvas()
         self.undo_stack.append(self.image.copy())
+
 
     def change_tool_size(self, value):
         self.tool_size = int(value)
