@@ -421,7 +421,6 @@ class Brushshe(ctk.CTk):
 
         self.composer = BhComposer(0, 0)  # Empty init.
 
-        self.update()  # update interface before calculate picture size
         self.new_picture(self.bg_color, first_time=True)
         self.brush()
 
@@ -503,6 +502,7 @@ class Brushshe(ctk.CTk):
         }
         self.fonts = list(self.fonts_dict.keys())
 
+        self.update()  # Update interface before recalculate canvas.
         self.force_resize_canvas()
         self.update_canvas()
 
@@ -773,33 +773,40 @@ class Brushshe(ctk.CTk):
             if x1 == 0 and y1 == 0 and x2 == cw_full - 1 and y2 == ch_full - 1:
                 x1_correct = 0
                 y1_correct = 0
+                dx = 0
+                dy = 0
                 tmp_canvas_image = self.image
             else:
                 tiles_xy_on_image = (
                     math.floor(x1 / self.zoom),
                     math.floor(y1 / self.zoom),
-                    math.ceil(x2 / self.zoom),
-                    math.ceil(y2 / self.zoom),
+                    math.floor(x2 / self.zoom) + 1,
+                    math.floor(y2 / self.zoom) + 1,
                 )
 
                 # Subpixel correct.
                 x1_correct = tiles_xy_on_image[0] * self.zoom
                 y1_correct = tiles_xy_on_image[1] * self.zoom
 
-                # dx = x1 - x1_correct
-                # dy = y1 - y1_correct
+                dx = math.floor(x1 - x1_correct)
+                dy = math.floor(y1 - y1_correct)
 
                 # # Debug
                 # print((x1, y1, x2, y2), tiles_xy_on_image, (x1_correct, y1_correct), (dx, dy))
 
                 tmp_canvas_image = self.image.crop(tiles_xy_on_image)
 
-            canvas_image = tmp_canvas_image.resize(
-                (int(tmp_canvas_image.width * self.zoom), int(tmp_canvas_image.height * self.zoom)), Image.NEAREST
-            )
+            r_w = math.floor(tmp_canvas_image.width * self.zoom)
+            r_h = math.floor(tmp_canvas_image.height * self.zoom)
+            if r_w < 1:
+                r_w = 1
+            if r_h < 1:
+                r_h = 1
+
+            canvas_image = tmp_canvas_image.resize((r_w, r_h), Image.NEAREST)
 
             self.composer.set_l_image(canvas_image)
-            compose_image = self.composer.get_compose_image(x1, y1, x2, y2)
+            compose_image = self.composer.get_compose_image(x1, y1, x2 + dx, y2 + dy)
 
             self.img_tk = ImageTk.PhotoImage(compose_image)
             self.canvas.itemconfig(self.canvas_image, image=self.img_tk)
