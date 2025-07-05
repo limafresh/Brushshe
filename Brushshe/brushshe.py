@@ -819,7 +819,7 @@ class Brushshe(ctk.CTk):
         ch_full = int(self.image.height * self.zoom)
 
         # Set param canvas with real image size. Not use bbox in this place.
-        self.canvas.config(scrollregion=(0, 0, cw_full - 1, ch_full - 1), width=cw_full, height=ch_full)
+        self.canvas.config(scrollregion=(0, 0, cw_full, ch_full), width=cw_full, height=ch_full)
 
         iw, ih = self.image.size
         cx_frame_1, cx_frame_2 = self.canvas.xview()
@@ -841,8 +841,9 @@ class Brushshe(ctk.CTk):
         cw_full = int(self.image.width * self.zoom)
         ch_full = int(self.image.height * self.zoom)
 
+        # Scrollregion begin from the left part of first pixel and tail on the end part of last pixel.
         self.canvas.config(
-            scrollregion=(0, 0, cw_full - 1, ch_full - 1),
+            scrollregion=(0, 0, cw_full, ch_full),
             width=cw_full,
             height=ch_full,
         )
