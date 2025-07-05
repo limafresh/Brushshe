@@ -758,14 +758,14 @@ class Brushshe(ctk.CTk):
         elif self.zoom < 1:
             # https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-filters
             canvas_image = self.image.resize(
-                (int(self.image.width * self.zoom), int(self.image.height * self.zoom)), Image.BOX
+                (math.ceil(self.image.width * self.zoom), math.ceil(self.image.height * self.zoom)), Image.BOX
             )
         else:  # self.zoom > 1:
             # It can be used for zoom == 1 with some corrected on other places.
             # It work incorrect at this implementation for zoom < 1.
 
-            cw_full = int(self.image.width * self.zoom)
-            ch_full = int(self.image.height * self.zoom)
+            cw_full = math.ceil(self.image.width * self.zoom)
+            ch_full = math.ceil(self.image.height * self.zoom)
 
             (x1, y1, x2, y2) = self.get_canvas_tails_area()
 
@@ -786,8 +786,11 @@ class Brushshe(ctk.CTk):
                 x1_correct = tiles_xy_on_image[0] * self.zoom
                 y1_correct = tiles_xy_on_image[1] * self.zoom
 
-                # Debug
-                # print((x1, y1, x2, y2), tiles_xy_on_image, (x1_correct, y1_correct))
+                # dx = x1 - x1_correct
+                # dy = y1 - y1_correct
+
+                # # Debug
+                # print((x1, y1, x2, y2), tiles_xy_on_image, (x1_correct, y1_correct), (dx, dy))
 
                 tmp_canvas_image = self.image.crop(tiles_xy_on_image)
 
