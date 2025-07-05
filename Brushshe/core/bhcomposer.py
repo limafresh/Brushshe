@@ -70,8 +70,8 @@ class BhComposer:
         if y2 is None:
             y2 = self.height - 1
 
-        w = x2 - x1
-        h = y2 - y1
+        w = x2 - x1 + 1
+        h = y2 - y1 + 1
 
         if self.background_image is None or w != self.background_image.width or h != self.background_image.height:
             # Background image MUST be RGB (without alpha) for optimization on tk (and ctk).

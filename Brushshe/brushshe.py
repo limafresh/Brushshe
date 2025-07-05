@@ -421,7 +421,6 @@ class Brushshe(ctk.CTk):
 
         self.composer = BhComposer(0, 0)  # Empty init.
 
-        self.update()  # update interface before calculate picture size
         self.new_picture(self.bg_color, first_time=True)
         self.brush()
 
@@ -503,6 +502,7 @@ class Brushshe(ctk.CTk):
         }
         self.fonts = list(self.fonts_dict.keys())
 
+        self.update()  # Update interface before recalculate canvas.
         self.force_resize_canvas()
         self.update_canvas()
 
@@ -758,14 +758,14 @@ class Brushshe(ctk.CTk):
         elif self.zoom < 1:
             # https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-filters
             canvas_image = self.image.resize(
-                (int(self.image.width * self.zoom), int(self.image.height * self.zoom)), Image.BOX
+                (math.ceil(self.image.width * self.zoom), math.ceil(self.image.height * self.zoom)), Image.BOX
             )
         else:  # self.zoom > 1:
             # It can be used for zoom == 1 with some corrected on other places.
             # It work incorrect at this implementation for zoom < 1.
 
-            cw_full = int(self.image.width * self.zoom)
-            ch_full = int(self.image.height * self.zoom)
+            cw_full = math.ceil(self.image.width * self.zoom)
+            ch_full = math.ceil(self.image.height * self.zoom)
 
             (x1, y1, x2, y2) = self.get_canvas_tails_area()
 
@@ -773,30 +773,40 @@ class Brushshe(ctk.CTk):
             if x1 == 0 and y1 == 0 and x2 == cw_full - 1 and y2 == ch_full - 1:
                 x1_correct = 0
                 y1_correct = 0
+                dx = 0
+                dy = 0
                 tmp_canvas_image = self.image
             else:
                 tiles_xy_on_image = (
                     math.floor(x1 / self.zoom),
                     math.floor(y1 / self.zoom),
-                    math.ceil(x2 / self.zoom),
-                    math.ceil(y2 / self.zoom),
+                    math.floor(x2 / self.zoom) + 1,
+                    math.floor(y2 / self.zoom) + 1,
                 )
 
                 # Subpixel correct.
                 x1_correct = tiles_xy_on_image[0] * self.zoom
                 y1_correct = tiles_xy_on_image[1] * self.zoom
 
-                # Debug
-                # print((x1, y1, x2, y2), tiles_xy_on_image, (x1_correct, y1_correct))
+                dx = math.floor(x1 - x1_correct)
+                dy = math.floor(y1 - y1_correct)
+
+                # # Debug
+                # print((x1, y1, x2, y2), tiles_xy_on_image, (x1_correct, y1_correct), (dx, dy))
 
                 tmp_canvas_image = self.image.crop(tiles_xy_on_image)
 
-            canvas_image = tmp_canvas_image.resize(
-                (int(tmp_canvas_image.width * self.zoom), int(tmp_canvas_image.height * self.zoom)), Image.NEAREST
-            )
+            r_w = math.floor(tmp_canvas_image.width * self.zoom)
+            r_h = math.floor(tmp_canvas_image.height * self.zoom)
+            if r_w < 1:
+                r_w = 1
+            if r_h < 1:
+                r_h = 1
+
+            canvas_image = tmp_canvas_image.resize((r_w, r_h), Image.NEAREST)
 
             self.composer.set_l_image(canvas_image)
-            compose_image = self.composer.get_compose_image(x1, y1, x2, y2)
+            compose_image = self.composer.get_compose_image(x1, y1, x2 + dx, y2 + dy)
 
             self.img_tk = ImageTk.PhotoImage(compose_image)
             self.canvas.itemconfig(self.canvas_image, image=self.img_tk)
@@ -819,7 +829,7 @@ class Brushshe(ctk.CTk):
         ch_full = int(self.image.height * self.zoom)
 
         # Set param canvas with real image size. Not use bbox in this place.
-        self.canvas.config(scrollregion=(0, 0, cw_full - 1, ch_full - 1), width=cw_full, height=ch_full)
+        self.canvas.config(scrollregion=(0, 0, cw_full, ch_full), width=cw_full, height=ch_full)
 
         iw, ih = self.image.size
         cx_frame_1, cx_frame_2 = self.canvas.xview()
@@ -841,8 +851,9 @@ class Brushshe(ctk.CTk):
         cw_full = int(self.image.width * self.zoom)
         ch_full = int(self.image.height * self.zoom)
 
+        # Scrollregion begin from the left part of first pixel and tail on the end part of last pixel.
         self.canvas.config(
-            scrollregion=(0, 0, cw_full - 1, ch_full - 1),
+            scrollregion=(0, 0, cw_full, ch_full),
             width=cw_full,
             height=ch_full,
         )
