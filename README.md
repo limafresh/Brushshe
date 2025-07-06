@@ -7,7 +7,7 @@
 </p>
 
 ## Description
-**Brushshe** is a raster graphical editor, written on Python 3, CustomTkinter and PIL.
+**Brushshe** is a simple and user-friendly raster graphics editor. Available for Windows and Linux.
 
 ![Screenshot](https://raw.githubusercontent.com/limafresh/Brushshe/main/screenshot.png)
 
@@ -15,6 +15,7 @@
 
 ## ⬇️ Installation
 ### Download Brushshe for Windows 64bit
+[![Static Badge](https://img.shields.io/badge/Download-.exe_file-blue?style=for-the-badge)](https://github.com/limafresh/Brushshe/releases) or
 [![Static Badge](https://img.shields.io/badge/Download-portable_.exe_file-blue?style=for-the-badge)](https://github.com/limafresh/Brushshe/releases)
 
 **or**
@@ -36,7 +37,7 @@ pip install customtkinter Pillow
 
 ## 🚀 Features
 + **Open**: You can open a picture from a file.
-+ **Painting**: You can choose a color, change the brush thickness, and paint. You can change canvas size.
++ **Painting**: You can choose a color, change the brush thickness and shape, and paint. You can change canvas size.
 + **Recoloring brush (new!)**: Draws through contours.
 + **Save to device**: You can save picture to your PC in different formats (PNG, JPG, GIF, BMP, TIFF, WEBP, ICO, PPM, PGM, PBM).
 + **Undo and redo**: You can undo and redo 10 last actions.
@@ -49,24 +50,35 @@ pip install customtkinter Pillow
 + **Text**: You can place text and change its size.
 + **Frames**: You can decorate the picture with frames.
 + **Shapes**: Rectangle and oval (with or without fill), line, bezier curve.
-+ **Effects**: Blur, detail, contour, grayscale, inversion and other. Not work on GIF images.
++ **Effects**: Blur, detail, contour, grayscale, inversion and other. It can be applied to the whole image or to the copied area. Not work on GIF images.
 + **My Gallery**: Window showing images drawn in Brushshe and "saved to gallery". Images from the gallery are stored in `<user_home_folder>/Pictures/Brushshe Images` or `<user_home_folder>/Brushshe Images` on some minimalistic Linux distributions.
 + **Dark theme**: There is a light and dark theme.
 + **Rotate**: Rotate right, rotate left.
 + **Create screenshot**: You can take a screenshot and draw on it. Not work on Linux with Wayland.
++ **Paste image from clipboard**: You can paste image from clipboard.
 + **View**: Zoom in, zoom out, reset zoom.
 + **Change size**: You can change the size by cropping or scaling.
++ **Palettes**: There are 3 built-in palette sets in the settings, and if there are not enough of them, you can load your own from .hex files.
++ **Brush smoothing**: Brush smoothing with params.
++ **Cut, copy and insert**: Cut, copy or insert fragments. Works on Windows, but on Linux you need to install `xclip` (X11) or `wl-paste` (Wayland). If they are not installed, everything else will work, but when you try to paste from the buffer, you will get a message that this is impossible.
++ **Remove white background**: Replace white or really light gray background to transparent.
++ **Palettes**: use standard or custom HEX palettes.
 
 ## Hotkeys
 + *Ctrl+Z*: undo
 + *Ctrl+Y*: redo
 + *Ctrl+S*: save to gallery
-+ *X*: flip colors
-+ *B*: brush
-+ *E*: eraser
++ *Ctrl+F*: flip colors
++ *Ctrl+B*: brush
++ *Ctrl+E*: eraser
 + *=*: zoom in
 + *-*: zoom out
++ *[*: down by 1 the brush or other tools size
++ *]*: up by 1 the brush or other tools size
++ *{*: down by 10 the brush or other tools size
++ *}*: up by 10 the brush or other tools size
 + *Shift + mouse scroll*: scrolling the canvas horizontally
++ *Middle mouse button*: move canvas
 
 ## Goal of project
 The goal of the project is to provide a open-source, convenient, beautiful and multifunctional painting app using the CustomTkinter toolkit.
@@ -77,7 +89,7 @@ All contributions are welcome!
 
 ## Credits
 + Thanks [Akascape](https://github.com/Akascape) for CTkColorPicker, CTkMenuBar, CTkMessagebox and CTkToolTip.
-+ Thanks [Chip Viled](https://github.com/chipviled) for conributing.
++ Thanks [Chip Viled](https://github.com/chipviled) for contributing.
 
 ## Translations
 The internationalization of this program has a simple principle - it determines what the computer's localization is (for example, *en*, *ru*, etc.), and then applies the `Brushshe/locales/{localization}.json` file, where *localization* is the computer's localization.
@@ -92,5 +104,13 @@ The internationalization of this program has a simple principle - it determines 
 ## For developers
 ### Linter
 [Ruff](https://github.com/astral-sh/ruff) is used to maintain code cleanliness.
+
+Starting with version 2.0.0, each version will be given a code name based on the names of cities in alphabetical order. 2.0.0 starts with "S" because it is the 19th letter of the alphabet, and since 1.0.0 there have been 18 versions. Example:
+2.0.0 - Skopje
+2.1.0 - T..
+2.1.1 - T..
+2.2.0 - U..
+2.x.x - Z..
+2.x.x - A..
 
 ## 🎨🦅💪

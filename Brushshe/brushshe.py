@@ -3,19 +3,20 @@ import os
 import random
 import sys
 import webbrowser
-
-# import time  # Need for debug.
 from collections import deque
-from pathlib import Path
-from threading import Thread
 from tkinter import PhotoImage
 from uuid import uuid4
 
+# import time  # Need for debug.
 import customtkinter as ctk
-import translator
-from bezier import make_bezier
+import gallery
 from brush_palette import BrushPalette
 from color_picker import AskColor
+from config_loader import config, config_file_path, write_config
+from core.bezier import make_bezier
+from core.bhbrush import bh_draw_line, bh_draw_recoloring_line
+from core.bhcomposer import BhComposer
+from core.bhhistory import BhHistory, BhPoint
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
 from file_dialog import FileDialog
@@ -33,6 +34,7 @@ from PIL import (
 )
 from spinbox import IntSpinbox
 from tooltip import Tooltip
+from translator import _
 
 
 def resource(relative_path):
@@ -40,105 +42,67 @@ def resource(relative_path):
     return os.path.join(base_path, relative_path)
 
 
-def _(key):
-    return translator.translations.get(key, key)
-
-
 class Brushshe(ctk.CTk):
     def __init__(self):
         super().__init__(className="Brushshe")
+
+        """ Version """
+        self.version_prefix = ""
+        self.version_major = "2"
+        self.version_minor = "0"
+        self.version_patch = "0"
+        self.version_suffix = ' "Skopje"'
+
+        self.version_full = "{0}{1}.{2}.{3}{4}".format(
+            self.version_prefix,
+            self.version_major,
+            self.version_minor,
+            self.version_patch,
+            self.version_suffix,
+        )
+
+        """ Main Window """
         self.geometry("790x680")
-        self.title(_("Brushshe"))
+        self.title(_("Unnamed") + " - " + _("Brushshe"))
         if os.name == "nt":
             self.iconbitmap(resource("icons/icon.ico"))
         else:
             self.iconphoto(True, PhotoImage(file=resource("icons/icon.png")))
-        ctk.set_appearance_mode("system")
         self.protocol("WM_DELETE_WINDOW", self.when_closing)
-
-        # Max tail can not be more 4 MB = 1024 (width) x 1024 (height) x 4 (rgba).
-        # canvas_tail_size: Max = 1024. Default = 128. Min = 16.
-        self.canvas_tail_size = 128
-
-        # If None - no crop, if set - need check out of crop.
-        self.canvas_tails_area = None
-
-        self.colors_vintage = [
-            "white",
-            "black",
-            "red",
-            "#2eff00",
-            "blue",
-            "yellow",
-            "purple",
-            "cyan",
-            "pink",
-            "orange",
-            "brown",
-            "gray",
-        ]
-
-        self.colors = [
-            "#000000",
-            "#222034",
-            "#45283c",
-            "#663931",
-            "#8f563b",
-            "#df7126",
-            "#d9a066",
-            "#eec39a",
-            "#fbf236",
-            "#99e550",
-            "#6abe30",
-            "#37946e",
-            "#4b692f",
-            "#524b24",
-            "#323c39",
-            "#3f3f74",
-            "#ffffff",
-            "#306082",
-            "#5b6ee1",
-            "#639bff",
-            "#5fcde4",
-            "#cbdbfc",
-            "#9badb7",
-            "#847e87",
-            "#696a6a",
-            "#595652",
-            "#76428a",
-            "#ac3232",
-            "#d95763",
-            "#d77bba",
-            "#8f974a",
-            "#8a6f30",
-        ]
 
         """ Menu """
         menu = CTkMenuBar(self)
 
         file_menu = menu.add_cascade(_("File"))
         file_dropdown = CustomDropdownMenu(widget=file_menu)
-        file_dropdown.add_option(option=_("Open from file"), command=self.open_from_file)
-        file_dropdown.add_option(option=_("Save to device"), command=self.save_to_device)
-        file_dropdown.add_separator()
-        file_dropdown.add_option(option=_("Rotate right"), command=lambda: self.rotate(-90))
-        file_dropdown.add_option(option=_("Rotate left"), command=lambda: self.rotate(90))
-        file_dropdown.add_separator()
-        file_dropdown.add_option(option=_("Import palette (hex)"), command=self.import_palette)
+
+        file_dropdown.add_option(option=_("New"), command=lambda: self.new_picture("white"))
         file_dropdown.add_option(
-            option=_("Reset palette to default"), command=lambda: self.make_color_palette(self.colors)
+            option=_("New with other color"), command=self.other_bg_color
+        )  # TODO: Use dialog from there.
+        file_dropdown.add_option(
+            option=_("New transparent"),
+            command=lambda: self.new_picture(color="#00000000", mode="RGBA"),
         )
 
-        new_menu = menu.add_cascade(_("New"))
-        new_dropdown = CustomDropdownMenu(widget=new_menu)
+        file_dropdown.add_option(option=_("Open from file"), command=self.open_from_file)
+        file_dropdown.add_option(option=_("Save changes to this picture"), command=self.save_current)
+        file_dropdown.add_option(option=_("Save as new picture"), command=self.save_as)
+        file_dropdown.add_separator()
+        file_dropdown.add_option(option=_("Open my gallery"), command=lambda: gallery.show(self.open_image))
+        file_dropdown.add_option(option=_("Save to my gallery"), command=self.save_to_gallery)
+        file_dropdown.add_separator()
+        file_dropdown.add_option(option=_("Import palette (hex)"), command=self.import_palette)
 
-        # TODO: Change to select bg_color as HEX as default.
-        for color in self.colors_vintage:
-            new_dropdown.add_option(option=None, bg_color=color, command=lambda c=color: self.new_picture(c))
-
-        new_dropdown.add_separator()
-        new_dropdown.add_option(option=_("Other color"), command=self.other_bg_color)
-        new_dropdown.add_option(option=_("Create screenshot"), command=self.create_screenshot)
+        image_menu = menu.add_cascade(_("Image"))
+        image_dropdown = CustomDropdownMenu(widget=image_menu)
+        image_dropdown.add_option(option=_("Rotate right"), command=lambda: self.rotate(-90))
+        image_dropdown.add_option(option=_("Rotate left"), command=lambda: self.rotate(90))
+        image_dropdown.add_separator()
+        image_dropdown.add_option(option=_("Change size"), command=self.change_size)
+        image_dropdown.add_separator()
+        image_dropdown.add_option(option=_("Create screenshot"), command=self.create_screenshot)
+        image_dropdown.add_option(option=_("Paste image from clipboard"), command=self.paste_image_from_clipboard)
 
         view_menu = menu.add_cascade(_("View"))
         view_dropdown = CustomDropdownMenu(widget=view_menu)
@@ -147,101 +111,257 @@ class Brushshe(ctk.CTk):
         view_dropdown.add_separator()
         view_dropdown.add_option(option=_("Reset"), command=self.reset_zoom)
 
-        add_menu = menu.add_cascade(_("Add"))
-        add_dropdown = CustomDropdownMenu(widget=add_menu)
-        smile_icon = ctk.CTkImage(Image.open(resource("icons/smile.png")), size=(50, 50))
-        add_dropdown.add_option(option=_("Stickers"), image=smile_icon, command=self.show_stickers_choice)
-        text_icon = ctk.CTkImage(Image.open(resource("icons/text.png")), size=(50, 50))
-        add_dropdown.add_option(option=_("Text"), image=text_icon, command=self.show_text_window)
-        frame_icon = ctk.CTkImage(Image.open(resource("icons/frame.png")), size=(50, 50))
-        add_dropdown.add_option(option=_("Frames"), image=frame_icon, command=self.show_frame_choice)
-        effects_icon = ctk.CTkImage(Image.open(resource("icons/effects.png")), size=(50, 50))
-        add_dropdown.add_option(option=_("Effects"), image=effects_icon, command=self.effects)
+        tools_menu = menu.add_cascade(_("Tools"))
+        tools_dropdown = CustomDropdownMenu(widget=tools_menu)
 
-        shapes_menu = menu.add_cascade(_("Shapes"))
-        shapes_dropdown = CustomDropdownMenu(widget=shapes_menu)
-        shape_options = ["Rectangle", "Oval", "Line", "Fill rectangle", "Fill oval"]
+        draw_tools_submenu = tools_dropdown.add_submenu(_("Draw tools"))
+        draw_tools_submenu.add_option(option=_("Brush"), command=self.brush)
+        draw_tools_submenu.add_option(option=_("Eraser"), command=self.eraser)
+        draw_tools_submenu.add_option(option=_("Fill"), command=self.fill)
+        draw_tools_submenu.add_option(option=_("Recoloring Brush"), command=self.recoloring_brush)
+        draw_tools_submenu.add_option(option=_("Spray"), command=self.spray)
+
+        shapes_submenu = tools_dropdown.add_submenu(_("Shapes"))
+        shape_options = ["Rectangle", "Oval", "Fill rectangle", "Fill oval", "Line"]
         for shape in shape_options:
-            shapes_dropdown.add_option(option=_(shape), command=lambda shape=shape: self.create_shape(shape))
-        shapes_dropdown.add_option(option=_("Bezier curve"), command=self.bezier_shape)
+            shapes_submenu.add_option(option=_(shape), command=lambda shape=shape: self.create_shape(shape))
+        shapes_submenu.add_option(option=_("Bezier curve"), command=self.bezier_shape)
 
-        menu.add_cascade(_("My Gallery"), command=self.show_gallery)
+        edit_submenu = tools_dropdown.add_submenu(_("Edit tools"))
+        edit_submenu.add_option(option=_("Cut"), command=lambda: self.copy_simple(deleted=True))
+        edit_submenu.add_option(option=_("Copy"), command=lambda: self.copy_simple())
+        edit_submenu.add_option(option=_("Insert"), command=lambda: self.start_insert())
+        edit_submenu.add_option(option=_("Crop"), command=lambda: self.crop_simple())
+
+        tools_icon_size = (20, 20)
+        tools_dropdown.add_separator()
+        smile_icon = ctk.CTkImage(Image.open(resource("icons/smile.png")), size=tools_icon_size)
+        tools_dropdown.add_option(option=_("Stickers"), image=smile_icon, command=self.show_stickers_choice)
+        text_icon = ctk.CTkImage(Image.open(resource("icons/text.png")), size=tools_icon_size)
+        tools_dropdown.add_option(option=_("Text"), image=text_icon, command=self.text_tool)
+        frame_icon = ctk.CTkImage(Image.open(resource("icons/frame.png")), size=tools_icon_size)
+        tools_dropdown.add_option(option=_("Frames"), image=frame_icon, command=self.show_frame_choice)
+        effects_icon = ctk.CTkImage(Image.open(resource("icons/effects.png")), size=tools_icon_size)
+        tools_dropdown.add_option(option=_("Effects"), image=effects_icon, command=self.effects)
+        tools_dropdown.add_separator()
+        tools_dropdown.add_option(option=_("Remove white background"), command=self.remove_white_background)
+
+        menu.add_cascade(_("My Gallery"), command=lambda: gallery.show(self.open_image))
 
         other_menu = menu.add_cascade(_("More"))
         other_dropdown = CustomDropdownMenu(widget=other_menu)
         other_dropdown.add_option(option=_("Settings"), command=self.settings)
+        other_dropdown.add_option(option=_("Reset settings after exiting"), command=self.reset_settings_after_exiting)
         other_dropdown.add_option(option=_("About program"), command=self.about_program)
 
-        """Toolbar"""
-        tools_frame = ctk.CTkFrame(self)
-        tools_frame.pack(side=ctk.TOP, fill=ctk.X, padx=5, pady=5)
+        """Top Bar"""
+        tools_frame = ctk.CTkFrame(self, corner_radius=0)
+        tools_frame.pack(side=ctk.TOP, fill=ctk.X)
 
         # Brush size used to paint all the icons in the toolbar: 50
         # Width and height of all icons - 512 px
 
-        tools_dict = {
-            "Brush": self.brush,
-            "Eraser": self.eraser,
-            "Fill": self.start_fill,
-            "Recoloring Brush": self.recoloring_brush,
-            "Spray": self.spray,
-            "Undo (Ctrl+Z)": self.undo,
-            "Redo (Ctrl+Y)": self.redo,
-        }
+        # Open, New and Save are already exists in menu bar.
 
-        for tool_name, tool_command in tools_dict.items():
-            tool_icon_name = tool_name.lower().replace(" ", "_").split("_(")[0]
-            tool_icon = ctk.CTkImage(
-                light_image=Image.open(resource(f"icons/{tool_icon_name}_light.png")),
-                dark_image=Image.open(resource(f"icons/{tool_icon_name}_dark.png")),
-                size=(22, 22),
-            )
-            if tool_name not in ["Undo (Ctrl+Z)", "Redo (Ctrl+Y)"]:
-                tool_button = ctk.CTkButton(tools_frame, text=None, width=30, image=tool_icon, command=tool_command)
-            else:
-                tool_button = ctk.CTkButton(
-                    tools_frame,
-                    text=None,
-                    width=30,
-                    image=tool_icon,
-                    fg_color=tools_frame.cget("fg_color"),
-                    hover=False,
-                    command=tool_command,
-                )
-            tool_button.pack(side=ctk.LEFT, padx=1)
-            if "(" in tool_name:
-                tooltip_message = _(tool_name.split(" (")[0]) + " (" + tool_name.split("(", 1)[-1]
-            else:
-                tooltip_message = _(tool_name.split(" (")[0])
-            Tooltip(tool_button, message=tooltip_message)
+        undo_icon = ctk.CTkImage(
+            light_image=Image.open(resource("icons/undo_light.png")),
+            dark_image=Image.open(resource("icons/undo_dark.png")),
+            size=(22, 22),
+        )
+        undo_button = ctk.CTkButton(
+            tools_frame,
+            text=None,
+            width=30,
+            image=undo_icon,
+            fg_color=tools_frame.cget("fg_color"),
+            hover=False,
+            command=self.undo,
+        )
+        undo_button.pack(side=ctk.LEFT, padx=1)
+        Tooltip(undo_button, message=_("Undo") + "(Ctrl+Z)")
 
-        self.tool_label = ctk.CTkLabel(tools_frame, text=None)
-        self.tool_label.pack(side=ctk.LEFT, padx=1)
+        redo_icon = ctk.CTkImage(
+            light_image=Image.open(resource("icons/redo_light.png")),
+            dark_image=Image.open(resource("icons/redo_dark.png")),
+            size=(22, 22),
+        )
 
-        self.tool_size_slider = ctk.CTkSlider(tools_frame, command=self.change_tool_size)
-        self.tool_size_tooltip = Tooltip(self.tool_size_slider)
+        redo_button = ctk.CTkButton(
+            tools_frame,
+            text=None,
+            width=30,
+            image=redo_icon,
+            fg_color=tools_frame.cget("fg_color"),
+            hover=False,
+            command=self.redo,
+        )
+        redo_button.pack(side=ctk.LEFT, padx=1)
+        Tooltip(redo_button, message=_("Redo") + "(Ctrl+Y)")
 
-        self.tool_size_label = ctk.CTkLabel(tools_frame, text=None)
+        self.tool_config_docker = ctk.CTkFrame(tools_frame)
+        self.tool_config_docker.pack(side=ctk.LEFT, padx=4)
+        self.tool_config_docker.configure(height=30, fg_color="transparent")
 
         save_to_gallery_btn = ctk.CTkButton(tools_frame, text=_("Save to gallery"), command=self.save_to_gallery)
-        save_to_gallery_btn.pack(side=ctk.RIGHT)
+        save_to_gallery_btn.pack(side=ctk.RIGHT, padx=1, pady=2)
         Tooltip(save_to_gallery_btn, message=_("Save to gallery") + " (Ctrl+S)")
 
-        """Canvas"""
-        self.canvas_frame = ctk.CTkFrame(self)
-        self.canvas_frame.pack_propagate(False)
-        self.canvas_frame.pack(fill=ctk.BOTH, expand=True)
+        """Canvas frame"""
+        self.main_frame = ctk.CTkFrame(self)
+        self.main_frame.pack_propagate(False)
+        self.main_frame.pack(fill=ctk.BOTH, expand=True)
 
-        self.v_scrollbar = ctk.CTkScrollbar(self.canvas_frame, orientation="vertical")
+        self.tools_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        self.tools_frame.pack(side=ctk.LEFT, fill=ctk.Y)
+
+        """Tools (Left) Bar"""
+        tools_list = [
+            {
+                "type": "button",
+                "name": _("Brush"),
+                "helper": _("Brush") + " (Ctrl+B)",
+                "action": self.brush,
+                "icon_name": "brush",
+            },
+            {
+                "type": "button",
+                "name": _("Eraser"),
+                "helper": _("Eraser") + " (Ctrl+E)",
+                "action": self.eraser,
+                "icon_name": "eraser",
+            },
+            {
+                "type": "button",
+                "name": _("Fill"),
+                "helper": _("Fill"),
+                "action": self.start_fill,
+                "icon_name": "fill",
+            },
+            {
+                "type": "button",
+                "name": _("Recoloring Brush"),
+                "helper": _("Recoloring Brush"),
+                "action": self.recoloring_brush,
+                "icon_name": "recoloring_brush",
+            },
+            {
+                "type": "button",
+                "name": _("Spray"),
+                "helper": _("Spray"),
+                "action": self.spray,
+                "icon_name": "spray",
+            },
+            {"type": "separator"},
+            {
+                "type": "button",
+                "name": _("Rectangle"),
+                "helper": _("Rectangle"),
+                "action": lambda: self.create_shape("Rectangle"),
+                "icon_name": "rectangle",
+            },
+            {
+                "type": "button",
+                "name": _("Oval"),
+                "helper": _("Oval"),
+                "action": lambda: self.create_shape("Oval"),
+                "icon_name": "oval",
+            },
+            {
+                "type": "button",
+                "name": _("Fill rectangle"),
+                "helper": _("Fill rectangle"),
+                "action": lambda: self.create_shape("Fill rectangle"),
+                "icon_name": "fill_rectangle",
+            },
+            {
+                "type": "button",
+                "name": _("Fill oval"),
+                "helper": _("Fill oval"),
+                "action": lambda: self.create_shape("Fill oval"),
+                "icon_name": "fill_oval",
+            },
+            {
+                "type": "button",
+                "name": _("Line"),
+                "helper": _("Line"),
+                "action": lambda: self.create_shape("Line"),
+                "icon_name": "line",
+            },
+            {
+                "type": "button",
+                "name": _("Bezier"),
+                "helper": _("Bezier"),
+                "action": self.bezier_shape,
+                "icon_name": "bezier",
+            },
+            {"type": "separator"},
+            {
+                "type": "button",
+                "name": _("Cut"),
+                "helper": _("Cut"),  # + " (Ctrl+X)",
+                "action": lambda: self.copy_simple(deleted=True),
+                "icon_name": "cut",
+            },
+            {
+                "type": "button",
+                "name": _("Copy"),
+                "helper": _("Copy"),  # + " (Ctrl+C)",
+                "action": lambda: self.copy_simple(),
+                "icon_name": "copy",
+            },
+            {
+                "type": "button",
+                "name": _("Insert"),
+                "helper": _("Insert"),  # + " (Ctrl+V)",
+                "action": self.start_insert,
+                "icon_name": "insert",
+            },
+            {
+                "type": "button",
+                "name": _("Crop"),
+                "helper": _("Crop"),
+                "action": self.crop_simple,
+                "icon_name": "crop",
+            },
+            # {"type": "separator"},
+            # {
+            #     "type": "button",
+            #     "name": _("test"),
+            #     "helper": _("test"),
+            #     "action": None,
+            #     "icon_name": "test",
+            # },
+        ]
+
+        self.set_tools_docker(tools_list, 2)
+
+        """Canvas"""
+        self.canvas_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        self.canvas_frame.pack_propagate(False)
+        self.canvas_frame.pack(side=ctk.LEFT, fill=ctk.BOTH, expand=True)
+
+        self.canvas_frame_main = ctk.CTkFrame(self.canvas_frame, fg_color="transparent")
+        self.canvas_frame_main.pack_propagate(False)
+        self.canvas_frame_main.pack(side=ctk.LEFT, fill=ctk.BOTH, expand=True)
+
+        self.canvas_frame_right = ctk.CTkFrame(self.main_frame, fg_color="transparent", width=16)
+        self.canvas_frame_right.pack(side=ctk.RIGHT, fill=ctk.Y)
+
+        self.canvas_frame_rd = ctk.CTkFrame(self.canvas_frame_right, fg_color="transparent", width=16, height=16)
+        self.canvas_frame_rd.pack(side=ctk.BOTTOM)
+
+        self.v_scrollbar = ctk.CTkScrollbar(self.canvas_frame_right, orientation="vertical")
         self.v_scrollbar.pack(side=ctk.RIGHT, fill=ctk.Y)
 
-        self.h_scrollbar = ctk.CTkScrollbar(self.canvas_frame, orientation="horizontal")
+        self.h_scrollbar = ctk.CTkScrollbar(self.canvas_frame_main, orientation="horizontal")
         self.h_scrollbar.pack(side=ctk.BOTTOM, fill=ctk.X)
 
+        # Canvas and canvas_parent must have equivalent top-left coordinate.
         self.canvas = ctk.CTkCanvas(
-            self.canvas_frame, yscrollcommand=self.v_scrollbar.set, xscrollcommand=self.h_scrollbar.set
+            self.canvas_frame_main, yscrollcommand=self.v_scrollbar.set, xscrollcommand=self.h_scrollbar.set
         )
-        self.canvas.pack(anchor="nw")  # As in most drawing programs
+
+        self.canvas.pack(side=ctk.TOP, anchor="center", expand=True)  # As in most drawing programs
 
         self.v_scrollbar.configure(command=self.v_scrollbar_command)
         self.h_scrollbar.configure(command=self.h_scrollbar_command)
@@ -263,17 +383,29 @@ class Brushshe(ctk.CTk):
         )
         self.palette_widget.pack(side=ctk.LEFT, fill=ctk.X, padx=2, pady=2)
 
-        self.make_color_palette(self.colors)
+        self.standard_palettes = ["default", "4bit", "vintage", "seven"]
+        if config.get("Brushshe", "palette") in self.standard_palettes:
+            self.import_palette(resource(f"assets/palettes/{config.get('Brushshe', 'palette')}_palette.hex"))
+        else:
+            self.import_palette(resource(config.get("Brushshe", "palette")))
 
         self.size_button = ctk.CTkButton(self.bottom_docker, text="640x480", command=self.change_size)
         self.size_button.pack(side=ctk.RIGHT, padx=1)
 
         """ Initialization """
+        # Max tail can not be more 4 MB = 1024 (width) x 1024 (height) x 4 (rgba).
+        # canvas_tail_size: Max = 1024. Default = 128. Min = 16.
+        self.canvas_tail_size = 128
+
+        # If None - no crop, if set - need check out of crop.
+        self.canvas_tails_area = None
+
         self.brush_color = "black"
         self.second_brush_color = "white"
         self.bg_color = "white"
-        self.undo_stack = deque(maxlen=10)
-        self.redo_stack = deque(maxlen=10)
+        self.brush_shape = "circle"
+        self.undo_stack = deque(maxlen=config.getint("Brushshe", "undo_levels"))
+        self.redo_stack = deque(maxlen=config.getint("Brushshe", "undo_levels"))
 
         self.brush_size = 2
         self.eraser_size = 4
@@ -283,21 +415,36 @@ class Brushshe(ctk.CTk):
         self.font_size = 24
         self.zoom = 1
 
-        self.update()  # update interface before calculate picture size
+        self.is_brush_smoothing = config.getboolean("Brushshe", "smoothing")
+        self.brush_smoothing_factor = config.getint("Brushshe", "brush_smoothing_factor")  # Between: 3..64
+        self.brush_smoothing_quality = config.getint("Brushshe", "brush_smoothing_quality")  # Between: 1..64
+
+        self.composer = BhComposer(0, 0)  # Empty init.
+
         self.new_picture(self.bg_color, first_time=True)
         self.brush()
 
         self.prev_x, self.prev_y = (None, None)
-        self.font_path = resource("fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
+        self.current_font = "Open Sans"
+        self.font_path = resource("assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
+        self.is_reset_settings_after_exiting = False
+        self.current_file = None
+        self.is_sticker_use_real_size = ctk.StringVar(value="off")
+
         self.canvas.bind("<Button-3>", self.eyedropper)
+
+        self.canvas.bind("<Button-2>", self.begin_moving_canvas)
+        self.canvas.bind("<B2-Motion>", self.continue_moving_canvas)
 
         self.bind("<Control-z>", lambda e: self.undo())
         self.bind("<Control-y>", lambda e: self.redo())
         self.bind("<Control-s>", lambda e: self.save_to_gallery())
 
-        self.bind("<Key-x>", lambda e: self.flip_brush_colors())
-        self.bind("<Key-b>", lambda e: self.brush())
-        self.bind("<Key-e>", lambda e: self.eraser())
+        # I changed the hotkeys because they don't work if the layout is not Latin,
+        # and they are also intercepted when entering text
+        self.bind("<Control-f>", lambda e: self.flip_brush_colors())
+        self.bind("<Control-b>", lambda e: self.brush())
+        self.bind("<Control-e>", lambda e: self.eraser())
 
         # Default zooming keys for mani painting programs.
         self.bind("<Key-equal>", lambda e: self.zoom_in(e))  # Key "=" -> ("+" without Shift)
@@ -321,18 +468,8 @@ class Brushshe(ctk.CTk):
         # Resize window (and canvas)
         self.bind("<Configure>", self.on_window_resize)
 
-        """Defining the Gallery Folder Path"""
-        if os.name == "nt":  # For Windows
-            images_folder = Path(os.environ["USERPROFILE"]) / "Pictures"
-        else:  # For macOS and Linux
-            images_folder = Path(os.environ.get("XDG_PICTURES_DIR", str(Path.home())))
-
-        self.gallery_folder = images_folder / "Brushshe Images"
-
-        if not self.gallery_folder.exists():
-            self.gallery_folder.mkdir(parents=True)
-
         # Width and height of all sticker images - 88 px
+        # Width and height of new sticker images - 512 px
         stickers_names = [
             "smile",
             "flower",
@@ -353,28 +490,91 @@ class Brushshe(ctk.CTk):
             "butterfly",
             "flower2",
         ]
-        self.stickers = [Image.open(resource(f"stickers/{name}.png")) for name in stickers_names]
+        self.stickers = [Image.open(resource(f"assets/stickers/{name}.png")) for name in stickers_names]
 
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        self.fonts_dict = {
+            "Open Sans": "assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf",
+            "Monomakh": "assets/fonts/Monomakh/Monomakh-Regular.ttf",
+            "Pacifico": "assets/fonts/Pacifico/Pacifico-Regular.ttf",
+            "Comforter": "assets/fonts/Comforter/Comforter-Regular.ttf",
+            "Rubik Bubbles": "assets/fonts/Rubik_Bubbles/RubikBubbles-Regular.ttf",
+            "Press Start 2P": "assets/fonts/Press_Start_2P/PressStart2P-Regular.ttf",
+        }
+        self.fonts = list(self.fonts_dict.keys())
+
+        self.update()  # Update interface before recalculate canvas.
+        self.force_resize_canvas()
+        self.update_canvas()
+
+        if len(sys.argv) > 1:
+            self.open_image(sys.argv[1])
 
     """ Functionality """
+
+    def set_tools_docker(self, tools_list, columns=1):
+        row = 0
+        column = 0
+
+        for tool in tools_list:
+            if tool["type"] == "separator":
+                column = 0
+                row += 1
+                s = ctk.CTkFrame(
+                    self.tools_frame,
+                    width=30,
+                    height=4,
+                )
+                s.grid(column=column, row=row, pady=1, padx=1)
+                row += 1
+                continue
+
+            tool_helper = tool["helper"]
+            tool_command = tool["action"]
+            tool_icon_name = tool["icon_name"]
+
+            try:
+                tool_icon = ctk.CTkImage(
+                    light_image=Image.open(resource(f"icons/{tool_icon_name}_light.png")),
+                    dark_image=Image.open(resource(f"icons/{tool_icon_name}_dark.png")),
+                    size=(22, 22),
+                )
+            except Exception:
+                # tool_icon = None
+                tool_icon = ctk.CTkImage(
+                    light_image=Image.open(resource("icons/not_found_light.png")),
+                    dark_image=Image.open(resource("icons/not_found_dark.png")),
+                    size=(22, 22),
+                )
+
+            tool_button = ctk.CTkButton(
+                self.tools_frame, text=None, width=30, height=30, image=tool_icon, command=tool_command
+            )
+            tool_button.grid(column=column, row=row, pady=1, padx=1)
+            Tooltip(tool_button, message=tool_helper)
+
+            column += 1
+            if column >= columns:
+                column = 0
+                row += 1
 
     def change_tool_size_bind(self, event=None, delta=1):
         new_size = self.get_tool_size() + delta
         if new_size < 1:
             new_size = 1
-        if (self.current_tool == "brush"
-                or self.current_tool == "eraser"
-                or self.current_tool == "spray"
-                or self.current_tool == "shape"):
+        if (
+            self.current_tool == "brush"
+            or self.current_tool == "eraser"
+            or self.current_tool == "spray"
+            or self.current_tool == "shape"
+        ):
             if new_size > 50:
                 new_size = 50
         elif self.current_tool == "text":
             if new_size > 96:
                 new_size = 96
         else:
-            if new_size > 175:
-                new_size = 175
+            if new_size > 250:
+                new_size = 250
         self.change_tool_size(new_size)
         self.tool_size_slider.set(int(new_size))
 
@@ -448,6 +648,8 @@ class Brushshe(ctk.CTk):
             sound=True,
         )
         if closing_msg.get() == _("Yes"):
+            if self.is_reset_settings_after_exiting:
+                os.remove(config_file_path)
             self.destroy()
 
     def scroll_on_canvasy(self, event):
@@ -468,77 +670,64 @@ class Brushshe(ctk.CTk):
         if self.canvas_tails_area is not None and self.get_canvas_tails_area() != self.canvas_tails_area:
             self.update_canvas()
 
+    def begin_moving_canvas(self, event):
+        self.canvas.scan_mark(event.x, event.y)
+
+    def continue_moving_canvas(self, event):
+        self.canvas.scan_dragto(event.x, event.y, gain=1)
+        if self.canvas_tails_area is not None and self.get_canvas_tails_area() != self.canvas_tails_area:
+            self.update_canvas()
+
     def zoom_in(self, event=None):
         self.canvas.delete("tools")
+
         if 1 < self.zoom < 2:  # Need if zoom not integer but more 1 and less 2
             self.zoom = 1
-
-        if 1 <= self.zoom < 6:  # Zooming limited up by 6. More value has optimization problems.
+        if 1 <= self.zoom < 12:
             self.zoom += 1
         elif self.zoom < 1:
             self.zoom *= 2
+
+        self.force_resize_canvas_with_correct()
         self.update_canvas()
-        self.force_resize_canvas()
 
     def zoom_out(self, event=None):
         self.canvas.delete("tools")
+
         if 1 < self.zoom:
             self.zoom -= 1
         elif 0.05 < self.zoom <= 1:  # Zooming limited down by 0.05.
             self.zoom /= 2
+
+        self.force_resize_canvas_with_correct()
         self.update_canvas()
-        self.force_resize_canvas()
 
     def reset_zoom(self, event=None):
         self.canvas.delete("tools")
+
         self.zoom = 1
+
+        self.force_resize_canvas_with_correct()
         self.update_canvas()
-        self.force_resize_canvas()
 
     def canvas_to_pict_xy(self, x, y):
         return self.canvas.canvasx(x) // self.zoom, self.canvas.canvasy(y) // self.zoom
 
+    def canvas_to_pict_xy_f(self, x, y):
+        return self.canvas.canvasx(x) / self.zoom, self.canvas.canvasy(y) / self.zoom
+
     def draw_line(self, x1, y1, x2, y2):
-        if self.current_tool == "brush":
-            color = self.brush_color
-        elif self.current_tool == "eraser":
+        if self.current_tool == "eraser":
             color = self.bg_color
+            if self.image.mode == "RGBA":
+                color = "#00000000"
         else:
             # For shape, etc.
             color = self.brush_color
+            if self.image.mode == "RGBA":
+                color = self.rgb_tuple_to_rgba_tuple(self.rgb_color_to_tuple(color), 255)
 
-        dx = abs(x2 - x1)
-        dy = abs(y2 - y1)
-        sx = 1 if x1 < x2 else -1
-        sy = 1 if y1 < y2 else -1
-        err = dx - dy
-
-        while True:
-            # Better variant for pixel compatible.
-            if self.tool_size <= 1:
-                self.draw.point([x1, y1], fill=color)
-            else:
-                self.draw.ellipse(
-                    [
-                        x1 - (self.tool_size - 1) // 2,
-                        y1 - (self.tool_size - 1) // 2,
-                        x1 + self.tool_size // 2,
-                        y1 + self.tool_size // 2,
-                    ],
-                    fill=color,
-                    outline=color,
-                )
-
-            if abs(x1 - x2) < 1 and abs(y1 - y2) < 1:
-                break
-
-            e2 = err * 2
-            if e2 > -dy:
-                err -= dy
-                x1 += sx
-            if e2 < dx:
-                err += dx
-                y1 += sy
+        bh_draw_line(self.draw, x1, y1, x2, y2, color, self.tool_size, self.brush_shape, self.current_tool)
 
     def update_canvas(self):
         # Debug
@@ -558,7 +747,7 @@ class Brushshe(ctk.CTk):
             canvas_image = self.image
         else:
             canvas_image = self.image.resize(
-                (int(self.image.width * self.zoom), int(self.image.height * self.zoom)), Image.NEAREST
+                (int(self.image.width * self.zoom), int(self.image.height * self.zoom)), Image.BOX
             )
         self.img_tk = ImageTk.PhotoImage(canvas_image)
         self.canvas.itemconfig(self.canvas_image, image=self.img_tk)
@@ -567,15 +756,16 @@ class Brushshe(ctk.CTk):
         if self.zoom == 1:
             canvas_image = self.image
         elif self.zoom < 1:
+            # https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-filters
             canvas_image = self.image.resize(
-                (int(self.image.width * self.zoom), int(self.image.height * self.zoom)), Image.NEAREST
+                (math.ceil(self.image.width * self.zoom), math.ceil(self.image.height * self.zoom)), Image.BOX
             )
         else:  # self.zoom > 1:
             # It can be used for zoom == 1 with some corrected on other places.
             # It work incorrect at this implementation for zoom < 1.
 
-            cw_full = int(self.image.width * self.zoom)
-            ch_full = int(self.image.height * self.zoom)
+            cw_full = math.ceil(self.image.width * self.zoom)
+            ch_full = math.ceil(self.image.height * self.zoom)
 
             (x1, y1, x2, y2) = self.get_canvas_tails_area()
 
@@ -583,38 +773,55 @@ class Brushshe(ctk.CTk):
             if x1 == 0 and y1 == 0 and x2 == cw_full - 1 and y2 == ch_full - 1:
                 x1_correct = 0
                 y1_correct = 0
+                dx = 0
+                dy = 0
                 tmp_canvas_image = self.image
             else:
                 tiles_xy_on_image = (
                     math.floor(x1 / self.zoom),
                     math.floor(y1 / self.zoom),
-                    math.ceil(x2 / self.zoom),
-                    math.ceil(y2 / self.zoom),
+                    math.floor(x2 / self.zoom) + 1,
+                    math.floor(y2 / self.zoom) + 1,
                 )
 
                 # Subpixel correct.
                 x1_correct = tiles_xy_on_image[0] * self.zoom
                 y1_correct = tiles_xy_on_image[1] * self.zoom
 
-                # Debug
-                # print((x1, y1, x2, y2), tiles_xy_on_image, (x1_correct, y1_correct))
+                dx = math.floor(x1 - x1_correct)
+                dy = math.floor(y1 - y1_correct)
+
+                # # Debug
+                # print((x1, y1, x2, y2), tiles_xy_on_image, (x1_correct, y1_correct), (dx, dy))
 
                 tmp_canvas_image = self.image.crop(tiles_xy_on_image)
 
-            canvas_image = tmp_canvas_image.resize(
-                (int(tmp_canvas_image.width * self.zoom), int(tmp_canvas_image.height * self.zoom)), Image.NEAREST
-            )
+            r_w = math.floor(tmp_canvas_image.width * self.zoom)
+            r_h = math.floor(tmp_canvas_image.height * self.zoom)
+            if r_w < 1:
+                r_w = 1
+            if r_h < 1:
+                r_h = 1
 
-            self.img_tk = ImageTk.PhotoImage(canvas_image)
+            canvas_image = tmp_canvas_image.resize((r_w, r_h), Image.NEAREST)
+
+            self.composer.set_l_image(canvas_image)
+            compose_image = self.composer.get_compose_image(x1, y1, x2 + dx, y2 + dy)
+
+            self.img_tk = ImageTk.PhotoImage(compose_image)
             self.canvas.itemconfig(self.canvas_image, image=self.img_tk)
             self.canvas.moveto(self.canvas_image, x1_correct, y1_correct)
             self.canvas_tails_area = (x1, y1, x2, y2)
             return
 
-        self.img_tk = ImageTk.PhotoImage(canvas_image)
+        self.composer.set_l_image(canvas_image)
+        compose_image = self.composer.get_compose_image(0, 0, canvas_image.width - 1, canvas_image.height - 1)
+
+        self.img_tk = ImageTk.PhotoImage(compose_image)
         self.canvas.itemconfig(self.canvas_image, image=self.img_tk)
         self.canvas.moveto(self.canvas_image, 0, 0)
         self.canvas_tails_area = None
+
         return
 
     def get_canvas_tails_area(self):
@@ -622,7 +829,7 @@ class Brushshe(ctk.CTk):
         ch_full = int(self.image.height * self.zoom)
 
         # Set param canvas with real image size. Not use bbox in this place.
-        self.canvas.config(scrollregion=(0, 0, cw_full - 1, ch_full - 1), width=cw_full, height=ch_full)
+        self.canvas.config(scrollregion=(0, 0, cw_full, ch_full), width=cw_full, height=ch_full)
 
         iw, ih = self.image.size
         cx_frame_1, cx_frame_2 = self.canvas.xview()
@@ -644,17 +851,46 @@ class Brushshe(ctk.CTk):
         cw_full = int(self.image.width * self.zoom)
         ch_full = int(self.image.height * self.zoom)
 
-        # self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        # Scrollregion begin from the left part of first pixel and tail on the end part of last pixel.
         self.canvas.config(
-            scrollregion=(0, 0, cw_full - 1, ch_full - 1),
+            scrollregion=(0, 0, cw_full, ch_full),
             width=cw_full,
             height=ch_full,
         )
+
         self.size_button.configure(text=f"{self.image.width}x{self.image.height}")
 
-    def crop_picture(self, new_width, new_height, event=None):
-        new_image = Image.new("RGB", (new_width, new_height), self.bg_color)
-        new_image.paste(self.image, (0, 0))
+    def force_resize_canvas_with_correct(self):
+        wd_x_1 = self.canvas.winfo_x()
+        wd_y_1 = self.canvas.winfo_y()
+
+        cx_frame_1, cx_frame_2 = self.canvas.xview()
+        cy_frame_1, cy_frame_2 = self.canvas.yview()
+        dx_1 = (cx_frame_2 + cx_frame_1) / 2
+        dy_1 = (cy_frame_2 + cy_frame_1) / 2
+
+        self.force_resize_canvas()
+
+        cx_frame_1, cx_frame_2 = self.canvas.xview()
+        cy_frame_1, cy_frame_2 = self.canvas.yview()
+        dx_2 = (cx_frame_2 + cx_frame_1) / 2
+        dy_2 = (cy_frame_2 + cy_frame_1) / 2
+        cw_full = int(self.image.width * self.zoom)
+        ch_full = int(self.image.height * self.zoom)
+
+        self.canvas.scan_mark(int(dx_1 * cw_full - wd_x_1), int(dy_1 * ch_full - wd_y_1))
+        self.canvas.scan_dragto(int(dx_2 * cw_full), int(dy_2 * ch_full), gain=1)
+
+    def crop_picture(self, x1, y1, x2, y2, event=None):
+        new_width = x2 - x1
+        new_height = y2 - y1
+
+        if self.image.mode == "RGBA":
+            new_image = Image.new("RGBA", (new_width, new_height), "#00000000")
+            new_image.paste(self.image, (-x1, -y1), self.image)
+        else:
+            new_image = Image.new("RGB", (new_width, new_height), self.bg_color)
+            new_image.paste(self.image, (-x1, -y1))
         self.image = new_image
         self.draw = ImageDraw.Draw(self.image)
 
@@ -679,29 +915,64 @@ class Brushshe(ctk.CTk):
 
     def fill(self, event):
         x, y = self.canvas_to_pict_xy(event.x, event.y)
-        ImageDraw.floodfill(self.image, (x, y), ImageColor.getrgb(self.brush_color))
+        if self.image.mode == "RGBA":
+            ImageDraw.floodfill(
+                self.image,
+                (x, y),
+                self.rgb_tuple_to_rgba_tuple(ImageColor.getrgb(self.brush_color), 255),
+            )
+        else:
+            ImageDraw.floodfill(self.image, (x, y), ImageColor.getrgb(self.brush_color))
         self.update_canvas()
         self.undo_stack.append(self.image.copy())
 
     def open_from_file(self):
         dialog = FileDialog(self, title=_("Open from file"))
         if dialog.path:
-            try:
-                self.open_image(dialog.path)
-            except Exception as e:
-                self.open_file_error(e)
+            self.open_image(dialog.path)
 
-    def save_to_device(self):
+    def save_current(self):
+        if self.current_file is not None:
+            try:
+                self.image.save(self.current_file)
+                CTkMessagebox(
+                    title=_("Saved"),
+                    message=_("Changes to your existing picture have been saved successfully!"),
+                    icon=resource("icons/saved.png"),
+                    icon_size=(100, 100),
+                    sound=True,
+                )
+            except Exception as e:
+                self.save_file_error(e)
+        else:
+            self.save_as()
+
+    def save_as(self):
         dialog = FileDialog(self, title=_("Save to device"), save=True)
         if dialog.path:
-            self.image.save(dialog.path)
-            CTkMessagebox(
-                title=_("Saved"),
-                message=_("The picture has been successfully saved to your device in format") + f" {dialog.extension}!",
-                icon=resource("icons/saved.png"),
-                icon_size=(100, 100),
-                sound=True,
-            )
+            try:
+                self.image.save(dialog.path)
+                CTkMessagebox(
+                    title=_("Saved"),
+                    message=_("The picture has been successfully saved to your device in format")
+                    + f" {dialog.extension}!",
+                    icon=resource("icons/saved.png"),
+                    icon_size=(100, 100),
+                    sound=True,
+                )
+                self.current_file = dialog.path
+                self.title(os.path.basename(self.current_file) + " - " + _("Brushshe"))
+            except Exception as e:
+                self.save_file_error(e)
+
+    def save_file_error(self, e):
+        CTkMessagebox(
+            title=_("Oh, unfortunately, it happened"),
+            message=f"{_('Error - cannot save file:')} {e}",
+            icon=resource("icons/cry.png"),
+            icon_size=(100, 100),
+            sound=True,
+        )
 
     def other_bg_color(self):
         askcolor = AskColor(title=_("Choose a different background color"), initial_color="#ffffff")
@@ -757,72 +1028,62 @@ class Brushshe(ctk.CTk):
         ).pack(padx=10, pady=10)
 
     def set_current_sticker(self, sticker_image):  # Choose a sticker
-        self.set_tool("sticker", "Stickers", self.sticker_size, 10, 175, "cross")
-        self.canvas.bind("<Button-1>", lambda event: self.add_sticker(event, sticker_image))
+        self.set_tool("sticker", "Stickers", self.sticker_size, 10, 250, "cross")
+        self.insert_simple(sticker_image)
 
-    def add_sticker(self, event, sticker_image):  # Add a sticker
-        sticker_image = sticker_image.resize((self.tool_size, self.tool_size))
-        x, y = self.canvas_to_pict_xy(event.x, event.y)
-        x, y = int(x), int(y)
-        if sticker_image.mode == "RGBA":
-            self.image.paste(
-                sticker_image, (x - sticker_image.width // 2, y - sticker_image.height // 2), sticker_image
-            )
-        else:
-            self.image.paste(sticker_image, (x - sticker_image.width // 2, y - sticker_image.height // 2))
+    def text_tool(self):
+        def add_text(event):
+            self.draw.text((self.text_x, self.text_y), self.tx_entry.get(), fill=self.brush_color, font=self.imagefont)
+            self.update_canvas()
+            self.undo_stack.append(self.image.copy())
 
-        self.update_canvas()
-        self.undo_stack.append(self.image.copy())
+        def draw_text_halo(event):
+            self.canvas.delete("tools")
 
-    def add_text(self, event, text):  # Add text
-        x, y = self.canvas_to_pict_xy(event.x, event.y)
-        imagefont = ImageFont.truetype(self.font_path, self.tool_size)
-
-        bbox = self.draw.textbbox((x, y), text, font=imagefont)
-
-        # Text size
-        text_width = bbox[2] - bbox[0]
-        text_height = bbox[3] - bbox[1]
-
-        self.draw.text((x - text_width // 2, y - text_height // 2), text, fill=self.brush_color, font=imagefont)
-
-        self.update_canvas()
-        self.undo_stack.append(self.image.copy())
-        if self.tx_message_label.winfo_exists():
-            self.tx_message_label.configure(text="\n")
-
-    def show_text_window(self):
-        def optionmenu_callback(value):
-            self.font_path = resource(fonts_dict.get(value))
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
             self.imagefont = ImageFont.truetype(self.font_path, self.tool_size)
 
-        def add_text_ready():
-            self.tx_message_label.configure(text=_("Now click where you\nwant it on the picture"))
-            text = tx_entry.get()
-            self.set_tool("text", "Text", self.font_size, 11, 96, "cross")
-            self.canvas.bind("<Button-1>", lambda event, t=text: self.add_text(event, text))
+            bbox = self.draw.textbbox((0, 0), self.tx_entry.get(), font=self.imagefont)
 
-        text_win = ctk.CTkToplevel(self)
-        text_win.title(_("Add text to a picture"))
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
 
-        tx_entry = ctk.CTkEntry(text_win, placeholder_text=_("Enter text..."))
-        tx_entry.pack(padx=10, pady=10)
+            self.text_x = x - text_width // 2 - bbox[0]
+            self.text_y = y - text_height // 2 - bbox[1]
 
-        ctk.CTkLabel(text_win, text=_("Fonts:")).pack(padx=10, pady=10)
+            self.canvas.create_rectangle(
+                (x - text_width // 2) * self.zoom,
+                (y - text_height // 2) * self.zoom,
+                (x + text_width // 2) * self.zoom,
+                (y + text_height // 2) * self.zoom,
+                outline="white",
+                width=1,
+                tag="tools",
+            )
 
-        fonts_dict = {
-            "Open Sans": "fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf",
-            "Sigmar": "fonts/Sigmar/Sigmar-Regular.ttf",
-            "Playwrite IT Moderna": "fonts/Playwrite_IT_Moderna/PlaywriteITModerna-VariableFont_wght.ttf",
-            "Monomakh": "fonts/Monomakh/Monomakh-Regular.ttf",
-        }
-        fonts = list(fonts_dict.keys())
+            self.canvas.create_rectangle(
+                (x - text_width // 2) * self.zoom,
+                (y - text_height // 2) * self.zoom,
+                (x + text_width // 2) * self.zoom,
+                (y + text_height // 2) * self.zoom,
+                outline="black",
+                width=1,
+                tag="tools",
+                dash=(5, 5),
+            )
 
-        ctk.CTkOptionMenu(text_win, values=fonts, command=optionmenu_callback).pack(padx=10, pady=10)
-        ctk.CTkButton(text_win, text="OK", command=add_text_ready).pack(padx=10, pady=10)
+        def leave(event):
+            self.canvas.delete("tools")
 
-        self.tx_message_label = ctk.CTkLabel(text_win, text="\n")
-        self.tx_message_label.pack(padx=10, pady=10)
+        self.set_tool("text", "Text", self.font_size, 11, 96, "cross")
+        self.canvas.bind("<Button-1>", add_text)
+        self.canvas.bind("<Motion>", draw_text_halo)
+        self.canvas.bind("<Leave>", leave)
+
+    def font_optionmenu_callback(self, value):
+        self.current_font = value
+        self.font_path = resource(self.fonts_dict.get(value))
+        self.imagefont = ImageFont.truetype(self.font_path, self.tool_size)
 
     def show_frame_choice(self):
         def on_frames_click(index):
@@ -847,10 +1108,14 @@ class Brushshe(ctk.CTk):
             "frame7",
         ]
         frames_thumbnails = [
-            ctk.CTkImage(Image.open(resource(f"frames_preview/{name}.png")), size=(100, 100)) for name in frames_names
+            ctk.CTkImage(
+                Image.open(resource(f"assets/frames_preview/{name}.png")),
+                size=(100, 100),
+            )
+            for name in frames_names
         ]
 
-        frames = [Image.open(resource(f"frames/{name}.png")) for name in frames_names]
+        frames = [Image.open(resource(f"assets/frames/{name}.png")) for name in frames_names]
 
         row = 0
         column = 0
@@ -1063,28 +1328,35 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<Motion>", drawing)
 
     def recoloring_brush(self):
-        self.set_tool("brush", "R. Brush", self.brush_size, 1, 50, "pencil")
+        self.set_tool("r-brush", "R. Brush", self.brush_size, 1, 50, "pencil")
 
         prev_x = None
         prev_y = None
-
-        def begin(event):
-            nonlocal prev_x, prev_y
-
-            x, y = self.canvas_to_pict_xy(event.x, event.y)
-            draw_recoloring_brush(x, y, x, y)
-            prev_x, prev_y = x, y
-
-            self.update_canvas()
-            draw_brush_halo(x, y)
+        point_history = None
 
         def drawing(event):
-            nonlocal prev_x, prev_y
+            nonlocal prev_x, prev_y, point_history
+
+            if self.is_brush_smoothing is False:
+                x, y = self.canvas_to_pict_xy(event.x, event.y)
+            else:
+                if point_history is None:
+                    point_history = BhHistory(limit_length=self.brush_smoothing_factor)
+                xf, yf = self.canvas_to_pict_xy_f(event.x, event.y)
+                point_history.add_point(BhPoint(x=xf, y=yf, pressure=1.0))
+                s_point = point_history.get_smoothing_point(
+                    self.brush_smoothing_factor,
+                    self.brush_smoothing_quality,
+                )
+                if s_point is not None:
+                    x = int(s_point.x)
+                    y = int(s_point.y)
+                else:
+                    x, y = self.canvas_to_pict_xy(event.x, event.y)
 
             if prev_x is None:
-                return
+                prev_x, prev_y = x, y
 
-            x, y = self.canvas_to_pict_xy(event.x, event.y)
             draw_recoloring_brush(x, y, prev_x, prev_y)
             prev_x, prev_y = x, y
 
@@ -1092,14 +1364,17 @@ class Brushshe(ctk.CTk):
             draw_brush_halo(x, y)
 
         def end(event):
-            nonlocal prev_x, prev_y
+            nonlocal prev_x, prev_y, point_history
 
             if prev_x is None:
                 return
 
-            prev_x, prev_y = None, None
+            self.canvas.delete("tools")
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+            draw_brush_halo(x, y)
 
-            self.update_canvas()
+            point_history = None
+            prev_x, prev_y = (None, None)
             self.undo_stack.append(self.image.copy())
 
         def move(event):
@@ -1107,108 +1382,21 @@ class Brushshe(ctk.CTk):
             draw_brush_halo(x, y)
 
         def draw_recoloring_brush(x1, y1, x2, y2):
-            color = ImageColor.getrgb(self.brush_color)
+            color_to = ImageColor.getrgb(self.brush_color)
             color_from = ImageColor.getrgb(self.second_brush_color)
 
-            d1 = (self.tool_size - 1) // 2
-            d2 = self.tool_size // 2
-            # dd = (d2 - d1) / 2
-            max_x = self.image.width
-            max_y = self.image.height
+            # FIXME: In current time it works only for 100% opacity color.
+            if self.image.mode == "RGBA":
+                color_from = self.rgb_tuple_to_rgba_tuple(color_from, 255)
+                color_to = self.rgb_tuple_to_rgba_tuple(color_to, 255)
 
-            x = x1
-            y = y1
-            dx = abs(x2 - x1)
-            dy = abs(y2 - y1)
-            sx = 1 if x1 < x2 else -1
-            sy = 1 if y1 < y2 else -1
-            err = dx - dy
-
-            # It's for circuit brush, but it work too slow.
-            # ((ii - x - dd) ** 2 + (jj - y - dd) ** 2 < ((d1 + d2 + .5)/2) ** 2
-
-            # buffer = set()
-            is_line = False
-
-            while True:
-                if self.tool_size <= 1:
-                    if self.image.getpixel((x, y)) == color_from:
-                        self.draw.point([x, y], fill=color)
-                else:
-                    if is_line is False:
-                        for ii in range(int(x - d1), int(x + d2 + 1)):
-                            for jj in range(int(y - d1), int(y + d2 + 1)):
-                                if (
-                                    ii >= 0
-                                    and ii < max_x
-                                    and jj >= 0
-                                    and jj < max_y
-                                    and self.image.getpixel((ii, jj)) == color_from
-                                ):
-                                    self.image.putpixel((ii, jj), color)
-                                    # buffer.add((ii, jj))
-                    else:
-                        # Now we can check firsts or lasts lines only.
-
-                        # Checking horizontal movement.
-                        if sx > 0:
-                            ii = int(x + d2)
-                        else:
-                            ii = int(x - d1)
-
-                        for jj in range(int(y - d1), int(y + d2 + 1)):
-                            if (
-                                ii >= 0
-                                and ii < max_x
-                                and jj >= 0
-                                and jj < max_y
-                                and self.image.getpixel((ii, jj)) == color_from
-                            ):
-                                self.image.putpixel((ii, jj), color)
-                                # buffer.add((ii, jj))
-
-                        # Checking vertical movement.
-                        if sy > 0:
-                            jj = int(y + d2)
-                        else:
-                            jj = int(y - d1)
-
-                        for ii in range(int(x - d1), int(x + d2 + 1)):
-                            if (
-                                ii >= 0
-                                and ii < max_x
-                                and jj >= 0
-                                and jj < max_y
-                                and self.image.getpixel((ii, jj)) == color_from
-                            ):
-                                self.image.putpixel((ii, jj), color)
-                                # buffer.add((ii, jj))
-
-                if abs(x - x2) < 1 and abs(y - y2) < 1:
-                    # self.draw.point([*buffer], fill=color)
-                    break
-
-                e2 = err * 2
-                if e2 > -dy:
-                    err -= dy
-                    x += sx
-                if e2 < dx:
-                    err += dx
-                    y += sy
-
-                is_line = True
+            bh_draw_recoloring_line(self.image, x1, y1, x2, y2, color_from, color_to, self.tool_size)
 
         def draw_brush_halo(x, y):
-            # on_canvas = self.canvas.find_all()
-            # for ii in on_canvas:
-            #     tmp = self.canvas.itemcget(ii, "tag")
-            #     if tmp == "tools":
-            #         self.canvas.delete(ii)
             self.canvas.delete("tools")
 
             d1 = (self.tool_size - 1) // 2
             d2 = self.tool_size // 2
-            # dd = (d2 - d1) / 2
 
             self.canvas.create_rectangle(
                 int((x - d1) * self.zoom - 1),
@@ -1229,55 +1417,385 @@ class Brushshe(ctk.CTk):
                 tag="tools",
             )
 
-        self.canvas.bind("<Button-1>", begin)
+        def leave(event):
+            self.canvas.delete("tools")
+
+        self.canvas.bind("<Button-1>", drawing)
         self.canvas.bind("<B1-Motion>", drawing)
         self.canvas.bind("<ButtonRelease-1>", end)
         self.canvas.bind("<Motion>", move)
+        self.canvas.bind("<Leave>", leave)
 
-    def effects(self):
-        def post_actions():
+    def copy_simple(self, deleted=False):
+        if deleted is False:
+            self.set_tool("copy", "Copy", None, None, None, "cross")
+        else:
+            self.set_tool("cut", "Cut", None, None, None, "cross")
+
+        x_begin = None
+        y_begin = None
+        x_end = None
+        y_end = None
+
+        def selecting(event):
+            nonlocal x_begin, y_begin, x_end, y_end
+
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+
+            if x_begin is None or y_begin is None:
+                x_begin = x
+                y_begin = y
+
+            x_end = x
+            y_end = y
+
+            x_max = self.image.width - 1
+            y_max = self.image.height - 1
+
+            if x_begin < 0:
+                x_begin = 0
+            if x_begin > x_max:
+                x_begin = x_max
+            if y_begin < 0:
+                y_begin = 0
+            if y_begin > y_max:
+                y_begin = y_max
+            if x_end < 0:
+                x_end = 0
+            if x_end > x_max:
+                x_end = x_max
+            if y_end < 0:
+                y_end = 0
+            if y_end > y_max:
+                y_end = y_max
+
+            x1 = min(x_begin, x_end)
+            x2 = max(x_begin, x_end)
+            y1 = min(y_begin, y_end)
+            y2 = max(y_begin, y_end)
+
+            draw_tool(x1, y1, x2, y2)
+
+        def select_end(event):
+            nonlocal x_begin, y_begin, x_end, y_end
+
+            if x_begin is None or y_begin is None:
+                return
+
+            x1 = min(x_begin, x_end)
+            x2 = max(x_begin, x_end)
+            y1 = min(y_begin, y_end)
+            y2 = max(y_begin, y_end)
+
+            self.canvas.delete("tools")
+
+            x_begin = None
+            y_begin = None
+            x_end = None
+            y_end = None
+
+            # INFO: Float. From begin first pixel to end last pixel (begin last+1 pixel).
+            #       One first pixel look like (0, 0, 1, 1).
+            self.buffer_local = self.image.crop((x1, y1, x2 + 1, y2 + 1))
+
+            if deleted is not False:
+                if self.image.mode != "RGBA":
+                    ImageDraw.Draw(self.image).rectangle(
+                        (x1, y1, x2, y2),
+                        fill=self.bg_color,
+                        outline=self.bg_color,
+                    )
+                else:
+                    ImageDraw.Draw(self.image).rectangle(
+                        (x1, y1, x2, y2),
+                        fill="#00000000",
+                        outline="#00000000",
+                    )
+                self.undo_stack.append(self.image.copy())  # Need only for cut.
+
             self.update_canvas()
-            self.draw = ImageDraw.Draw(self.image)
+
+        def draw_tool(x1, y1, x2, y2):
+            self.canvas.delete("tools")
+
+            self.canvas.create_rectangle(
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
+                outline="white",
+                width=1,
+                tag="tools",
+            )
+            self.canvas.create_rectangle(
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
+                outline="black",
+                width=1,
+                tag="tools",
+                dash=(5, 5),
+            )
+
+        self.canvas.bind("<Button-1>", selecting)
+        self.canvas.bind("<B1-Motion>", selecting)
+        self.canvas.bind("<ButtonRelease-1>", select_end)
+
+    def start_insert(self):
+        if hasattr(self, "buffer_local") is False or self.buffer_local is None:
+            return
+        self.set_tool("insert", "Insert", None, None, None, "cross")
+        self.insert_simple(self.buffer_local)
+
+    def insert_simple(self, insert_image=None):
+        image_tmp = insert_image
+        current_zoom = None
+        image_tmp_view = None
+        image_tk = None
+        x1, y1 = None, None
+
+        def move(event):
+            nonlocal image_tmp, image_tmp_view, image_tk, current_zoom, x1, y1
+
+            if self.current_tool == "sticker":
+                if self.is_sticker_use_real_size.get() == "off":
+                    sticker_height = int(insert_image.height * self.tool_size / insert_image.width)
+                    image_tmp = insert_image.resize((self.tool_size, sticker_height))
+                else:
+                    image_tmp = insert_image
+
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+
+            it_width = image_tmp.width
+            it_height = image_tmp.height
+            x1 = int(x - (it_width - 1) / 2)
+            y1 = int(y - (it_height - 1) / 2)
+            x2 = int(x1 + it_width - 1)
+            y2 = int(y1 + it_height - 1)
+
+            if current_zoom != self.zoom or image_tmp_view is None or self.current_tool == "sticker":
+                image_tmp_view = image_tmp.resize((int(it_width * self.zoom), int(it_height * self.zoom)), Image.BOX)
+                image_tk = ImageTk.PhotoImage(image_tmp_view)
+                current_zoom = self.zoom
+
+            draw_tool(x1, y1, x2, y2)
+
+        def insert_end(event):
+            nonlocal image_tmp, x1, y1
+
+            if x1 is None or y1 is None:
+                return
+
+            if image_tmp.mode == "RGBA":
+                self.image.paste(image_tmp, (x1, y1), image_tmp)
+            else:
+                self.image.paste(image_tmp, (x1, y1))
+
+            self.update_canvas()
             self.undo_stack.append(self.image.copy())
 
-        def remove_all_effects():
-            self.image = image_copy
-            post_actions()
+        def leave(event):
+            self.canvas.delete("tools")
+
+        def draw_tool(x1, y1, x2, y2):
+            nonlocal image_tk
+
+            self.canvas.delete("tools")
+
+            self.canvas.create_image(
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                image=image_tk,
+                tag="tools",
+                anchor="nw",
+            )
+
+            self.canvas.create_rectangle(
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
+                outline="white",
+                width=1,
+                tag="tools",
+            )
+            self.canvas.create_rectangle(
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
+                outline="black",
+                width=1,
+                tag="tools",
+                dash=(5, 5),
+            )
+
+        # self.canvas.bind("<Button-1>", inserting)
+        # self.canvas.bind("<B1-Motion>", inserting)
+        self.canvas.bind("<ButtonRelease-1>", insert_end)
+        self.canvas.bind("<Motion>", move)
+        self.canvas.bind("<Leave>", leave)
+
+    def crop_simple(self):
+        self.set_tool("crop", "Crop", None, None, None, "cross")
+
+        x_begin = None
+        y_begin = None
+        x_end = None
+        y_end = None
+
+        def cropping(event):
+            nonlocal x_begin, y_begin, x_end, y_end
+
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+
+            if x_begin is None or y_begin is None:
+                x_begin = x
+                y_begin = y
+
+            x_end = x
+            y_end = y
+            x_max = self.image.width - 1
+            y_max = self.image.height - 1
+
+            if x_begin < 0:
+                x_begin = 0
+            if x_begin > x_max:
+                x_begin = x_max
+            if y_begin < 0:
+                y_begin = 0
+            if y_begin > y_max:
+                y_begin = y_max
+            if x_end < 0:
+                x_end = 0
+            if x_end > x_max:
+                x_end = x_max
+            if y_end < 0:
+                y_end = 0
+            if y_end > y_max:
+                y_end = y_max
+
+            x1 = min(x_begin, x_end)
+            x2 = max(x_begin, x_end)
+            y1 = min(y_begin, y_end)
+            y2 = max(y_begin, y_end)
+
+            draw_tool(x1, y1, x2, y2)
+
+        def crop_end(event):
+            nonlocal x_begin, y_begin, x_end, y_end
+
+            if x_begin is None or y_begin is None:
+                return
+
+            x1 = min(x_begin, x_end)
+            x2 = max(x_begin, x_end)
+            y1 = min(y_begin, y_end)
+            y2 = max(y_begin, y_end)
+
+            self.canvas.delete("tools")
+
+            x_begin = None
+            y_begin = None
+            x_end = None
+            y_end = None
+
+            self.crop_picture(math.floor(x1), math.floor(y1), math.ceil(x2) + 1, math.ceil(y2) + 1)
+
+            self.update_canvas()
+
+        def draw_tool(x1, y1, x2, y2):
+            self.canvas.delete("tools")
+
+            self.canvas.create_rectangle(
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
+                outline="yellow",
+                width=1,
+                tag="tools",
+            )
+            self.canvas.create_rectangle(
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
+                outline="black",
+                width=1,
+                tag="tools",
+                dash=(2, 2),
+            )
+
+        self.canvas.bind("<Button-1>", cropping)
+        self.canvas.bind("<B1-Motion>", cropping)
+        self.canvas.bind("<ButtonRelease-1>", crop_end)
+
+    def effects(self):
+        def set_effects_area_copy():
+            nonlocal area_copy
+            if effects_area.get() == 1:
+                area_copy = image_copy
+            else:
+                area_copy = buffer_local_copy
+
+        def post_actions(result):
+            if effects_area.get() == 1:
+                self.image = result
+                self.update_canvas()
+                self.draw = ImageDraw.Draw(self.image)
+                self.undo_stack.append(self.image.copy())
+            else:
+                self.buffer_local = result
 
         def blur():
             radius = blur_slider.get()
-            self.image = image_copy.filter(ImageFilter.GaussianBlur(radius=radius))
-            post_actions()
+            result = area_copy.filter(ImageFilter.GaussianBlur(radius=radius))
+            post_actions(result)
 
         def detail():
             factor = detail_slider.get()
-            enhancer = ImageEnhance.Sharpness(image_copy)
-            self.image = enhancer.enhance(factor)
-            post_actions()
+            enhancer = ImageEnhance.Sharpness(area_copy)
+            result = enhancer.enhance(factor)
+            post_actions(result)
 
         def contour():
-            self.image = image_copy.filter(ImageFilter.CONTOUR)
-            post_actions()
+            result = area_copy.filter(ImageFilter.CONTOUR)
+            post_actions(result)
 
         def grayscale():
-            self.image = ImageOps.grayscale(image_copy)
-            post_actions()
+            result = ImageOps.grayscale(area_copy)
+            post_actions(result)
 
         def mirror():
-            self.image = ImageOps.mirror(image_copy)
-            post_actions()
+            result = ImageOps.mirror(area_copy)
+            post_actions(result)
 
         def metal():
-            self.image = image_copy.filter(ImageFilter.EMBOSS)
-            post_actions()
+            result = area_copy.filter(ImageFilter.EMBOSS)
+            post_actions(result)
 
         def inversion():
-            self.image = ImageOps.invert(image_copy)
-            post_actions()
+            result = ImageOps.invert(area_copy)
+            post_actions(result)
 
         effects_win = ctk.CTkToplevel(self)
         effects_win.title(_("Effects"))
         effects_win.geometry("250x500")
+
+        effects_area = ctk.IntVar(value=1)
+        whole_image_radiobutton = ctk.CTkRadioButton(
+            effects_win, text=_("Whole image"), command=set_effects_area_copy, variable=effects_area, value=1
+        )
+        whole_image_radiobutton.pack(padx=10, pady=10)
+        copied_area_radiobutton = ctk.CTkRadioButton(
+            effects_win, text=_("Copied area"), command=set_effects_area_copy, variable=effects_area, value=2
+        )
+        copied_area_radiobutton.pack(padx=10, pady=10)
+
+        if hasattr(self, "buffer_local") is False or self.buffer_local is None:
+            copied_area_radiobutton.configure(state="disabled")
 
         effects_frame = ctk.CTkScrollableFrame(effects_win)
         effects_frame.pack(fill=ctk.BOTH, expand=True, padx=10, pady=10)
@@ -1285,7 +1803,7 @@ class Brushshe(ctk.CTk):
         ctk.CTkButton(
             effects_win,
             text=_("Remove all effects"),
-            command=remove_all_effects,
+            command=lambda: post_actions(area_copy),
             fg_color="red",
             text_color="white",
         ).pack(padx=10, pady=10)
@@ -1299,7 +1817,7 @@ class Brushshe(ctk.CTk):
         blur_slider = ctk.CTkSlider(blur_frame, from_=0, to=20)
         blur_slider.pack(padx=10, pady=10)
 
-        ctk.CTkButton(blur_frame, text=_("Apply to picture"), command=blur).pack(padx=10, pady=10)
+        ctk.CTkButton(blur_frame, text=_("Apply"), command=blur).pack(padx=10, pady=10)
 
         # Detail
         detail_frame = ctk.CTkFrame(effects_frame)
@@ -1310,7 +1828,7 @@ class Brushshe(ctk.CTk):
         detail_slider = ctk.CTkSlider(detail_frame, from_=1, to=20)
         detail_slider.pack(padx=10, pady=10)
 
-        ctk.CTkButton(detail_frame, text=_("Apply to picture"), command=detail).pack(padx=10, pady=10)
+        ctk.CTkButton(detail_frame, text=_("Apply"), command=detail).pack(padx=10, pady=10)
 
         effects_dict = {  # dictionary for effects which without slider
             "Contour": contour,
@@ -1326,86 +1844,17 @@ class Brushshe(ctk.CTk):
 
             ctk.CTkLabel(effect_frame, text=_(effect_name)).pack(padx=10, pady=10)
 
-            ctk.CTkButton(effect_frame, text=_("Apply to picture"), command=effect_command).pack(padx=10, pady=10)
+            ctk.CTkButton(effect_frame, text=_("Apply"), command=effect_command).pack(padx=10, pady=10)
 
         image_copy = self.image.copy()
 
+        if hasattr(self, "buffer_local") and self.buffer_local is not None:
+            buffer_local_copy = self.buffer_local.copy()
+
+        area_copy = None
+        set_effects_area_copy()
+
         effects_win.grab_set()  # Disable main window
-
-    def show_gallery(self):
-        self.my_gallery = ctk.CTkToplevel(self)
-        self.my_gallery.title(_("Brushshe Gallery"))
-        self.my_gallery.geometry("650x580")
-
-        progressbar = ctk.CTkProgressBar(self.my_gallery, mode="intermediate")
-        progressbar.pack(padx=10, pady=10, fill="x")
-        progressbar.start()
-
-        gallery_scrollable_frame = ctk.CTkScrollableFrame(self.my_gallery, label_text=_("My Gallery"))
-        gallery_scrollable_frame.pack(fill=ctk.BOTH, expand=True, padx=10, pady=10)
-
-        gallery_frame = ctk.CTkFrame(gallery_scrollable_frame)
-        gallery_frame.pack(padx=10, pady=10)
-
-        def load_buttons():
-            try:
-                row = 0
-                column = 0
-                is_image_found = False
-
-                for filename in os.listdir(self.gallery_folder):
-                    if filename.endswith(".png"):
-                        is_image_found = True
-                        img_path = self.gallery_folder / filename
-
-                        image_button = ctk.CTkButton(
-                            gallery_frame,
-                            image=ctk.CTkImage(Image.open(img_path), size=(250, 250)),
-                            text=None,
-                            command=lambda img_path=img_path: self.open_image(img_path),
-                        )
-                        image_button.grid(row=row, column=column, padx=10, pady=10)
-
-                        delete_image_button = ctk.CTkButton(
-                            image_button,
-                            text="x",
-                            fg_color="red",
-                            text_color="white",
-                            width=30,
-                            command=lambda img_path=img_path: self.delete_image(img_path),
-                        )
-                        delete_image_button.place(x=5, y=5)
-                        Tooltip(delete_image_button, message=_("Delete"))
-
-                        column += 1
-                        if column == 2:
-                            column = 0
-                            row += 1
-
-                progressbar.stop()
-                progressbar.pack_forget()
-
-                if not is_image_found:
-                    gallery_scrollable_frame.configure(label_text=_("My gallery (empty)"))
-            except Exception:
-                pass
-
-        Thread(target=load_buttons, daemon=True).start()
-
-    def delete_image(self, img_path):
-        confirm_delete = CTkMessagebox(
-            title=_("Confirm delete"),
-            message=_("Are you sure you want to delete the picture?"),
-            icon=resource("icons/question.png"),
-            icon_size=(100, 100),
-            option_1=_("Yes"),
-            option_2=_("No"),
-            sound=True,
-        )
-        if confirm_delete.get() == _("Yes") and os.path.exists(str(img_path)):
-            os.remove(str(img_path))
-            self.my_gallery.destroy()
-            self.show_gallery()
 
     def about_program(self):
         about_text = _(
@@ -1414,7 +1863,7 @@ class Brushshe(ctk.CTk):
         )
         about_msg = CTkMessagebox(
             title=_("About program"),
-            message=about_text + "v1.18.0",
+            message=about_text + self.version_full,
             icon=resource("icons/brucklin.png"),
             icon_size=(150, 191),
             option_1="OK",
@@ -1424,13 +1873,12 @@ class Brushshe(ctk.CTk):
         if about_msg.get() == "GitHub":
             webbrowser.open(r"https://github.com/limafresh/Brushshe")
 
-    def new_picture(self, color, first_time=False):
+    def new_picture(self, color="#FFFFFF", mode="RGB", first_time=False):
         self.canvas.delete("tools")
         self.bg_color = color
 
-        self.image = Image.new("RGB", (640, 480), color)
+        self.image = Image.new(mode, (640, 480), color)
         self.draw = ImageDraw.Draw(self.image)
-        self.canvas.configure(width=640, height=480, scrollregion=self.canvas.bbox("all"))
         self.canvas.xview_moveto(0)
         self.canvas.yview_moveto(0)
 
@@ -1438,14 +1886,18 @@ class Brushshe(ctk.CTk):
             self.img_tk = ImageTk.PhotoImage(self.image)
             self.canvas_image = self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.img_tk)
         else:
-            self.update_canvas()
+            pass
+
         self.force_resize_canvas()
+        self.update_canvas()
 
         self.undo_stack.append(self.image.copy())
+        self.title(_("Unnamed") + " - " + _("Brushshe"))
+        self.current_file = None
 
     def change_tool_size(self, value):
         self.tool_size = int(value)
-        if self.current_tool == "brush":
+        if self.current_tool == "brush" or self.current_tool == "r-brush":
             self.brush_size = int(value)
         elif self.current_tool == "eraser":
             self.eraser_size = int(value)
@@ -1462,7 +1914,7 @@ class Brushshe(ctk.CTk):
 
     def get_tool_size(self):
         res = self.tool_size
-        if self.current_tool == "brush":
+        if self.current_tool == "brush" or self.current_tool == "r-brush":
             res = self.brush_size
         elif self.current_tool == "eraser":
             res = self.eraser_size
@@ -1479,6 +1931,7 @@ class Brushshe(ctk.CTk):
     def brush(self, type="brush"):
         prev_x = None
         prev_y = None
+        point_history = None
 
         if type == "brush":
             self.set_tool("brush", "Brush", self.brush_size, 1, 50, "pencil")
@@ -1489,9 +1942,24 @@ class Brushshe(ctk.CTk):
             self.set_tool("brush", "Brush", self.brush_size, 1, 50, "pencil")
 
         def paint(event):
-            nonlocal prev_x, prev_y
+            nonlocal prev_x, prev_y, point_history
 
-            x, y = self.canvas_to_pict_xy(event.x, event.y)
+            if self.is_brush_smoothing is False:
+                x, y = self.canvas_to_pict_xy(event.x, event.y)
+            else:
+                if point_history is None:
+                    point_history = BhHistory(limit_length=self.brush_smoothing_factor)
+                xf, yf = self.canvas_to_pict_xy_f(event.x, event.y)
+                point_history.add_point(BhPoint(x=xf, y=yf, pressure=1.0))
+                s_point = point_history.get_smoothing_point(
+                    self.brush_smoothing_factor,
+                    self.brush_smoothing_quality,
+                )
+                if s_point is not None:
+                    x = int(s_point.x)
+                    y = int(s_point.y)
+                else:
+                    x, y = self.canvas_to_pict_xy(event.x, event.y)
 
             if prev_x is not None and prev_y is not None:
                 self.draw_line(prev_x, prev_y, x, y)
@@ -1504,11 +1972,16 @@ class Brushshe(ctk.CTk):
             draw_brush_halo(x, y)
 
         def stop_paint(event):
-            nonlocal prev_x, prev_y
+            nonlocal prev_x, prev_y, point_history
 
             if prev_x is None:
                 return
 
+            self.canvas.delete("tools")
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+            draw_brush_halo(x, y)
+
+            point_history = None
             prev_x, prev_y = (None, None)
             self.undo_stack.append(self.image.copy())
 
@@ -1517,20 +1990,19 @@ class Brushshe(ctk.CTk):
             draw_brush_halo(x, y)
 
         def draw_brush_halo(x, y):
-            # TODO: Add checking when the Config System will be created.
-
-            # on_canvas = self.canvas.find_all()
-            # for ii in on_canvas:
-            #     tmp = self.canvas.itemcget(ii, "tag")
-            #     if tmp == "tools":
-            #         self.canvas.delete(ii)
             self.canvas.delete("tools")
 
             d1 = (self.tool_size - 1) // 2
             d2 = self.tool_size // 2
 
             # TODO: Need use the pixel perfect halo for zoom >= 2 if it doesn't too slow.
-            self.canvas.create_oval(
+
+            if self.brush_shape == "circle":
+                canvas_create_shape = self.canvas.create_oval
+            elif self.brush_shape == "square":
+                canvas_create_shape = self.canvas.create_rectangle
+
+            canvas_create_shape(
                 int((x - d1) * self.zoom - 1),
                 int((y - d1) * self.zoom - 1),
                 int((x + d2 + 1) * self.zoom),
@@ -1539,7 +2011,7 @@ class Brushshe(ctk.CTk):
                 width=1,
                 tag="tools",
             )
-            self.canvas.create_oval(
+            canvas_create_shape(
                 int((x - d1) * self.zoom),
                 int((y - d1) * self.zoom),
                 int((x + d2 + 1) * self.zoom - 1),
@@ -1549,10 +2021,14 @@ class Brushshe(ctk.CTk):
                 tag="tools",
             )
 
+        def leave(event):
+            self.canvas.delete("tools")
+
         self.canvas.bind("<Button-1>", paint)
         self.canvas.bind("<B1-Motion>", paint)
         self.canvas.bind("<ButtonRelease-1>", stop_paint)
         self.canvas.bind("<Motion>", move)
+        self.canvas.bind("<Leave>", leave)
 
     def eraser(self):
         self.brush(type="eraser")
@@ -1567,7 +2043,7 @@ class Brushshe(ctk.CTk):
             if not self.spraying or self.prev_x is None or self.prev_y is None:
                 return
 
-            for _ in range(self.tool_size * 2):
+            for i in range(self.tool_size * 2):
                 offset_x = random.randint(-self.tool_size, self.tool_size)
                 offset_y = random.randint(-self.tool_size, self.tool_size)
                 if offset_x**2 + offset_y**2 <= self.tool_size**2:
@@ -1614,10 +2090,13 @@ class Brushshe(ctk.CTk):
             self.update_canvas()
 
     def save_to_gallery(self):
-        file_path = self.gallery_folder / f"{uuid4()}.png"
+        file_path = gallery.gallery_folder / f"{uuid4()}.png"
         while file_path.exists():
-            file_path = self.gallery_folder / f"{uuid4()}.png"
+            file_path = gallery.gallery_folder / f"{uuid4()}.png"
         self.image.save(file_path)
+
+        self.current_file = str(file_path)
+        self.title(os.path.basename(self.current_file) + " - " + _("Brushshe"))
 
         CTkMessagebox(
             title=_("Saved"),
@@ -1665,15 +2144,20 @@ class Brushshe(ctk.CTk):
         self.brush_palette.second_color = self.second_brush_color
 
     def open_image(self, openimage):
-        self.bg_color = "white"
-        self.image = Image.open(openimage)
-        self.picture_postconfigure()
+        try:
+            self.bg_color = "white"
+            self.image = Image.open(openimage)
+            self.picture_postconfigure()
+
+            self.current_file = openimage
+            self.title(os.path.basename(self.current_file) + " - " + _("Brushshe"))
+        except Exception as e:
+            self.open_file_error(e)
 
     def open_file_error(self, e):
-        message_text = _("Error - cannot open file:")
         CTkMessagebox(
             title=_("Oh, unfortunately, it happened"),
-            message=f"{message_text} {e}",
+            message=f"{_('Error - cannot open file:')} {e}",
             icon=resource("icons/cry.png"),
             icon_size=(100, 100),
             sound=True,
@@ -1697,6 +2181,21 @@ class Brushshe(ctk.CTk):
         self.deiconify()
         self.picture_postconfigure()
 
+    def remove_white_background(self):
+        transparent_bg_img = self.image.convert("RGBA")
+        datas = transparent_bg_img.getdata()
+
+        new_data = []
+        for item in datas:
+            if item[0] > 240 and item[1] > 240 and item[2] > 240:
+                new_data.append((0, 0, 0, 0))  # Lines with zeroes compressed better.
+            else:
+                new_data.append(item)
+
+        transparent_bg_img.putdata(new_data)
+        self.image = transparent_bg_img
+        self.picture_postconfigure()
+
     def picture_postconfigure(self):
         self.canvas.delete("tools")
 
@@ -1705,8 +2204,8 @@ class Brushshe(ctk.CTk):
         self.canvas.xview_moveto(0)
         self.canvas.yview_moveto(0)
 
-        self.update_canvas()
         self.force_resize_canvas()
+        self.update_canvas()
 
         self.undo_stack.append(self.image.copy())
 
@@ -1718,6 +2217,19 @@ class Brushshe(ctk.CTk):
         self.canvas.unbind("<ButtonRelease-1>")
         self.canvas.unbind("<B1-Motion>")
         self.canvas.unbind("<Motion>")
+        self.canvas.unbind("<Leave>")
+
+        for child in self.tool_config_docker.winfo_children():
+            child.destroy()
+
+        self.tool_label = ctk.CTkLabel(self.tool_config_docker, text=None)
+        self.tool_label.pack(side=ctk.LEFT, padx=1)
+
+        self.tool_size_slider = ctk.CTkSlider(self.tool_config_docker, command=self.change_tool_size)
+        self.tool_size_slider.pack(side=ctk.LEFT, padx=1)
+        self.tool_size_tooltip = Tooltip(self.tool_size_slider)
+        self.tool_size_label = ctk.CTkLabel(self.tool_config_docker, text=None)
+        self.tool_size_label.pack(side=ctk.LEFT, padx=5)
 
         if tool_size is None and from_ is None and to is None:
             self.tool_label.configure(text=_(tool_name))
@@ -1730,8 +2242,39 @@ class Brushshe(ctk.CTk):
             self.tool_size_slider.set(self.tool_size)
             self.tool_size_slider.pack(side=ctk.LEFT, padx=1)
             self.tool_size_label.configure(text=self.tool_size)
-            self.tool_size_label.pack(side=ctk.LEFT, padx=1)
+            self.tool_size_label.pack(side=ctk.LEFT, padx=5)
             self.tool_size_tooltip.configure(message=self.tool_size)
+
+        if self.current_tool in ["brush", "eraser"]:
+            brush_shape_btn = ctk.CTkSegmentedButton(
+                self.tool_config_docker, values=["●", "■"], command=self.brush_shape_btn_callback
+            )
+            if self.brush_shape == "circle":
+                brush_shape_btn.set("●")
+            elif self.brush_shape == "square":
+                brush_shape_btn.set("■")
+            brush_shape_btn.pack(side=ctk.LEFT, padx=5)
+        elif self.current_tool == "text":
+            self.tx_entry = ctk.CTkEntry(self.tool_config_docker, placeholder_text=_("Enter text..."))
+            self.tx_entry.pack(side=ctk.LEFT, padx=5)
+
+            font_optionmenu = ctk.CTkOptionMenu(
+                self.tool_config_docker,
+                values=self.fonts,
+                dynamic_resizing=False,
+                command=self.font_optionmenu_callback,
+            )
+            font_optionmenu.set(self.current_font)
+            font_optionmenu.pack(side=ctk.LEFT, padx=1)
+        elif self.current_tool == "sticker":
+            ctk.CTkCheckBox(
+                self.tool_config_docker,
+                text=_("Use real size"),
+                variable=self.is_sticker_use_real_size,
+                onvalue="on",
+                offvalue="off",
+            ).pack(side=ctk.LEFT, padx=5)
+
         self.canvas.configure(cursor=cursor)
         self.canvas.delete("tools")
 
@@ -1741,6 +2284,8 @@ class Brushshe(ctk.CTk):
                 ready_size_button.configure(command=crop)
             elif value == _("Scale"):
                 ready_size_button.configure(command=scale)
+            else:
+                print("Oops")
 
         def crop():
             try:
@@ -1760,9 +2305,9 @@ class Brushshe(ctk.CTk):
                         sound=True,
                     )
                     if continue_size_msg.get() == _("Yes"):
-                        self.crop_picture(int(width_spinbox.get()), new_height)
+                        self.crop_picture(0, 0, int(width_spinbox.get()), new_height)
                 else:
-                    self.crop_picture(int(width_spinbox.get()), new_height)
+                    self.crop_picture(0, 0, int(width_spinbox.get()), new_height)
             except Exception as e:
                 print(e)
 
@@ -1828,30 +2373,61 @@ class Brushshe(ctk.CTk):
         ready_size_button.pack(padx=10, pady=10)
 
     def settings(self):
+        def change_theme():
+            ctk.set_appearance_mode(theme_var.get())
+            config.set("Brushshe", "theme", theme_var.get())
+            write_config()
+
         def change_undo_levels():
             self.undo_stack = deque(self.undo_stack, maxlen=undo_levels_spinbox.get())
             self.redo_stack = deque(self.redo_stack, maxlen=undo_levels_spinbox.get())
+            config.set("Brushshe", "undo_levels", str(undo_levels_spinbox.get()))
+            write_config()
+
+        def smooth_switch_event():
+            self.is_brush_smoothing = smooth_var.get()
+            config.set("Brushshe", "smoothing", str(self.is_brush_smoothing))
+            write_config()
+
+        def brush_smoothing_factor_event(event):
+            self.brush_smoothing_factor = brush_smoothing_factor_var.get()
+            config.set("Brushshe", "brush_smoothing_factor", str(self.brush_smoothing_factor))
+            write_config()
+
+        def brush_smoothing_quality_event(event):
+            self.brush_smoothing_quality = brush_smoothing_quality_var.get()
+            config.set("Brushshe", "brush_smoothing_quality", str(self.brush_smoothing_quality))
+            write_config()
+
+        def palette_radiobutton_callback():
+            self.import_palette(resource(f"assets/palettes/{palette_var.get()}_palette.hex"))
+            config.set("Brushshe", "palette", palette_var.get())
+            write_config()
 
         settings_tl = ctk.CTkToplevel(self)
+        settings_tl.geometry("400x650")
         settings_tl.title(_("Settings"))
         settings_tl.transient(self)
 
-        theme_frame = ctk.CTkFrame(settings_tl)
+        settings_frame = ctk.CTkScrollableFrame(settings_tl, fg_color="transparent")
+        settings_frame.pack(padx=10, pady=10, fill="both", expand=True)
+
+        theme_frame = ctk.CTkFrame(settings_frame)
         theme_frame.pack(padx=10, pady=10, fill="x")
 
         ctk.CTkLabel(theme_frame, text=_("Theme")).pack(padx=10, pady=10)
 
-        theme_var = ctk.StringVar(value=ctk.get_appearance_mode())
+        theme_var = ctk.StringVar(value=config.get("Brushshe", "theme"))
         for theme_name in ["System", "Light", "Dark"]:
             ctk.CTkRadioButton(
                 theme_frame,
                 text=_(theme_name),
                 variable=theme_var,
                 value=theme_name,
-                command=lambda: ctk.set_appearance_mode(theme_var.get()),
+                command=change_theme,
             ).pack(padx=10, pady=10)
 
-        undo_levels_frame = ctk.CTkFrame(settings_tl)
+        undo_levels_frame = ctk.CTkFrame(settings_frame)
         undo_levels_frame.pack(padx=10, pady=10, fill="x")
 
         ctk.CTkLabel(undo_levels_frame, text=_("Maximum undo/redo levels")).pack(padx=10, pady=10)
@@ -1862,19 +2438,83 @@ class Brushshe(ctk.CTk):
 
         ctk.CTkButton(undo_levels_frame, text=_("Apply"), command=change_undo_levels).pack(padx=10, pady=10)
 
-    def import_palette(self):
-        dialog = FileDialog(
-            self,
-            title=_("Import palette from .hex file"),
-        )
+        smooth_frame = ctk.CTkFrame(settings_frame)
+        smooth_frame.pack(padx=10, pady=10, fill="x")
 
-        if dialog.path is None or dialog.path == "":
-            return
+        smooth_var = ctk.BooleanVar(value=self.is_brush_smoothing)
+        ctk.CTkSwitch(
+            smooth_frame,
+            text=_("Smoothing for brush/eraser"),
+            variable=smooth_var,
+            onvalue=True,
+            offvalue=False,
+            command=smooth_switch_event,
+        ).pack(padx=10, pady=10)
+
+        ctk.CTkLabel(smooth_frame, text=_("Brush smoothing quality")).pack(padx=10, pady=10)
+        brush_smoothing_quality_var = ctk.IntVar(value=self.brush_smoothing_quality)
+        ctk.CTkSlider(
+            smooth_frame,
+            variable=brush_smoothing_quality_var,
+            command=brush_smoothing_quality_event,
+            from_=1,
+            to=64,
+        ).pack(padx=10, pady=10)
+
+        ctk.CTkLabel(smooth_frame, text=_("Brush smoothing factor (weight)")).pack(padx=10, pady=1)
+        brush_smoothing_factor_var = ctk.IntVar(value=self.brush_smoothing_factor)
+        ctk.CTkSlider(
+            smooth_frame,
+            variable=brush_smoothing_factor_var,
+            command=brush_smoothing_factor_event,
+            from_=3,
+            to=64,
+        ).pack(padx=10, pady=10)
+
+        palette_frame = ctk.CTkFrame(settings_frame)
+        palette_frame.pack(padx=10, pady=10, fill="x")
+
+        ctk.CTkLabel(palette_frame, text=_("Palette")).pack(padx=10, pady=10)
+
+        palette_var = ctk.StringVar(value=config.get("Brushshe", "palette"))
+        for palette_name in self.standard_palettes:
+            ctk.CTkRadioButton(
+                palette_frame,
+                text=_(palette_name.capitalize()),
+                variable=palette_var,
+                value=palette_name,
+                command=palette_radiobutton_callback,
+            ).pack(padx=10, pady=10)
+
+        check_new_version_frame = ctk.CTkFrame(settings_frame)
+        check_new_version_frame.pack(padx=10, pady=10, fill="x")
+
+        ctk.CTkButton(
+            check_new_version_frame,
+            text=f'{_("Check new versions (yours is")} {self.version_full})',
+            command=lambda: webbrowser.open(r"https://github.com/limafresh/Brushshe/releases"),
+        ).pack(padx=10, pady=10)
+
+    def import_palette(self, value=None):
+        if value is None:
+            dialog = FileDialog(
+                self,
+                title=_("Import palette from .hex file"),
+            )
+
+            if dialog.path is None or dialog.path == "":
+                return
+
+            palette_path = dialog.path
+            config.set("Brushshe", "palette", palette_path)
+            write_config()
+        else:
+            palette_path = value
 
         colors = []
 
         try:
-            with open(dialog.path) as f:
+            with open(palette_path) as f:
                 lines = f.readlines()
                 for line in lines:
                     if len(line) == 0:
@@ -1897,7 +2537,50 @@ class Brushshe(ctk.CTk):
 
         self.make_color_palette(colors)
 
+    def reset_settings_after_exiting(self):
+        self.is_reset_settings_after_exiting = True
 
+    def brush_shape_btn_callback(self, value):
+        if value == "●":
+            self.brush_shape = "circle"
+        elif value == "■":
+            self.brush_shape = "square"
+
+    def paste_image_from_clipboard(self):
+        try:
+            pasted_img = ImageGrab.grabclipboard()
+            self.bg_color = "white"
+            self.image = pasted_img
+            self.picture_postconfigure()
+        except Exception as e:
+            CTkMessagebox(
+                title=_("Oh, unfortunately, it happened"),
+                message=f"{_('Error - cannot paste image:')} {e}",
+                icon=resource("icons/cry.png"),
+                icon_size=(100, 100),
+                sound=True,
+            )
+
+    def rgb_color_to_tuple(self, color):
+        try:
+            rgb = self.winfo_rgb(color)
+            r = math.floor(rgb[0] / 256)
+            g = math.floor(rgb[1] / 256)
+            b = math.floor(rgb[2] / 256)
+        except Exception:
+            return (0, 0, 0)
+        return (r, g, b)
+
+    def rgb_tuple_to_rgba_tuple(self, color, alpha: int):
+        try:
+            res = (color[0], color[1], color[2], alpha)
+        except Exception:
+            print("Error: Wrong color.")
+            res = (0, 0, 0, 0)
+        return res
+
+
+ctk.set_appearance_mode(config.get("Brushshe", "theme"))
 ctk.set_default_color_theme(resource("brushshe_theme.json"))
 app = Brushshe()
 app.mainloop()

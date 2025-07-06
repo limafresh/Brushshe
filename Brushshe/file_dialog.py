@@ -4,16 +4,13 @@ import tkinter as tk
 from tkinter import ttk
 
 import customtkinter as ctk
-import translator
+from CTkMessagebox import CTkMessagebox
+from translator import _
 
 
 def resource(relative_path):
     base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
-
-
-def _(key):
-    return translator.translations.get(key, key)
 
 
 class FileDialog(ctk.CTkToplevel):
@@ -124,8 +121,23 @@ class FileDialog(ctk.CTkToplevel):
         if self.save_entry.get() == "" or self.save_entry.get().startswith(" ") or self.save_entry.get().endswith(" "):
             return
         selected_path = os.path.join(self.initialdir.get(), self.save_entry.get())
-        self.path = selected_path + self.extension
-        self.destroy()
+        entered_path = selected_path + self.extension
+        if os.path.exists(entered_path):
+            overwrite_msg = CTkMessagebox(
+                title=_("A file with this name already exists"),
+                message=_("Overwrite this file?"),
+                option_1=_("Yes"),
+                option_2=_("No"),
+                icon=resource("icons/question.png"),
+                icon_size=(100, 100),
+                sound=True,
+            )
+            if overwrite_msg.get() == _("Yes"):
+                self.path = entered_path
+                self.destroy()
+        else:
+            self.path = entered_path
+            self.destroy()
 
     def _up(self):
         current_path = os.path.normpath(self.initialdir.get())

@@ -25,6 +25,7 @@ class BrushPalette(ctk.CTkFrame):
 
         super().__init__(master, height=height, width=width, corner_radius=corner_radius, bg_color=bg_color, **kwargs)
         super().pack(side=ctk.LEFT)
+        super().configure(fg_color="transparent")
 
         ctk.CTkButton(
             self,

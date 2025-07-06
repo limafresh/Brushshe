@@ -27,6 +27,10 @@ def load_language(language_code):
             print("Localization file is corrupted. Brushshe will be in English.")
 
 
+def _(key):
+    return translations.get(key, key)
+
+
 # Get system locale
 locale = getlocale()
 

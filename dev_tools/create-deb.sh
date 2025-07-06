@@ -1,14 +1,23 @@
 #!/usr/bin/env bash
 
+set -e
+
 # A simple script to create a .deb package of the Brushshe application
 echo 'WARNING: this script must be executed from the dev_tools folder!'
 echo 'Before running this script, make sure that python3-pip is installed: sudo apt install python3-pip'
+echo 'Continue (y/n)?'
+read answer
+if [ "$answer" == 'y' ]; then
+	:
+else
+	exit 0
+fi
 
 echo 'Creating control file...'
 mkdir -p brushshe/DEBIAN
 cat <<EOF > brushshe/DEBIAN/control
 Package: brushshe
-Version: 1.18.0
+Version: 2.0.0
 Section: graphics
 Priority: optional
 Depends: python3, python3-tk, python3-pil, python3-pil.imagetk
@@ -24,8 +33,8 @@ mkdir -p brushshe/opt
 cp -r ../Brushshe brushshe/opt
 
 echo 'Copying the icon...'
-mkdir -p brushshe/usr/share/icons/hicolor/256x256/apps
-cp ../Brushshe/icons/icon.png brushshe/usr/share/icons/hicolor/256x256/apps/brushshe.png
+mkdir -p brushshe/usr/share/icons/hicolor/512x512/apps
+cp ../Brushshe/icons/icon.png brushshe/usr/share/icons/hicolor/512x512/apps/brushshe.png
 
 echo 'Creating a .desktop file...'
 mkdir -p brushshe/usr/share/applications
@@ -39,11 +48,12 @@ Name[ru]=Брашше
 Comment=Painting app
 Comment[uk]=Програма для малювання
 Comment[ru]=Программа для рисования
-Exec=python3 /opt/Brushshe/brushshe.py
+Exec=python3 /opt/Brushshe/brushshe.py %f
 Icon=brushshe
 Terminal=false
 Categories=Graphics;
 StartupWMClass=Brushshe
+MimeType=image/png;image/jpeg;image/gif;image/bmp;image/tiff;image/webp;image/x-icon;image/x-portable-pixmap;image/x-portable-graymap;image/x-portable-bitmap;
 EOF
 
 echo 'Copying licenses and README...'
