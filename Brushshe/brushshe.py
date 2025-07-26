@@ -42,6 +42,19 @@ def resource(relative_path):
     return os.path.join(base_path, relative_path)
 
 
+key_mods = {
+    0x0001: "Shift",
+    0x0002: "Caps Lock",
+    0x0004: "Control",
+    0x0008: "Left-hand Alt",
+    0x0010: "Num Lock",
+    0x0080: "Right-hand Alt",
+    0x0100: "Mouse button 1",
+    0x0200: "Mouse button 2",
+    0x0400: "Mouse button 3",
+}
+
+
 class Brushshe(ctk.CTk):
     def __init__(self):
         super().__init__(className="Brushshe")
@@ -49,9 +62,9 @@ class Brushshe(ctk.CTk):
         """ Version """
         self.version_prefix = ""
         self.version_major = "2"
-        self.version_minor = "0"
+        self.version_minor = "1"
         self.version_patch = "0"
-        self.version_suffix = ' "Skopje"'
+        self.version_suffix = ' "Ternopil"'
 
         self.version_full = "{0}{1}.{2}.{3}{4}".format(
             self.version_prefix,
@@ -455,6 +468,8 @@ class Brushshe(ctk.CTk):
         self.bind("<Key-braceleft>", lambda e: self.change_tool_size_bind(e, -10))  # Key "{"
         self.bind("<Key-braceright>", lambda e: self.change_tool_size_bind(e, 10))  # Key "}"
 
+        self.bind("<Key>", self.key_handler)
+
         # Scroll on mouse
         # Windows OS
         self.canvas.bind("<MouseWheel>", self.scroll_on_canvasy)
@@ -510,6 +525,29 @@ class Brushshe(ctk.CTk):
             self.open_image(sys.argv[1])
 
     """ Functionality """
+
+    # Keybinding without locale.
+    def key_handler(self, event):
+        # Do not use with origin .bind() for equivalent key binds. Only or that, or this.
+
+        # Debug
+        # print(event.char, event.keycode, event.state)
+
+        shift = True if event.state & 0x0001 else False
+        ctrl = True if event.state & 0x0004 else False
+        alt_l = True if event.state & 0x0008 else False
+        alt_r = True if event.state & 0x0080 else False
+        alt = True if (alt_l or alt_r) else False
+        # All else modifiers was ignored.
+
+        if shift is False and ctrl is False and alt is False and event.keycode == 53:  # Key-x
+            self.flip_brush_colors()
+
+        if shift is False and ctrl is False and alt is False and event.keycode == 56:  # Key-b
+            self.brush()
+
+        if shift is False and ctrl is False and alt is False and event.keycode == 26:  # Key-e
+            self.eraser()
 
     def set_tools_docker(self, tools_list, columns=1):
         row = 0
@@ -2491,7 +2529,7 @@ class Brushshe(ctk.CTk):
 
         ctk.CTkButton(
             check_new_version_frame,
-            text=f'{_("Check new versions (yours is")} {self.version_full})',
+            text=f"{_('Check new versions (yours is')} {self.version_full})",
             command=lambda: webbrowser.open(r"https://github.com/limafresh/Brushshe/releases"),
         ).pack(padx=10, pady=10)
 

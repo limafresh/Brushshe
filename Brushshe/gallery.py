@@ -2,9 +2,10 @@ import hashlib
 import os
 import sys
 from pathlib import Path
-from threading import Thread
 
+# from threading import Thread
 import customtkinter as ctk
+from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
 from PIL import Image
 from tooltip import Tooltip
@@ -17,117 +18,157 @@ def resource(relative_path):
 
 
 def show(open_image):
-    global my_gallery, open_image_func
+    global my_gallery, open_image_func, progressbar, gallery_frame, gallery_scrollable_frame
     open_image_func = open_image
 
     my_gallery = ctk.CTkToplevel()
     my_gallery.title(_("Brushshe Gallery"))
     my_gallery.geometry("650x580")
 
+    menu = CTkMenuBar(my_gallery)
+    gallery_menu = menu.add_cascade(_("My Gallery"))
+    g_dropdown = CustomDropdownMenu(widget=gallery_menu)
+    g_dropdown.add_option(option=_("Refresh"), command=lambda: load_buttons())
+    g_dropdown.add_option(option=_("Clear cache"), command=lambda: clear_thumbs_cache())
+
     progressbar = ctk.CTkProgressBar(my_gallery, mode="intermediate")
     progressbar.pack(padx=10, pady=10, fill="x")
-    progressbar.start()
 
-    gallery_scrollable_frame = ctk.CTkScrollableFrame(my_gallery, label_text=_("My Gallery"))
-    gallery_scrollable_frame.pack(fill=ctk.BOTH, expand=True, padx=10, pady=10)
+    gallery_scrollable_frame = ctk.CTkScrollableFrame(my_gallery)
+    gallery_scrollable_frame.pack(fill=ctk.BOTH, expand=True, padx=0, pady=0)
 
     gallery_frame = ctk.CTkFrame(gallery_scrollable_frame)
     gallery_frame.pack(padx=10, pady=10)
 
-    def load_buttons():
-        preview_size = 160
-        row = 0
-        column = 0
-        is_image_found = False
+    # Hack for normal scrolling.
+    gallery_scrollable_frame.bind("<Enter>", lambda e: set_scroll_event(e))
+    gallery_scrollable_frame.bind("<Leave>", lambda e: remove_scroll_event(e))
 
-        cache_folder = user_cache_dir("brushshe")
-        try:
-            os.makedirs(cache_folder, exist_ok=True)
-        except Exception:
-            print("Warning: Can't use cache directory")
-            cache_folder = None
+    def scroll_on_gallery(event):
+        if event.num == 5 or event.delta < 0:
+            count = 1
+        if event.num == 4 or event.delta > 0:
+            count = -1
+        gallery_scrollable_frame._parent_canvas.yview("scroll", count, "units")
 
-        try:
-            gallery_file_list = sorted(Path(gallery_folder).iterdir(), key=os.path.getmtime, reverse=True)
+    def set_scroll_event(event):
+        gallery_scrollable_frame._parent_canvas.bind_all("<MouseWheel>", lambda e: scroll_on_gallery(e))
+        gallery_scrollable_frame._parent_canvas.bind_all("<Button-4>", lambda e: scroll_on_gallery(e))
+        gallery_scrollable_frame._parent_canvas.bind_all("<Button-5>", lambda e: scroll_on_gallery(e))
 
-            for filename in gallery_file_list:
-                if filename.suffix == ".png":
-                    is_image_found = True
-                    img_path = str(filename)
+    def remove_scroll_event(event):
+        gallery_scrollable_frame._parent_canvas.unbind_all("<MouseWheel>")
+        gallery_scrollable_frame._parent_canvas.unbind_all("<Button-4>")
+        gallery_scrollable_frame._parent_canvas.unbind_all("<Button-5>")
 
-                    image_tmp_2 = get_image_from_cache(
+    # Threads work bad with Tkinter event_loop.
+    # Cache must be enough for normal work after first open gallery.
+    # Thread(target=load_buttons, daemon=True).start()
+
+    load_buttons()
+
+
+def load_buttons():
+    global my_gallery, open_image_func, progressbar, gallery_frame, gallery_scrollable_frame
+
+    preview_size = 160
+    row = 0
+    column = 0
+    is_image_found = False
+
+    progressbar.start()
+
+    gallery_scrollable_frame.configure(label_text=None)
+    for child in gallery_frame.winfo_children():
+        child.destroy()
+
+    cache_folder = user_cache_dir("brushshe")
+    try:
+        os.makedirs(cache_folder, exist_ok=True)
+    except Exception:
+        print("Warning: Can't use cache directory")
+        cache_folder = None
+
+    try:
+        gallery_file_list = sorted(Path(gallery_folder).iterdir(), key=os.path.getmtime, reverse=True)
+
+        for filename in gallery_file_list:
+            if filename.suffix == ".png":
+                is_image_found = True
+                img_path = str(filename)
+
+                image_tmp_2 = get_image_from_cache(
+                    cache_folder,
+                    img_path,
+                    os.path.getsize(img_path),
+                    os.path.getmtime(img_path),
+                    filename.suffix,
+                )
+                if image_tmp_2 is None:
+                    image_tmp = Image.open(img_path)
+                    rate = image_tmp.width / image_tmp.height
+                    max_wh = max(image_tmp.width, image_tmp.height)
+                    if max_wh > preview_size:
+                        max_wh = preview_size
+                    if rate > 1:
+                        w = int(max_wh)
+                        h = int(max_wh / rate)
+                    else:
+                        h = int(max_wh)
+                        w = int(max_wh * rate)
+
+                    image_tmp_2 = image_tmp.resize((w, h), Image.BOX)
+                    del image_tmp
+
+                    set_image_to_cache(
                         cache_folder,
+                        image_tmp_2,
                         img_path,
                         os.path.getsize(img_path),
                         os.path.getmtime(img_path),
                         filename.suffix,
                     )
-                    if image_tmp_2 is None:
-                        image_tmp = Image.open(img_path)
-                        rate = image_tmp.width / image_tmp.height
-                        max_wh = max(image_tmp.width, image_tmp.height)
-                        if max_wh > preview_size:
-                            max_wh = preview_size
-                        if rate > 1:
-                            w = int(max_wh)
-                            h = int(max_wh / rate)
-                        else:
-                            h = int(max_wh)
-                            w = int(max_wh * rate)
+                else:
+                    w = image_tmp_2.width
+                    h = image_tmp_2.height
 
-                        image_tmp_2 = image_tmp.resize((w, h), Image.BOX)
-                        del image_tmp
+                image_button = ctk.CTkButton(
+                    gallery_frame,
+                    image=ctk.CTkImage(image_tmp_2, size=(w, h)),
+                    width=preview_size + 10,
+                    height=preview_size + 10,
+                    text=None,
+                    fg_color="transparent",
+                    hover=None,
+                    command=lambda img_path=img_path: open_image_func(img_path),
+                    cursor="hand1",
+                )
+                image_button.grid(row=row, column=column, padx=10, pady=10)
 
-                        set_image_to_cache(
-                            cache_folder,
-                            image_tmp_2,
-                            img_path,
-                            os.path.getsize(img_path),
-                            os.path.getmtime(img_path),
-                            filename.suffix,
-                        )
-                    else:
-                        w = image_tmp_2.width
-                        h = image_tmp_2.height
+                delete_image_button = ctk.CTkButton(
+                    image_button,
+                    text="X",
+                    fg_color="red",
+                    text_color="white",
+                    width=30,
+                    command=lambda img_path=img_path: delete_image(img_path),
+                )
+                delete_image_button.place(x=5, y=5)
+                Tooltip(delete_image_button, message=_("Delete"))
 
-                    image_button = ctk.CTkButton(
-                        gallery_frame,
-                        image=ctk.CTkImage(image_tmp_2, size=(w, h)),
-                        width=preview_size + 10,
-                        height=preview_size + 10,
-                        text=None,
-                        fg_color="transparent",
-                        hover=None,
-                        command=lambda img_path=img_path: open_image_func(img_path),
-                        cursor="hand1",
-                    )
-                    image_button.grid(row=row, column=column, padx=10, pady=10)
+                column += 1
+                if column >= 3:
+                    column = 0
+                    row += 1
 
-                    delete_image_button = ctk.CTkButton(
-                        image_button,
-                        text="X",
-                        fg_color="red",
-                        text_color="white",
-                        width=30,
-                        command=lambda img_path=img_path: delete_image(img_path),
-                    )
-                    delete_image_button.place(x=5, y=5)
-                    Tooltip(delete_image_button, message=_("Delete"))
+        progressbar.stop()
+        progressbar.pack_forget()
 
-                    column += 1
-                    if column >= 3:
-                        column = 0
-                        row += 1
+        if not is_image_found:
+            gallery_scrollable_frame.configure(label_text=_("My gallery (empty)"))
 
-            progressbar.stop()
-            progressbar.pack_forget()
-
-            if not is_image_found:
-                gallery_scrollable_frame.configure(label_text=_("My gallery (empty)"))
-        except Exception as e:
-            print(e)
-
-    Thread(target=load_buttons, daemon=True).start()
+    except Exception as e:
+        print(e)
 
 
 def delete_image(img_path):
@@ -143,8 +184,9 @@ def delete_image(img_path):
     )
     if confirm_delete.get() == _("Yes") and os.path.exists(str(img_path)):
         os.remove(str(img_path))
-        my_gallery.destroy()
-        show(open_image_func)
+        # my_gallery.destroy()
+        # show(open_image_func)
+        load_buttons()
 
 
 def get_cache_name(name, size, mtime):
@@ -165,7 +207,25 @@ def set_image_to_cache(cache_folder, image, name, size, mtime, suffix):
         # print("Warning: cached file can't be saved")
 
 
-# TODO: Add clear thumbs cache files.
+def clear_thumbs_cache():
+    cache_folder = user_cache_dir("brushshe")
+
+    try:
+        os.makedirs(cache_folder, exist_ok=True)
+    except Exception:
+        print("Warning: Can't use cache directory")
+        return
+
+    cache_thumbs_folder = os.path.normpath(cache_folder + "/thumbs/")
+
+    try:
+        thumbs_list = Path(cache_thumbs_folder).iterdir()
+        for filename in thumbs_list:
+            if filename.suffix == ".png":
+                os.remove(filename)
+    except Exception:
+        print("Warning: Can't clear thumbs cache.")
+        return
 
 
 def get_image_from_cache(cache_folder, name, size, mtime, suffix):
