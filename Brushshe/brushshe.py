@@ -2529,7 +2529,7 @@ class Brushshe(ctk.CTk):
 
         ctk.CTkButton(
             check_new_version_frame,
-            text=f'{_("Check new versions (yours is")} {self.version_full})',
+            text=f"{_('Check new versions (yours is')} {self.version_full})",
             command=lambda: webbrowser.open(r"https://github.com/limafresh/Brushshe/releases"),
         ).pack(padx=10, pady=10)
 
