@@ -95,7 +95,7 @@ All contributions are welcome!
 The internationalization of this program has a simple principle - it determines what the computer's localization is (for example, *en*, *ru*, etc.), and then applies the `Brushshe/locales/{localization}.json` file, where *localization* is the computer's localization.
 
 ## License
-+ Project license - *GNU GPL v3*
++ Project license - *MPL 2.0* (old code under MPL 2.0 or GNU GPLv3)
 + CTkColorPicker and CTkMenuBar license - *CC0 1.0*
 + License for program translations (`Brushshe/locales/*.json`) - *CC0 1.0*
 + Fonts - *OFL*
