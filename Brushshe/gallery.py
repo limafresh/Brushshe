@@ -2,11 +2,11 @@ import hashlib
 import os
 import sys
 from pathlib import Path
-# from threading import Thread
 
+# from threading import Thread
 import customtkinter as ctk
-from CTkMessagebox import CTkMessagebox
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
+from CTkMessagebox import CTkMessagebox
 from PIL import Image
 from tooltip import Tooltip
 from translator import _

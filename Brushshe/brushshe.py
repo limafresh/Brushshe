@@ -43,16 +43,16 @@ def resource(relative_path):
 
 
 key_mods = {
-        0x0001: "Shift",
-        0x0002: "Caps Lock",
-        0x0004: "Control",
-        0x0008: "Left-hand Alt",
-        0x0010: "Num Lock",
-        0x0080: "Right-hand Alt",
-        0x0100: "Mouse button 1",
-        0x0200: "Mouse button 2",
-        0x0400: "Mouse button 3",
-    }
+    0x0001: "Shift",
+    0x0002: "Caps Lock",
+    0x0004: "Control",
+    0x0008: "Left-hand Alt",
+    0x0010: "Num Lock",
+    0x0080: "Right-hand Alt",
+    0x0100: "Mouse button 1",
+    0x0200: "Mouse button 2",
+    0x0400: "Mouse button 3",
+}
 
 
 class Brushshe(ctk.CTk):
@@ -62,9 +62,9 @@ class Brushshe(ctk.CTk):
         """ Version """
         self.version_prefix = ""
         self.version_major = "2"
-        self.version_minor = "0"
+        self.version_minor = "1"
         self.version_patch = "0"
-        self.version_suffix = ' "Skopje"'
+        self.version_suffix = ' "Ternopil"'
 
         self.version_full = "{0}{1}.{2}.{3}{4}".format(
             self.version_prefix,
@@ -533,20 +533,20 @@ class Brushshe(ctk.CTk):
         # Debug
         # print(event.char, event.keycode, event.state)
 
-        shift = True if event.state & 0X0001 else False
-        ctrl = True if event.state & 0X0004 else False
-        alt_l = True if event.state & 0X0008 else False
-        alt_r = True if event.state & 0X0080 else False
+        shift = True if event.state & 0x0001 else False
+        ctrl = True if event.state & 0x0004 else False
+        alt_l = True if event.state & 0x0008 else False
+        alt_r = True if event.state & 0x0080 else False
         alt = True if (alt_l or alt_r) else False
         # All else modifiers was ignored.
 
-        if (shift is False and ctrl is False and alt is False and event.keycode == 53):  # Key-x
+        if shift is False and ctrl is False and alt is False and event.keycode == 53:  # Key-x
             self.flip_brush_colors()
 
-        if (shift is False and ctrl is False and alt is False and event.keycode == 56):  # Key-b
+        if shift is False and ctrl is False and alt is False and event.keycode == 56:  # Key-b
             self.brush()
 
-        if (shift is False and ctrl is False and alt is False and event.keycode == 26):  # Key-e
+        if shift is False and ctrl is False and alt is False and event.keycode == 26:  # Key-e
             self.eraser()
 
     def set_tools_docker(self, tools_list, columns=1):
