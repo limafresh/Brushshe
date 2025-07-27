@@ -102,7 +102,7 @@ class BhComposer:
             tmp_mask_img2 = ImageChops.invert(tmp_mask_img)  # We want see mask in this place.
             tmp_mask_img = ImageChops.multiply(tmp_mask_img2, Image.new("L", (w, h), 128))
 
-            tmp_image = Image.new("RGBA", (w, h), "#ff00ff80")
+            tmp_image = Image.new("RGBA", (w, h), (255, 0, 0, 127))
             image.paste(tmp_image, (0, 0), tmp_mask_img)
 
         return image

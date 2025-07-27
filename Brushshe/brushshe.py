@@ -1465,7 +1465,13 @@ class Brushshe(ctk.CTk):
                 color_from = self.rgb_tuple_to_rgba_tuple(color_from, 255)
                 color_to = self.rgb_tuple_to_rgba_tuple(color_to, 255)
 
-            bh_draw_recoloring_line(self.image, x1, y1, x2, y2, color_from, color_to, self.tool_size)
+            if self.selected_mask_img is None:
+                bh_draw_recoloring_line(self.image, x1, y1, x2, y2, color_from, color_to, self.tool_size)
+            else:
+                tmp_image = self.image.copy()
+                bh_draw_recoloring_line(tmp_image, x1, y1, x2, y2, color_from, color_to, self.tool_size)
+                self.image.paste(tmp_image, (0, 0), self.selected_mask_img)
+                del tmp_image
 
         def draw_brush_halo(x, y):
             self.canvas.delete("tools")
@@ -2664,7 +2670,7 @@ class Brushshe(ctk.CTk):
         if self.selected_mask_img.width != self.image.width or self.selected_mask_img.height != self.image.height:
             self.selected_mask_img = Image.new("L", (self.image.width, self.image.height), "white")
 
-        self.update_canvas()
+        # self.update_canvas()
 
     def remove_mask(self):
         self.selected_mask_img = None
@@ -2679,9 +2685,13 @@ class Brushshe(ctk.CTk):
         y_begin = None
         x_end = None
         y_end = None
+        _mode = "replace"
 
-        def selecting(event):
-            nonlocal x_begin, y_begin, x_end, y_end
+        def selecting(event, mode):
+            nonlocal x_begin, y_begin, x_end, y_end, _mode
+
+            if mode is not None:
+                _mode = mode
 
             self.select_init_mask()
 
@@ -2722,7 +2732,7 @@ class Brushshe(ctk.CTk):
             draw_tool(x1, y1, x2, y2)
 
         def select_end(event):
-            nonlocal x_begin, y_begin, x_end, y_end
+            nonlocal x_begin, y_begin, x_end, y_end, _mode
 
             if x_begin is None or y_begin is None:
                 return
@@ -2743,8 +2753,15 @@ class Brushshe(ctk.CTk):
             y_max = self.image.height - 1
 
             draw = ImageDraw.Draw(self.selected_mask_img)
-            draw.rectangle([0, 0, x_max, y_max], fill="black")
-            draw.rectangle([x1, y1, x2, y2], fill="white")
+
+            if _mode == "replace":
+                draw.rectangle([0, 0, x_max, y_max], fill="black")
+
+            if _mode == "subtract":
+                draw.rectangle([x1, y1, x2, y2], fill="black")
+            else:  # add or replace
+                draw.rectangle([x1, y1, x2, y2], fill="white")
+
             self.update_canvas()
 
         def draw_tool(x1, y1, x2, y2):
@@ -2770,8 +2787,10 @@ class Brushshe(ctk.CTk):
                 dash=(5, 5),
             )
 
-        self.canvas.bind("<Button-1>", selecting)
-        self.canvas.bind("<B1-Motion>", selecting)
+        self.canvas.bind("<Button-1>", lambda e: selecting(e, "replace"))
+        self.canvas.bind("<Shift-Button-1>", lambda e: selecting(e, "add"))
+        self.canvas.bind("<Control-Button-1>", lambda e: selecting(e, "subtract"))
+        self.canvas.bind("<B1-Motion>", lambda e: selecting(e, None))
         self.canvas.bind("<ButtonRelease-1>", select_end)
 
 
