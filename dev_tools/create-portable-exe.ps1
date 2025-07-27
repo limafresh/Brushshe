@@ -1,5 +1,10 @@
 Write-Host 'Python is required to run the script. ONLY RUN FROM THE dev_tools FOLDER!' -ForegroundColor Cyan
 
+$answer = Read-Host 'Continue (y/n)?'
+if ($answer -ne 'y') {
+    exit 0
+}
+
 Write-Host 'Creating a virtual environment...' -ForegroundColor Blue
 python -m venv brenv
 

@@ -1,6 +1,11 @@
 Write-Host 'To run the script, Python and Inno Setup are needed. ONLY EXECUTE FROM THE dev_tools FOLDER!' -ForegroundColor Cyan
 Write-Host 'Add ISCC.exe to PATH if it is not already added before execution.' -ForegroundColor Cyan
 
+$answer = Read-Host 'Continue (y/n)?'
+if ($answer -ne 'y') {
+    exit 0
+}
+
 Write-Host 'Creating a virtual environment...' -ForegroundColor Blue
 python -m venv brenv
 
