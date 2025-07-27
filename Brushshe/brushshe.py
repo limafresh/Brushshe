@@ -29,6 +29,7 @@ from PIL import (
     ImageFont,
     ImageGrab,
     ImageOps,
+    ImageChops,
     ImageStat,
     ImageTk,
 )
@@ -141,8 +142,8 @@ class Brushshe(ctk.CTk):
         shapes_submenu.add_option(option=_("Bezier curve"), command=self.bezier_shape)
 
         edit_submenu = tools_dropdown.add_submenu(_("Edit tools"))
-        edit_submenu.add_option(option=_("Cut"), command=lambda: self.copy_simple(deleted=True))
-        edit_submenu.add_option(option=_("Copy"), command=lambda: self.copy_simple())
+        edit_submenu.add_option(option=_("Cut"), command=lambda: self.copy_tool(deleted=True))
+        edit_submenu.add_option(option=_("Copy"), command=lambda: self.copy_tool())
         edit_submenu.add_option(option=_("Insert"), command=lambda: self.start_insert())
         edit_submenu.add_option(option=_("Crop"), command=lambda: self.crop_simple())
 
@@ -312,14 +313,14 @@ class Brushshe(ctk.CTk):
                 "type": "button",
                 "name": _("Cut"),
                 "helper": _("Cut"),  # + " (Ctrl+X)",
-                "action": lambda: self.copy_simple(deleted=True),
+                "action": lambda: self.copy_tool(deleted=True),
                 "icon_name": "cut",
             },
             {
                 "type": "button",
                 "name": _("Copy"),
                 "helper": _("Copy"),  # + " (Ctrl+C)",
-                "action": lambda: self.copy_simple(),
+                "action": lambda: self.copy_tool(),
                 "icon_name": "copy",
             },
             {
@@ -1434,39 +1435,29 @@ class Brushshe(ctk.CTk):
                 color = self.get_tool_main_color()
 
                 if self.selected_mask_img is None:
-                    tmp_draw = ImageDraw.Draw(self.image)
-
-                    for it, tt in enumerate(points):
-                        if it < points_len - 1:
-                            bh_draw_line(
-                                tmp_draw,
-                                int(points[it][0]),
-                                int(points[it][1]),
-                                int(points[it + 1][0]),
-                                int(points[it + 1][1]),
-                                color,
-                                self.tool_size,
-                                self.brush_shape,
-                                self.current_tool
-                            )
+                    tmp_image = self.image
+                    tmp_draw = ImageDraw.Draw(tmp_image)
                 else:
                     tmp_image = self.image.copy()
                     tmp_draw = ImageDraw.Draw(tmp_image)
 
-                    for it, tt in enumerate(points):
-                        if it < points_len - 1:
-                            bh_draw_line(
-                                tmp_draw,
-                                int(points[it][0]),
-                                int(points[it][1]),
-                                int(points[it + 1][0]),
-                                int(points[it + 1][1]),
-                                color,
-                                self.tool_size,
-                                self.brush_shape,
-                                self.current_tool
-                            )
+                for it, tt in enumerate(points):
+                    if it < points_len - 1:
+                        bh_draw_line(
+                            tmp_draw,
+                            int(points[it][0]),
+                            int(points[it][1]),
+                            int(points[it + 1][0]),
+                            int(points[it + 1][1]),
+                            color,
+                            self.tool_size,
+                            self.brush_shape,
+                            self.current_tool
+                        )
 
+                if self.selected_mask_img is None:
+                    pass
+                else:
                     self.image.paste(tmp_image, (0, 0), self.selected_mask_img)
                     del tmp_image
 
@@ -1590,6 +1581,45 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<ButtonRelease-1>", end)
         self.canvas.bind("<Motion>", move)
         self.canvas.bind("<Leave>", leave)
+
+    def copy_tool(self, deleted=False):
+        if self.selected_mask_img is None:
+            self.copy_simple(deleted)
+        else:
+            self.copy_selected(deleted)
+
+    def copy_selected(self, deleted=False):
+        if self.selected_mask_img is None:
+            return
+
+        tmp_bg_color = (0, 0, 0, 0)
+        tmp_img_mask = self.selected_mask_img
+        tmp_img = Image.new("RGBA", (self.image.width, self.image.height), tmp_bg_color)
+        tmp_img.paste(self.image, (0, 0), tmp_img_mask)
+
+        # Trim image.
+        bg = Image.new(tmp_img.mode, tmp_img.size, tmp_bg_color)
+        diff = ImageChops.difference(tmp_img, bg)
+        # diff = ImageChops.add(diff, diff, 2.0, -100)
+        bbox = diff.getbbox()
+
+        if bbox:
+            self.buffer_local = tmp_img.crop(bbox)
+        else:
+            self.buffer_local = tmp_img
+
+        del tmp_img
+
+        if deleted:
+            bg_color = self.bg_color
+            if self.image.mode == "RGBA":
+                bg_color = (0, 0, 0, 0)
+            tmp_img = Image.new(self.image.mode, (self.image.width, self.image.height), bg_color)
+            self.image.paste(tmp_img, (0, 0), tmp_img_mask)
+            del tmp_img
+            self.undo_stack.append(self.image.copy())
+
+        self.update_canvas()
 
     def copy_simple(self, deleted=False):
         if deleted is False:
