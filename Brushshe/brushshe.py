@@ -769,7 +769,7 @@ class Brushshe(ctk.CTk):
     def canvas_to_pict_xy_f(self, x, y):
         return self.canvas.canvasx(x) / self.zoom, self.canvas.canvasy(y) / self.zoom
 
-    def draw_line(self, x1, y1, x2, y2):
+    def get_tool_main_color(self):
         if self.current_tool == "eraser":
             color = self.bg_color
             if self.image.mode == "RGBA":
@@ -779,8 +779,19 @@ class Brushshe(ctk.CTk):
             color = self.brush_color
             if self.image.mode == "RGBA":
                 color = self.rgb_tuple_to_rgba_tuple(self.rgb_color_to_tuple(color), 255)
+        return color
 
-        bh_draw_line(self.draw, x1, y1, x2, y2, color, self.tool_size, self.brush_shape, self.current_tool)
+    def draw_line(self, x1, y1, x2, y2):
+        color = self.get_tool_main_color()
+
+        if self.selected_mask_img is None:
+            bh_draw_line(self.draw, x1, y1, x2, y2, color, self.tool_size, self.brush_shape, self.current_tool)
+        else:
+            tmp_image = self.image.copy()
+            tmp_draw = ImageDraw.Draw(tmp_image)
+            bh_draw_line(tmp_draw, x1, y1, x2, y2, color, self.tool_size, self.brush_shape, self.current_tool)
+            self.image.paste(tmp_image, (0, 0), self.selected_mask_img)
+            del tmp_image
 
     def update_canvas(self):
         # Debug
@@ -990,14 +1001,28 @@ class Brushshe(ctk.CTk):
 
     def fill(self, event):
         x, y = self.canvas_to_pict_xy(event.x, event.y)
+
+        if self.selected_mask_img is None:
+            tmp_image = self.image
+        else:
+            tmp_image = self.image.copy()
+
         if self.image.mode == "RGBA":
             ImageDraw.floodfill(
-                self.image,
+                tmp_image,
                 (x, y),
                 self.rgb_tuple_to_rgba_tuple(ImageColor.getrgb(self.brush_color), 255),
             )
         else:
-            ImageDraw.floodfill(self.image, (x, y), ImageColor.getrgb(self.brush_color))
+            ImageDraw.floodfill(tmp_image, (x, y), ImageColor.getrgb(self.brush_color))
+
+        if self.selected_mask_img is None:
+            pass
+        else:
+            self.image.paste(tmp_image, (0, 0), self.selected_mask_img)
+
+        del tmp_image
+
         self.update_canvas()
         self.undo_stack.append(self.image.copy())
 
@@ -1253,17 +1278,43 @@ class Brushshe(ctk.CTk):
             else:
                 y0, y1 = y_end, y_begin
 
+            if self.selected_mask_img is None:
+                tmp_draw = ImageDraw.Draw(self.image)
+            else:
+                tmp_image = self.image.copy()
+                tmp_draw = ImageDraw.Draw(tmp_image)
+
+            color = self.get_tool_main_color()
+
             if shape == "Rectangle":
-                self.draw.rectangle([x0, y0, x1, y1], outline=self.brush_color, width=self.tool_size)
+                tmp_draw.rectangle([x0, y0, x1, y1], outline=self.brush_color, width=self.tool_size)
             elif shape == "Oval":
-                self.draw.ellipse([x0, y0, x1, y1], outline=self.brush_color, width=self.tool_size)
+                tmp_draw.ellipse([x0, y0, x1, y1], outline=self.brush_color, width=self.tool_size)
             elif shape == "Line":
-                # self.draw.line([x_begin, y_begin, x_end, y_end], fill=self.brush_color, width=self.tool_size)
-                self.draw_line(x_begin, y_begin, x_end, y_end)
+                # self.draw_line(x_begin, y_begin, x_end, y_end)
+                bh_draw_line(
+                    tmp_draw,
+                    x_begin,
+                    y_begin,
+                    x_end,
+                    y_end,
+                    color,
+                    self.tool_size,
+                    self.brush_shape,
+                    self.current_tool
+                )
             elif shape == "Fill rectangle":
-                self.draw.rectangle([x0, y0, x1, y1], fill=self.brush_color)
+                tmp_draw.rectangle([x0, y0, x1, y1], fill=self.brush_color)
             elif shape == "Fill oval":
-                self.draw.ellipse([x0, y0, x1, y1], fill=self.brush_color)
+                tmp_draw.ellipse([x0, y0, x1, y1], fill=self.brush_color)
+            else:
+                print("Warning: Incorrect shape.")
+
+            if self.selected_mask_img is None:
+                pass
+            else:
+                self.image.paste(tmp_image, (0, 0), self.selected_mask_img)
+                del tmp_image
 
             self.update_canvas()
             self.undo_stack.append(self.image.copy())
@@ -1379,12 +1430,45 @@ class Brushshe(ctk.CTk):
                 b = make_bezier(image_points)
                 points = b(ts)
                 points_len = len(points)
-                for it, tt in enumerate(points):
-                    if it < points_len - 1:
-                        # It's can work with float too, but with more artifacts.
-                        self.draw_line(
-                            int(points[it][0]), int(points[it][1]), int(points[it + 1][0]), int(points[it + 1][1])
-                        )
+
+                color = self.get_tool_main_color()
+
+                if self.selected_mask_img is None:
+                    tmp_draw = ImageDraw.Draw(self.image)
+
+                    for it, tt in enumerate(points):
+                        if it < points_len - 1:
+                            bh_draw_line(
+                                tmp_draw,
+                                int(points[it][0]),
+                                int(points[it][1]),
+                                int(points[it + 1][0]),
+                                int(points[it + 1][1]),
+                                color,
+                                self.tool_size,
+                                self.brush_shape,
+                                self.current_tool
+                            )
+                else:
+                    tmp_image = self.image.copy()
+                    tmp_draw = ImageDraw.Draw(tmp_image)
+
+                    for it, tt in enumerate(points):
+                        if it < points_len - 1:
+                            bh_draw_line(
+                                tmp_draw,
+                                int(points[it][0]),
+                                int(points[it][1]),
+                                int(points[it + 1][0]),
+                                int(points[it + 1][1]),
+                                color,
+                                self.tool_size,
+                                self.brush_shape,
+                                self.current_tool
+                            )
+
+                    self.image.paste(tmp_image, (0, 0), self.selected_mask_img)
+                    del tmp_image
 
                 self.canvas.delete(bezier_id)
                 self.update_canvas()
@@ -2124,11 +2208,25 @@ class Brushshe(ctk.CTk):
             if not self.spraying or self.prev_x is None or self.prev_y is None:
                 return
 
+            if self.selected_mask_img is None:
+                tmp_image = self.image
+                tmp_draw = ImageDraw.Draw(tmp_image)
+            else:
+                tmp_image = self.image.copy()
+                tmp_draw = ImageDraw.Draw(tmp_image)
+
             for i in range(self.tool_size * 2):
                 offset_x = random.randint(-self.tool_size, self.tool_size)
                 offset_y = random.randint(-self.tool_size, self.tool_size)
                 if offset_x**2 + offset_y**2 <= self.tool_size**2:
-                    self.draw.point((self.prev_x + offset_x, self.prev_y + offset_y), fill=self.brush_color)
+                    tmp_draw.point((self.prev_x + offset_x, self.prev_y + offset_y), fill=self.brush_color)
+
+            if self.selected_mask_img is None:
+                pass
+            else:
+                self.image.paste(tmp_image, (0, 0), self.selected_mask_img)
+
+            del tmp_image
 
             self.update_canvas()
             self.spray_job = self.after(50, do_spray)
