@@ -1,5 +1,5 @@
 # import math
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps, ImageChops
 
 
 class BhComposer:
@@ -23,6 +23,8 @@ class BhComposer:
 
         self.l_image = None
         self.background_image = None
+
+        self.mask_img = None  # Must be gray image (L mode)
 
     def generate_tile_image(self):
         image_bg = Image.new("RGB", (self.background_size, self.background_size), self.background_color_1)
@@ -57,6 +59,9 @@ class BhComposer:
         self.width = image.width
         self.height = image.height
 
+    def set_mask_image(self, image: Image):
+        self.mask_img = image
+
     def get_compose_image(self, x1, y1, x2, y2):
         if self.l_image is None:
             return
@@ -86,5 +91,18 @@ class BhComposer:
             image.paste(self.l_image, (0, 0), self.l_image)
         else:
             image.paste(self.l_image, (0, 0))
+
+        if self.mask_img is not None:
+
+            tmp_mask_img = self.mask_img.copy()
+
+            if tmp_mask_img.mode != "L":
+                tmp_mask_img.convert("L")
+
+            tmp_mask_img2 = ImageChops.invert(tmp_mask_img)  # We want see mask in this place.
+            tmp_mask_img = ImageChops.multiply(tmp_mask_img2, Image.new("L", (w, h), 128))
+
+            tmp_image = Image.new("RGBA", (w, h), "#ff00ff80")
+            image.paste(tmp_image, (0, 0), tmp_mask_img)
 
         return image
