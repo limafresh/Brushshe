@@ -125,6 +125,16 @@ class Brushshe(ctk.CTk):
         view_dropdown.add_separator()
         view_dropdown.add_option(option=_("Reset"), command=self.reset_zoom)
 
+        select_menu = menu.add_cascade(_("Select"))
+        select_dropdown = CustomDropdownMenu(widget=select_menu)
+        select_dropdown.add_option(
+            option=_("Rectangle select"),
+            command=lambda: self.select_by_shape(shape="rectangle"),
+        )
+        select_dropdown.add_option(option=_("Polygon select"), command=self.select_by_polygon)
+        select_dropdown.add_option(option=_("Invert selected"), command=self.invert_mask)
+        select_dropdown.add_option(option=_("Deselect all"), command=self.remove_mask)
+
         tools_menu = menu.add_cascade(_("Tools"))
         tools_dropdown = CustomDropdownMenu(widget=tools_menu)
 
@@ -347,11 +357,19 @@ class Brushshe(ctk.CTk):
             },
             {
                 "type": "button",
+                "name": _("Polygon select"),
+                "helper": _("Polygon select"),
+                "action":  self.select_by_polygon,
+                "icon_name": "polygon_select",
+            },
+            {
+                "type": "button",
                 "name": _("Deselect all"),
                 "helper": _("Deselect all"),
                 "action": self.remove_mask,
                 "icon_name": "deselect_all",
             },
+            # {"type": "separator"},
             # {
             #     "type": "button",
             #     "name": _("test"),
@@ -1898,6 +1916,9 @@ class Brushshe(ctk.CTk):
 
             self.crop_picture(math.floor(x1), math.floor(y1), math.ceil(x2) + 1, math.ceil(y2) + 1)
 
+            # Remove mask if exist.
+            self.selected_mask_img = None
+
             self.update_canvas()
 
         def draw_tool(x1, y1, x2, y2):
@@ -2422,11 +2443,14 @@ class Brushshe(ctk.CTk):
         self.current_tool = tool
 
         self.canvas.unbind("<Button-1>")
+        self.canvas.unbind("<Shift-Button-1>")
+        self.canvas.unbind("<Control-Button-1>")
         self.canvas.unbind("<ButtonPress-1>")
         self.canvas.unbind("<ButtonRelease-1>")
         self.canvas.unbind("<B1-Motion>")
         self.canvas.unbind("<Motion>")
         self.canvas.unbind("<Leave>")
+        self.canvas.unbind("<BackSpace>")
 
         for child in self.tool_config_docker.winfo_children():
             child.destroy()
@@ -2798,11 +2822,18 @@ class Brushshe(ctk.CTk):
         if self.selected_mask_img.width != self.image.width or self.selected_mask_img.height != self.image.height:
             self.selected_mask_img = Image.new("L", (self.image.width, self.image.height), "white")
 
-        # self.update_canvas()
-
     def remove_mask(self):
         self.selected_mask_img = None
         self.composer.mask_img = None
+        self.update_canvas()
+
+    def invert_mask(self):
+        self.select_init_mask()
+
+        tmp_mask_img = ImageOps.invert(self.selected_mask_img)
+        self.selected_mask_img = tmp_mask_img
+        del tmp_mask_img
+
         self.update_canvas()
 
     def select_by_shape(self, shape="rectangle"):
@@ -2820,7 +2851,6 @@ class Brushshe(ctk.CTk):
 
             if mode is not None:
                 _mode = mode
-
             self.select_init_mask()
 
             x, y = self.canvas_to_pict_xy(event.x, event.y)
@@ -2920,6 +2950,163 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<Control-Button-1>", lambda e: selecting(e, "subtract"))
         self.canvas.bind("<B1-Motion>", lambda e: selecting(e, None))
         self.canvas.bind("<ButtonRelease-1>", select_end)
+
+    def select_by_polygon(self):
+
+        self.set_tool("select", "Select", None, None, None, "cross")
+
+        xy_list = None
+        _mode = "replace"
+        delta = 5
+
+        def selecting(event, mode, type="click"):
+            nonlocal xy_list, _mode
+
+            self.canvas.focus_set()  # For the key binding.
+
+            if mode is not None:
+                _mode = mode
+            if type == "click":
+                self.select_init_mask()
+
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+            x = int(x)
+            y = int(y)
+
+            x_max = self.image.width - 1
+            y_max = self.image.height - 1
+
+            if x < 0:
+                x = 0
+            if x > x_max:
+                x = x_max
+            if y < 0:
+                y = 0
+            if y > y_max:
+                y = y_max
+
+            if type == "unclick":
+                if xy_list is None:
+                    xy_list = []
+
+                xy_len = len(xy_list)
+                if (xy_len >= 4
+                        and xy_list[0] - delta < x < xy_list[0] + delta
+                        and xy_list[1] - delta < y < xy_list[1] + delta):
+
+                    xy_list.append(xy_list[0])
+                    xy_list.append(xy_list[1])
+                    select_end(event)
+                    return
+
+                xy_list.append(x)
+                xy_list.append(y)
+
+            draw_tool(x, y)
+
+        def select_end(event):
+            nonlocal xy_list, _mode
+
+            if xy_list is None:
+                return
+
+            self.canvas.delete("tools")
+
+            x_max = self.image.width - 1
+            y_max = self.image.height - 1
+
+            draw = ImageDraw.Draw(self.selected_mask_img)
+
+            if _mode == "replace":
+                draw.rectangle([0, 0, x_max, y_max], fill="black")
+
+            if _mode == "subtract":
+                draw.polygon(xy_list, fill="black")
+            else:  # add or replace
+                draw.polygon(xy_list, fill="white")
+
+            xy_list = None
+
+            self.update_canvas()
+
+        def key_backspace(event):
+            nonlocal xy_list
+
+            if xy_list is None:
+                return
+
+            xy_len = len(xy_list)
+            if xy_len >= 4:
+                del xy_list[-1]
+                del xy_list[-1]
+
+                xy_len = len(xy_list)
+                draw_tool(xy_list[xy_len - 2], xy_list[xy_len - 1])
+
+        def key_enter(event):
+            nonlocal xy_list
+
+            if xy_list is None:
+                return
+
+            if len(xy_list) >= 4:
+                select_end(event)
+
+        def draw_tool(x, y):
+            nonlocal xy_list, _mode
+
+            self.canvas.delete("tools")
+
+            if xy_list is None or 0 == len(xy_list):
+                x_begin = x
+                y_begin = y
+            else:
+                xy_len = len(xy_list)
+                x_begin = xy_list[0]
+                y_begin = xy_list[1]
+                self.canvas.create_line(
+                    int(xy_list[xy_len - 2] * self.zoom),
+                    int(xy_list[xy_len - 1] * self.zoom),
+                    int(x * self.zoom),
+                    int(y * self.zoom),
+                    fill="black",
+                    width=1,
+                    tag="tools",
+                )
+                self.canvas.create_line(
+                    int(xy_list[xy_len - 2] * self.zoom),
+                    int(xy_list[xy_len - 1] * self.zoom),
+                    int(x * self.zoom),
+                    int(y * self.zoom),
+                    fill="white",
+                    width=1,
+                    tag="tools",
+                    dash=(5, 5),
+                )
+                if xy_len >= 4:
+                    tmp_xy_list = [int(x * self.zoom) for x in xy_list]
+                    self.canvas.create_line(tmp_xy_list, fill="black", width=1, tag="tools")
+                    self.canvas.create_line(tmp_xy_list, fill="white", width=1, tag="tools", dash=(5, 5))
+
+            self.canvas.create_rectangle(
+                int(x_begin * self.zoom + delta),
+                int(y_begin * self.zoom + delta),
+                int(x_begin * self.zoom - delta),
+                int(y_begin * self.zoom - delta),
+                outline="black",
+                fill="white",
+                width=1,
+                tag="tools"
+            )
+
+        self.canvas.bind("<Button-1>", lambda e: selecting(e, "replace"))
+        self.canvas.bind("<Shift-Button-1>", lambda e: selecting(e, "add"))
+        self.canvas.bind("<Control-Button-1>", lambda e: selecting(e, "subtract"))
+        self.canvas.bind("<B1-Motion>", lambda e: selecting(e, None, "moving"))
+        self.canvas.bind("<Motion>", lambda e: selecting(e, None, "moving"))
+        self.canvas.bind("<ButtonRelease-1>", lambda e: selecting(e, None, "unclick"))
+        self.canvas.bind("<BackSpace>", key_backspace)
+        self.canvas.bind("<Return>", key_enter)
 
 
 ctk.set_appearance_mode(config.get("Brushshe", "theme"))
