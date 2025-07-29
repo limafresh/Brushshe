@@ -999,6 +999,8 @@ class Brushshe(ctk.CTk):
         self.image = new_image
         self.draw = ImageDraw.Draw(self.image)
 
+        self.selected_mask_img = None
+
         self.force_resize_canvas()
         self.update_canvas()
 
@@ -1917,6 +1919,7 @@ class Brushshe(ctk.CTk):
             self.crop_picture(math.floor(x1), math.floor(y1), math.ceil(x2) + 1, math.ceil(y2) + 1)
 
             # Remove mask if exist.
+            # TODO: Continue...
             self.selected_mask_img = None
 
             self.update_canvas()
@@ -2103,6 +2106,8 @@ class Brushshe(ctk.CTk):
             self.canvas_image = self.canvas.create_image(0, 0, anchor=ctk.NW, image=self.img_tk)
         else:
             pass
+
+        self.selected_mask_img = None
 
         self.force_resize_canvas()
         self.update_canvas()
@@ -2301,21 +2306,33 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<B1-Motion>", move_spray)
         self.canvas.bind("<ButtonRelease-1>", stop_spray)
 
+    # TODO: Add selected_mask_img on history with type `mask`.
+    # FIXME: Need add length synchronization undo_stack and redo_stack (actually it must be one stack).
     def undo(self):
         if len(self.undo_stack) > 1:
-            self.redo_stack.append(self.undo_stack.pop())
-            self.image = self.undo_stack[-1].copy()
+            tmp_image = self.undo_stack.pop()
+            is_resize = False
+            if self.image.width != tmp_image.width or self.image.height != tmp_image.height:
+                is_resize = True
+            self.redo_stack.append(tmp_image)
+            self.image = tmp_image.copy()
             self.draw = ImageDraw.Draw(self.image)
-            if self.image.width != self.canvas.winfo_width() or self.image.height != self.canvas.winfo_height():
+            if is_resize:
+                self.selected_mask_img = None
                 self.force_resize_canvas()
             self.update_canvas()
 
     def redo(self):
         if len(self.redo_stack) > 0:
-            self.image = self.redo_stack.pop().copy()
+            tmp_image = self.redo_stack.pop().copy()
+            is_resize = False
+            if self.image.width != tmp_image.width or self.image.height != tmp_image.height:
+                is_resize = True
+            self.image = tmp_image
             self.undo_stack.append(self.image.copy())
             self.draw = ImageDraw.Draw(self.image)
-            if self.image.width != self.canvas.winfo_width() or self.image.height != self.canvas.winfo_height():
+            if is_resize:
+                self.selected_mask_img = None
                 self.force_resize_canvas()
             self.update_canvas()
 
@@ -2378,6 +2395,8 @@ class Brushshe(ctk.CTk):
             self.bg_color = "white"
             self.image = Image.open(openimage)
             self.picture_postconfigure()
+
+            self.selected_mask_img = None
 
             self.current_file = openimage
             self.title(os.path.basename(self.current_file) + " - " + _("Brushshe"))
@@ -2451,6 +2470,7 @@ class Brushshe(ctk.CTk):
         self.canvas.unbind("<Motion>")
         self.canvas.unbind("<Leave>")
         self.canvas.unbind("<BackSpace>")
+        self.canvas.unbind("<Return>")
 
         for child in self.tool_config_docker.winfo_children():
             child.destroy()
