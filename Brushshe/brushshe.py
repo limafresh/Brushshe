@@ -29,6 +29,7 @@ from PIL import (
     ImageFont,
     ImageGrab,
     ImageOps,
+    ImageChops,
     ImageStat,
     ImageTk,
 )
@@ -124,6 +125,16 @@ class Brushshe(ctk.CTk):
         view_dropdown.add_separator()
         view_dropdown.add_option(option=_("Reset"), command=self.reset_zoom)
 
+        select_menu = menu.add_cascade(_("Select"))
+        select_dropdown = CustomDropdownMenu(widget=select_menu)
+        select_dropdown.add_option(
+            option=_("Rectangle select"),
+            command=lambda: self.select_by_shape(shape="rectangle"),
+        )
+        select_dropdown.add_option(option=_("Polygon select"), command=self.select_by_polygon)
+        select_dropdown.add_option(option=_("Invert selected"), command=self.invert_mask)
+        select_dropdown.add_option(option=_("Deselect all"), command=self.remove_mask)
+
         tools_menu = menu.add_cascade(_("Tools"))
         tools_dropdown = CustomDropdownMenu(widget=tools_menu)
 
@@ -141,8 +152,8 @@ class Brushshe(ctk.CTk):
         shapes_submenu.add_option(option=_("Bezier curve"), command=self.bezier_shape)
 
         edit_submenu = tools_dropdown.add_submenu(_("Edit tools"))
-        edit_submenu.add_option(option=_("Cut"), command=lambda: self.copy_simple(deleted=True))
-        edit_submenu.add_option(option=_("Copy"), command=lambda: self.copy_simple())
+        edit_submenu.add_option(option=_("Cut"), command=lambda: self.copy_tool(deleted=True))
+        edit_submenu.add_option(option=_("Copy"), command=lambda: self.copy_tool())
         edit_submenu.add_option(option=_("Insert"), command=lambda: self.start_insert())
         edit_submenu.add_option(option=_("Crop"), command=lambda: self.crop_simple())
 
@@ -312,14 +323,14 @@ class Brushshe(ctk.CTk):
                 "type": "button",
                 "name": _("Cut"),
                 "helper": _("Cut"),  # + " (Ctrl+X)",
-                "action": lambda: self.copy_simple(deleted=True),
+                "action": lambda: self.copy_tool(deleted=True),
                 "icon_name": "cut",
             },
             {
                 "type": "button",
                 "name": _("Copy"),
                 "helper": _("Copy"),  # + " (Ctrl+C)",
-                "action": lambda: self.copy_simple(),
+                "action": lambda: self.copy_tool(),
                 "icon_name": "copy",
             },
             {
@@ -335,6 +346,28 @@ class Brushshe(ctk.CTk):
                 "helper": _("Crop"),
                 "action": self.crop_simple,
                 "icon_name": "crop",
+            },
+            {"type": "separator"},
+            {
+                "type": "button",
+                "name": _("Rectangle select"),
+                "helper": _("Rectangle select"),
+                "action": lambda: self.select_by_shape(shape="rectangle"),
+                "icon_name": "rectangle_select",
+            },
+            {
+                "type": "button",
+                "name": _("Polygon select"),
+                "helper": _("Polygon select"),
+                "action":  self.select_by_polygon,
+                "icon_name": "polygon_select",
+            },
+            {
+                "type": "button",
+                "name": _("Deselect all"),
+                "helper": _("Deselect all"),
+                "action": self.remove_mask,
+                "icon_name": "deselect_all",
             },
             # {"type": "separator"},
             # {
@@ -427,6 +460,7 @@ class Brushshe(ctk.CTk):
         self.sticker_size = 100
         self.font_size = 24
         self.zoom = 1
+        self.selected_mask_img = None  # Can be gray_image or None 
 
         self.is_brush_smoothing = config.getboolean("Brushshe", "smoothing")
         self.brush_smoothing_factor = config.getint("Brushshe", "brush_smoothing_factor")  # Between: 3..64
@@ -672,7 +706,7 @@ class Brushshe(ctk.CTk):
 
     def on_window_resize(self, event):
         # Update canvas after any resize window.
-        if self.zoom > 1:
+        if self.zoom >= 1 and hasattr(self, "canvas"):
             self.update_canvas()
 
     def when_closing(self):
@@ -754,7 +788,7 @@ class Brushshe(ctk.CTk):
     def canvas_to_pict_xy_f(self, x, y):
         return self.canvas.canvasx(x) / self.zoom, self.canvas.canvasy(y) / self.zoom
 
-    def draw_line(self, x1, y1, x2, y2):
+    def get_tool_main_color(self):
         if self.current_tool == "eraser":
             color = self.bg_color
             if self.image.mode == "RGBA":
@@ -764,8 +798,19 @@ class Brushshe(ctk.CTk):
             color = self.brush_color
             if self.image.mode == "RGBA":
                 color = self.rgb_tuple_to_rgba_tuple(self.rgb_color_to_tuple(color), 255)
+        return color
 
-        bh_draw_line(self.draw, x1, y1, x2, y2, color, self.tool_size, self.brush_shape, self.current_tool)
+    def draw_line(self, x1, y1, x2, y2):
+        color = self.get_tool_main_color()
+
+        if self.selected_mask_img is None:
+            bh_draw_line(self.draw, x1, y1, x2, y2, color, self.tool_size, self.brush_shape, self.current_tool)
+        else:
+            tmp_image = self.image.copy()
+            tmp_draw = ImageDraw.Draw(tmp_image)
+            bh_draw_line(tmp_draw, x1, y1, x2, y2, color, self.tool_size, self.brush_shape, self.current_tool)
+            self.image.paste(tmp_image, (0, 0), self.selected_mask_img)
+            del tmp_image
 
     def update_canvas(self):
         # Debug
@@ -778,28 +823,48 @@ class Brushshe(ctk.CTk):
         # t2 = time.perf_counter(), time.process_time()
         # print(f" Real time: {t2[0] - t1[0]:.6f} sec. CPU time: {t2[1] - t1[1]:.6f} sec")
 
-    def _update_canvas(self):
-        # Please try not to cram into this function what can be moved to others.
-        # This function is critical and its speed is important
-        if self.zoom == 1:
-            canvas_image = self.image
-        else:
-            canvas_image = self.image.resize(
-                (int(self.image.width * self.zoom), int(self.image.height * self.zoom)), Image.BOX
-            )
-        self.img_tk = ImageTk.PhotoImage(canvas_image)
-        self.canvas.itemconfig(self.canvas_image, image=self.img_tk)
+    # def _update_canvas(self):
+    #     # Please try not to cram into this function what can be moved to others.
+    #     # This function is critical and its speed is important
+    #     if self.zoom == 1:
+    #         canvas_image = self.image
+    #     else:
+    #         canvas_image = self.image.resize(
+    #             (int(self.image.width * self.zoom), int(self.image.height * self.zoom)), Image.BOX
+    #         )
+    #     self.img_tk = ImageTk.PhotoImage(canvas_image)
+    #     self.canvas.itemconfig(self.canvas_image, image=self.img_tk)
 
     def _tailing_update_canvas(self):
-        if self.zoom == 1:
-            canvas_image = self.image
-        elif self.zoom < 1:
+        if self.zoom < 1:
             # https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-filters
             canvas_image = self.image.resize(
                 (math.ceil(self.image.width * self.zoom), math.ceil(self.image.height * self.zoom)), Image.BOX
             )
-        else:  # self.zoom > 1:
-            # It can be used for zoom == 1 with some corrected on other places.
+            if self.selected_mask_img is None:
+                mask_image = None
+            else:
+                mask_image = self.selected_mask_img.resize(
+                    (
+                        math.ceil(self.selected_mask_img.width * self.zoom),
+                        math.ceil(self.selected_mask_img.height * self.zoom),
+                    ),
+                    Image.NEAREST,
+                )
+
+            self.composer.set_l_image(canvas_image)
+            self.composer.set_mask_image(mask_image)
+
+            compose_image = self.composer.get_compose_image(0, 0, canvas_image.width - 1, canvas_image.height - 1)
+
+            self.img_tk = ImageTk.PhotoImage(compose_image)
+            self.canvas.itemconfig(self.canvas_image, image=self.img_tk)
+            self.canvas.moveto(self.canvas_image, 0, 0)
+            self.canvas_tails_area = None
+
+            return
+
+        else:  # self.zoom > 1 or self.zoom = 1:
             # It work incorrect at this implementation for zoom < 1.
 
             cw_full = math.ceil(self.image.width * self.zoom)
@@ -814,6 +879,7 @@ class Brushshe(ctk.CTk):
                 dx = 0
                 dy = 0
                 tmp_canvas_image = self.image
+                tmp_mask_image = self.selected_mask_img
             else:
                 tiles_xy_on_image = (
                     math.floor(x1 / self.zoom),
@@ -833,6 +899,10 @@ class Brushshe(ctk.CTk):
                 # print((x1, y1, x2, y2), tiles_xy_on_image, (x1_correct, y1_correct), (dx, dy))
 
                 tmp_canvas_image = self.image.crop(tiles_xy_on_image)
+                if self.selected_mask_img is None:
+                    tmp_mask_image = None
+                else:
+                    tmp_mask_image = self.selected_mask_img.crop(tiles_xy_on_image)
 
             r_w = math.floor(tmp_canvas_image.width * self.zoom)
             r_h = math.floor(tmp_canvas_image.height * self.zoom)
@@ -842,25 +912,22 @@ class Brushshe(ctk.CTk):
                 r_h = 1
 
             canvas_image = tmp_canvas_image.resize((r_w, r_h), Image.NEAREST)
+            if tmp_mask_image is None:
+                mask_image = None
+            else:
+                mask_image = tmp_mask_image.resize((r_w, r_h), Image.NEAREST)
 
             self.composer.set_l_image(canvas_image)
+            self.composer.set_mask_image(mask_image)
+
             compose_image = self.composer.get_compose_image(x1, y1, x2 + dx, y2 + dy)
 
             self.img_tk = ImageTk.PhotoImage(compose_image)
             self.canvas.itemconfig(self.canvas_image, image=self.img_tk)
             self.canvas.moveto(self.canvas_image, x1_correct, y1_correct)
             self.canvas_tails_area = (x1, y1, x2, y2)
+
             return
-
-        self.composer.set_l_image(canvas_image)
-        compose_image = self.composer.get_compose_image(0, 0, canvas_image.width - 1, canvas_image.height - 1)
-
-        self.img_tk = ImageTk.PhotoImage(compose_image)
-        self.canvas.itemconfig(self.canvas_image, image=self.img_tk)
-        self.canvas.moveto(self.canvas_image, 0, 0)
-        self.canvas_tails_area = None
-
-        return
 
     def get_canvas_tails_area(self):
         cw_full = int(self.image.width * self.zoom)
@@ -932,6 +999,8 @@ class Brushshe(ctk.CTk):
         self.image = new_image
         self.draw = ImageDraw.Draw(self.image)
 
+        self.selected_mask_img = None
+
         self.force_resize_canvas()
         self.update_canvas()
 
@@ -953,14 +1022,28 @@ class Brushshe(ctk.CTk):
 
     def fill(self, event):
         x, y = self.canvas_to_pict_xy(event.x, event.y)
+
+        if self.selected_mask_img is None:
+            tmp_image = self.image
+        else:
+            tmp_image = self.image.copy()
+
         if self.image.mode == "RGBA":
             ImageDraw.floodfill(
-                self.image,
+                tmp_image,
                 (x, y),
                 self.rgb_tuple_to_rgba_tuple(ImageColor.getrgb(self.brush_color), 255),
             )
         else:
-            ImageDraw.floodfill(self.image, (x, y), ImageColor.getrgb(self.brush_color))
+            ImageDraw.floodfill(tmp_image, (x, y), ImageColor.getrgb(self.brush_color))
+
+        if self.selected_mask_img is None:
+            pass
+        else:
+            self.image.paste(tmp_image, (0, 0), self.selected_mask_img)
+
+        del tmp_image
+
         self.update_canvas()
         self.undo_stack.append(self.image.copy())
 
@@ -1216,17 +1299,43 @@ class Brushshe(ctk.CTk):
             else:
                 y0, y1 = y_end, y_begin
 
+            if self.selected_mask_img is None:
+                tmp_draw = ImageDraw.Draw(self.image)
+            else:
+                tmp_image = self.image.copy()
+                tmp_draw = ImageDraw.Draw(tmp_image)
+
+            color = self.get_tool_main_color()
+
             if shape == "Rectangle":
-                self.draw.rectangle([x0, y0, x1, y1], outline=self.brush_color, width=self.tool_size)
+                tmp_draw.rectangle([x0, y0, x1, y1], outline=self.brush_color, width=self.tool_size)
             elif shape == "Oval":
-                self.draw.ellipse([x0, y0, x1, y1], outline=self.brush_color, width=self.tool_size)
+                tmp_draw.ellipse([x0, y0, x1, y1], outline=self.brush_color, width=self.tool_size)
             elif shape == "Line":
-                # self.draw.line([x_begin, y_begin, x_end, y_end], fill=self.brush_color, width=self.tool_size)
-                self.draw_line(x_begin, y_begin, x_end, y_end)
+                # self.draw_line(x_begin, y_begin, x_end, y_end)
+                bh_draw_line(
+                    tmp_draw,
+                    x_begin,
+                    y_begin,
+                    x_end,
+                    y_end,
+                    color,
+                    self.tool_size,
+                    self.brush_shape,
+                    self.current_tool
+                )
             elif shape == "Fill rectangle":
-                self.draw.rectangle([x0, y0, x1, y1], fill=self.brush_color)
+                tmp_draw.rectangle([x0, y0, x1, y1], fill=self.brush_color)
             elif shape == "Fill oval":
-                self.draw.ellipse([x0, y0, x1, y1], fill=self.brush_color)
+                tmp_draw.ellipse([x0, y0, x1, y1], fill=self.brush_color)
+            else:
+                print("Warning: Incorrect shape.")
+
+            if self.selected_mask_img is None:
+                pass
+            else:
+                self.image.paste(tmp_image, (0, 0), self.selected_mask_img)
+                del tmp_image
 
             self.update_canvas()
             self.undo_stack.append(self.image.copy())
@@ -1342,12 +1451,35 @@ class Brushshe(ctk.CTk):
                 b = make_bezier(image_points)
                 points = b(ts)
                 points_len = len(points)
+
+                color = self.get_tool_main_color()
+
+                if self.selected_mask_img is None:
+                    tmp_image = self.image
+                    tmp_draw = ImageDraw.Draw(tmp_image)
+                else:
+                    tmp_image = self.image.copy()
+                    tmp_draw = ImageDraw.Draw(tmp_image)
+
                 for it, tt in enumerate(points):
                     if it < points_len - 1:
-                        # It's can work with float too, but with more artifacts.
-                        self.draw_line(
-                            int(points[it][0]), int(points[it][1]), int(points[it + 1][0]), int(points[it + 1][1])
+                        bh_draw_line(
+                            tmp_draw,
+                            int(points[it][0]),
+                            int(points[it][1]),
+                            int(points[it + 1][0]),
+                            int(points[it + 1][1]),
+                            color,
+                            self.tool_size,
+                            self.brush_shape,
+                            self.current_tool
                         )
+
+                if self.selected_mask_img is None:
+                    pass
+                else:
+                    self.image.paste(tmp_image, (0, 0), self.selected_mask_img)
+                    del tmp_image
 
                 self.canvas.delete(bezier_id)
                 self.update_canvas()
@@ -1428,7 +1560,13 @@ class Brushshe(ctk.CTk):
                 color_from = self.rgb_tuple_to_rgba_tuple(color_from, 255)
                 color_to = self.rgb_tuple_to_rgba_tuple(color_to, 255)
 
-            bh_draw_recoloring_line(self.image, x1, y1, x2, y2, color_from, color_to, self.tool_size)
+            if self.selected_mask_img is None:
+                bh_draw_recoloring_line(self.image, x1, y1, x2, y2, color_from, color_to, self.tool_size)
+            else:
+                tmp_image = self.image.copy()
+                bh_draw_recoloring_line(tmp_image, x1, y1, x2, y2, color_from, color_to, self.tool_size)
+                self.image.paste(tmp_image, (0, 0), self.selected_mask_img)
+                del tmp_image
 
         def draw_brush_halo(x, y):
             self.canvas.delete("tools")
@@ -1463,6 +1601,45 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<ButtonRelease-1>", end)
         self.canvas.bind("<Motion>", move)
         self.canvas.bind("<Leave>", leave)
+
+    def copy_tool(self, deleted=False):
+        if self.selected_mask_img is None:
+            self.copy_simple(deleted)
+        else:
+            self.copy_selected(deleted)
+
+    def copy_selected(self, deleted=False):
+        if self.selected_mask_img is None:
+            return
+
+        tmp_bg_color = (0, 0, 0, 0)
+        tmp_img_mask = self.selected_mask_img
+        tmp_img = Image.new("RGBA", (self.image.width, self.image.height), tmp_bg_color)
+        tmp_img.paste(self.image, (0, 0), tmp_img_mask)
+
+        # Trim image.
+        bg = Image.new(tmp_img.mode, tmp_img.size, tmp_bg_color)
+        diff = ImageChops.difference(tmp_img, bg)
+        # diff = ImageChops.add(diff, diff, 2.0, -100)
+        bbox = diff.getbbox()
+
+        if bbox:
+            self.buffer_local = tmp_img.crop(bbox)
+        else:
+            self.buffer_local = tmp_img
+
+        del tmp_img
+
+        if deleted:
+            bg_color = self.bg_color
+            if self.image.mode == "RGBA":
+                bg_color = (0, 0, 0, 0)
+            tmp_img = Image.new(self.image.mode, (self.image.width, self.image.height), bg_color)
+            self.image.paste(tmp_img, (0, 0), tmp_img_mask)
+            del tmp_img
+            self.undo_stack.append(self.image.copy())
+
+        self.update_canvas()
 
     def copy_simple(self, deleted=False):
         if deleted is False:
@@ -1741,6 +1918,10 @@ class Brushshe(ctk.CTk):
 
             self.crop_picture(math.floor(x1), math.floor(y1), math.ceil(x2) + 1, math.ceil(y2) + 1)
 
+            # Remove mask if exist.
+            # TODO: Continue...
+            self.selected_mask_img = None
+
             self.update_canvas()
 
         def draw_tool(x1, y1, x2, y2):
@@ -1926,6 +2107,8 @@ class Brushshe(ctk.CTk):
         else:
             pass
 
+        self.selected_mask_img = None
+
         self.force_resize_canvas()
         self.update_canvas()
 
@@ -2081,11 +2264,25 @@ class Brushshe(ctk.CTk):
             if not self.spraying or self.prev_x is None or self.prev_y is None:
                 return
 
+            if self.selected_mask_img is None:
+                tmp_image = self.image
+                tmp_draw = ImageDraw.Draw(tmp_image)
+            else:
+                tmp_image = self.image.copy()
+                tmp_draw = ImageDraw.Draw(tmp_image)
+
             for i in range(self.tool_size * 2):
                 offset_x = random.randint(-self.tool_size, self.tool_size)
                 offset_y = random.randint(-self.tool_size, self.tool_size)
                 if offset_x**2 + offset_y**2 <= self.tool_size**2:
-                    self.draw.point((self.prev_x + offset_x, self.prev_y + offset_y), fill=self.brush_color)
+                    tmp_draw.point((self.prev_x + offset_x, self.prev_y + offset_y), fill=self.brush_color)
+
+            if self.selected_mask_img is None:
+                pass
+            else:
+                self.image.paste(tmp_image, (0, 0), self.selected_mask_img)
+
+            del tmp_image
 
             self.update_canvas()
             self.spray_job = self.after(50, do_spray)
@@ -2109,21 +2306,33 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<B1-Motion>", move_spray)
         self.canvas.bind("<ButtonRelease-1>", stop_spray)
 
+    # TODO: Add selected_mask_img on history with type `mask`.
+    # FIXME: Need add length synchronization undo_stack and redo_stack (actually it must be one stack).
     def undo(self):
         if len(self.undo_stack) > 1:
-            self.redo_stack.append(self.undo_stack.pop())
-            self.image = self.undo_stack[-1].copy()
+            tmp_image = self.undo_stack.pop()
+            is_resize = False
+            if self.image.width != tmp_image.width or self.image.height != tmp_image.height:
+                is_resize = True
+            self.redo_stack.append(tmp_image)
+            self.image = tmp_image.copy()
             self.draw = ImageDraw.Draw(self.image)
-            if self.image.width != self.canvas.winfo_width() or self.image.height != self.canvas.winfo_height():
+            if is_resize:
+                self.selected_mask_img = None
                 self.force_resize_canvas()
             self.update_canvas()
 
     def redo(self):
         if len(self.redo_stack) > 0:
-            self.image = self.redo_stack.pop().copy()
+            tmp_image = self.redo_stack.pop().copy()
+            is_resize = False
+            if self.image.width != tmp_image.width or self.image.height != tmp_image.height:
+                is_resize = True
+            self.image = tmp_image
             self.undo_stack.append(self.image.copy())
             self.draw = ImageDraw.Draw(self.image)
-            if self.image.width != self.canvas.winfo_width() or self.image.height != self.canvas.winfo_height():
+            if is_resize:
+                self.selected_mask_img = None
                 self.force_resize_canvas()
             self.update_canvas()
 
@@ -2186,6 +2395,8 @@ class Brushshe(ctk.CTk):
             self.bg_color = "white"
             self.image = Image.open(openimage)
             self.picture_postconfigure()
+
+            self.selected_mask_img = None
 
             self.current_file = openimage
             self.title(os.path.basename(self.current_file) + " - " + _("Brushshe"))
@@ -2251,11 +2462,15 @@ class Brushshe(ctk.CTk):
         self.current_tool = tool
 
         self.canvas.unbind("<Button-1>")
+        self.canvas.unbind("<Shift-Button-1>")
+        self.canvas.unbind("<Control-Button-1>")
         self.canvas.unbind("<ButtonPress-1>")
         self.canvas.unbind("<ButtonRelease-1>")
         self.canvas.unbind("<B1-Motion>")
         self.canvas.unbind("<Motion>")
         self.canvas.unbind("<Leave>")
+        self.canvas.unbind("<BackSpace>")
+        self.canvas.unbind("<Return>")
 
         for child in self.tool_config_docker.winfo_children():
             child.destroy()
@@ -2616,6 +2831,302 @@ class Brushshe(ctk.CTk):
             print("Error: Wrong color.")
             res = (0, 0, 0, 0)
         return res
+
+    def select_init_mask(self):
+        if self.composer is None:
+            return
+
+        if self.selected_mask_img is None:
+            self.selected_mask_img = Image.new("L", (self.image.width, self.image.height), "white")
+
+        if self.selected_mask_img.width != self.image.width or self.selected_mask_img.height != self.image.height:
+            self.selected_mask_img = Image.new("L", (self.image.width, self.image.height), "white")
+
+    def remove_mask(self):
+        self.selected_mask_img = None
+        self.composer.mask_img = None
+        self.update_canvas()
+
+    def invert_mask(self):
+        self.select_init_mask()
+
+        tmp_mask_img = ImageOps.invert(self.selected_mask_img)
+        self.selected_mask_img = tmp_mask_img
+        del tmp_mask_img
+
+        self.update_canvas()
+
+    def select_by_shape(self, shape="rectangle"):
+
+        self.set_tool("select", "Select", None, None, None, "cross")
+
+        x_begin = None
+        y_begin = None
+        x_end = None
+        y_end = None
+        _mode = "replace"
+
+        def selecting(event, mode):
+            nonlocal x_begin, y_begin, x_end, y_end, _mode
+
+            if mode is not None:
+                _mode = mode
+            self.select_init_mask()
+
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+
+            if x_begin is None or y_begin is None:
+                x_begin = x
+                y_begin = y
+
+            x_end = x
+            y_end = y
+
+            x_max = self.image.width - 1
+            y_max = self.image.height - 1
+
+            if x_begin < 0:
+                x_begin = 0
+            if x_begin > x_max:
+                x_begin = x_max
+            if y_begin < 0:
+                y_begin = 0
+            if y_begin > y_max:
+                y_begin = y_max
+            if x_end < 0:
+                x_end = 0
+            if x_end > x_max:
+                x_end = x_max
+            if y_end < 0:
+                y_end = 0
+            if y_end > y_max:
+                y_end = y_max
+
+            x1 = min(x_begin, x_end)
+            x2 = max(x_begin, x_end)
+            y1 = min(y_begin, y_end)
+            y2 = max(y_begin, y_end)
+
+            draw_tool(x1, y1, x2, y2)
+
+        def select_end(event):
+            nonlocal x_begin, y_begin, x_end, y_end, _mode
+
+            if x_begin is None or y_begin is None:
+                return
+
+            x1 = min(x_begin, x_end)
+            x2 = max(x_begin, x_end)
+            y1 = min(y_begin, y_end)
+            y2 = max(y_begin, y_end)
+
+            self.canvas.delete("tools")
+
+            x_begin = None
+            y_begin = None
+            x_end = None
+            y_end = None
+
+            x_max = self.image.width - 1
+            y_max = self.image.height - 1
+
+            draw = ImageDraw.Draw(self.selected_mask_img)
+
+            if _mode == "replace":
+                draw.rectangle([0, 0, x_max, y_max], fill="black")
+
+            if _mode == "subtract":
+                draw.rectangle([x1, y1, x2, y2], fill="black")
+            else:  # add or replace
+                draw.rectangle([x1, y1, x2, y2], fill="white")
+
+            self.update_canvas()
+
+        def draw_tool(x1, y1, x2, y2):
+            self.canvas.delete("tools")
+
+            self.canvas.create_rectangle(
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
+                outline="white",
+                width=1,
+                tag="tools",
+            )
+            self.canvas.create_rectangle(
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
+                outline="black",
+                width=1,
+                tag="tools",
+                dash=(5, 5),
+            )
+
+        self.canvas.bind("<Button-1>", lambda e: selecting(e, "replace"))
+        self.canvas.bind("<Shift-Button-1>", lambda e: selecting(e, "add"))
+        self.canvas.bind("<Control-Button-1>", lambda e: selecting(e, "subtract"))
+        self.canvas.bind("<B1-Motion>", lambda e: selecting(e, None))
+        self.canvas.bind("<ButtonRelease-1>", select_end)
+
+    def select_by_polygon(self):
+
+        self.set_tool("select", "Select", None, None, None, "cross")
+
+        xy_list = None
+        _mode = "replace"
+        delta = 5
+
+        def selecting(event, mode, type="click"):
+            nonlocal xy_list, _mode
+
+            self.canvas.focus_set()  # For the key binding.
+
+            if mode is not None:
+                _mode = mode
+            if type == "click":
+                self.select_init_mask()
+
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+            x = int(x)
+            y = int(y)
+
+            x_max = self.image.width - 1
+            y_max = self.image.height - 1
+
+            if x < 0:
+                x = 0
+            if x > x_max:
+                x = x_max
+            if y < 0:
+                y = 0
+            if y > y_max:
+                y = y_max
+
+            if type == "unclick":
+                if xy_list is None:
+                    xy_list = []
+
+                xy_len = len(xy_list)
+                if (xy_len >= 4
+                        and xy_list[0] - delta < x < xy_list[0] + delta
+                        and xy_list[1] - delta < y < xy_list[1] + delta):
+
+                    xy_list.append(xy_list[0])
+                    xy_list.append(xy_list[1])
+                    select_end(event)
+                    return
+
+                xy_list.append(x)
+                xy_list.append(y)
+
+            draw_tool(x, y)
+
+        def select_end(event):
+            nonlocal xy_list, _mode
+
+            if xy_list is None:
+                return
+
+            self.canvas.delete("tools")
+
+            x_max = self.image.width - 1
+            y_max = self.image.height - 1
+
+            draw = ImageDraw.Draw(self.selected_mask_img)
+
+            if _mode == "replace":
+                draw.rectangle([0, 0, x_max, y_max], fill="black")
+
+            if _mode == "subtract":
+                draw.polygon(xy_list, fill="black")
+            else:  # add or replace
+                draw.polygon(xy_list, fill="white")
+
+            xy_list = None
+
+            self.update_canvas()
+
+        def key_backspace(event):
+            nonlocal xy_list
+
+            if xy_list is None:
+                return
+
+            xy_len = len(xy_list)
+            if xy_len >= 4:
+                del xy_list[-1]
+                del xy_list[-1]
+
+                xy_len = len(xy_list)
+                draw_tool(xy_list[xy_len - 2], xy_list[xy_len - 1])
+
+        def key_enter(event):
+            nonlocal xy_list
+
+            if xy_list is None:
+                return
+
+            if len(xy_list) >= 4:
+                select_end(event)
+
+        def draw_tool(x, y):
+            nonlocal xy_list, _mode
+
+            self.canvas.delete("tools")
+
+            if xy_list is None or 0 == len(xy_list):
+                x_begin = x
+                y_begin = y
+            else:
+                xy_len = len(xy_list)
+                x_begin = xy_list[0]
+                y_begin = xy_list[1]
+                self.canvas.create_line(
+                    int(xy_list[xy_len - 2] * self.zoom),
+                    int(xy_list[xy_len - 1] * self.zoom),
+                    int(x * self.zoom),
+                    int(y * self.zoom),
+                    fill="black",
+                    width=1,
+                    tag="tools",
+                )
+                self.canvas.create_line(
+                    int(xy_list[xy_len - 2] * self.zoom),
+                    int(xy_list[xy_len - 1] * self.zoom),
+                    int(x * self.zoom),
+                    int(y * self.zoom),
+                    fill="white",
+                    width=1,
+                    tag="tools",
+                    dash=(5, 5),
+                )
+                if xy_len >= 4:
+                    tmp_xy_list = [int(x * self.zoom) for x in xy_list]
+                    self.canvas.create_line(tmp_xy_list, fill="black", width=1, tag="tools")
+                    self.canvas.create_line(tmp_xy_list, fill="white", width=1, tag="tools", dash=(5, 5))
+
+            self.canvas.create_rectangle(
+                int(x_begin * self.zoom + delta),
+                int(y_begin * self.zoom + delta),
+                int(x_begin * self.zoom - delta),
+                int(y_begin * self.zoom - delta),
+                outline="black",
+                fill="white",
+                width=1,
+                tag="tools"
+            )
+
+        self.canvas.bind("<Button-1>", lambda e: selecting(e, "replace"))
+        self.canvas.bind("<Shift-Button-1>", lambda e: selecting(e, "add"))
+        self.canvas.bind("<Control-Button-1>", lambda e: selecting(e, "subtract"))
+        self.canvas.bind("<B1-Motion>", lambda e: selecting(e, None, "moving"))
+        self.canvas.bind("<Motion>", lambda e: selecting(e, None, "moving"))
+        self.canvas.bind("<ButtonRelease-1>", lambda e: selecting(e, None, "unclick"))
+        self.canvas.bind("<BackSpace>", key_backspace)
+        self.canvas.bind("<Return>", key_enter)
 
 
 ctk.set_appearance_mode(config.get("Brushshe", "theme"))
