@@ -36,7 +36,7 @@ pip install customtkinter Pillow
 4. Run file `Brushshe/brushshe.py`.
 
 ## 🚀 Features
-+ **Open**: You can open a picture from a file or URL.
++ **Open**: You can open a picture from a file.
 + **Painting**: You can choose a color, change the brush thickness and shape, and paint. You can change canvas size.
 + **Recoloring brush (new!)**: Draws through contours.
 + **Save to device**: You can save picture to your PC in different formats (PNG, JPG, GIF, BMP, TIFF, WEBP, ICO, PPM, PGM, PBM).
