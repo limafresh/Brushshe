@@ -126,5 +126,10 @@
 	"Change size": "Изменить размер",
 	"Crop": "Обрезать",
 	"Refresh": "Обновить",
-	"Clear cache": "Очистить кэш"
+	"Clear cache": "Очистить кэш",
+	"Select": "Выделить",
+	"Rectangle select": "Прямоугольное выделение",
+	"Polygon select": "Многоугольное выделение",
+	"Invert selected": "Инвертировать выделенное",
+	"Deselect all": "Отменить всё выделенное"
 }

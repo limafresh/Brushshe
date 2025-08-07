@@ -127,5 +127,10 @@
 	"Change size": "Змінити розмір",
 	"Crop": "Обрізати",
 	"Refresh": "Оновити",
-	"Clear cache": "Очистити кеш"
+	"Clear cache": "Очистити кеш",
+	"Select": "Виділити",
+	"Rectangle select": "Прямокутне виділення",
+	"Polygon select": "Багатокутне виділення",
+	"Invert selected": "Інвертувати виділене",
+	"Deselect all": "Скасувати все виділене"
 }

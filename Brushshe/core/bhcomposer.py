@@ -1,5 +1,5 @@
 # import math
-from PIL import Image, ImageDraw, ImageOps, ImageChops
+from PIL import Image, ImageChops, ImageDraw
 
 
 class BhComposer:
@@ -93,7 +93,6 @@ class BhComposer:
             image.paste(self.l_image, (0, 0))
 
         if self.mask_img is not None:
-
             tmp_mask_img = self.mask_img.copy()
 
             if tmp_mask_img.mode != "L":

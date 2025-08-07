@@ -22,6 +22,7 @@ from CTkMessagebox import CTkMessagebox
 from file_dialog import FileDialog
 from PIL import (
     Image,
+    ImageChops,
     ImageColor,
     ImageDraw,
     ImageEnhance,
@@ -29,7 +30,6 @@ from PIL import (
     ImageFont,
     ImageGrab,
     ImageOps,
-    ImageChops,
     ImageStat,
     ImageTk,
 )
@@ -63,9 +63,9 @@ class Brushshe(ctk.CTk):
         """ Version """
         self.version_prefix = ""
         self.version_major = "2"
-        self.version_minor = "1"
+        self.version_minor = "2"
         self.version_patch = "0"
-        self.version_suffix = ' "Ternopil"'
+        self.version_suffix = ' "Ushuaia"'
 
         self.version_full = "{0}{1}.{2}.{3}{4}".format(
             self.version_prefix,
@@ -359,7 +359,7 @@ class Brushshe(ctk.CTk):
                 "type": "button",
                 "name": _("Polygon select"),
                 "helper": _("Polygon select"),
-                "action":  self.select_by_polygon,
+                "action": self.select_by_polygon,
                 "icon_name": "polygon_select",
             },
             {
@@ -460,7 +460,7 @@ class Brushshe(ctk.CTk):
         self.sticker_size = 100
         self.font_size = 24
         self.zoom = 1
-        self.selected_mask_img = None  # Can be gray_image or None 
+        self.selected_mask_img = None  # Can be gray_image or None
 
         self.is_brush_smoothing = config.getboolean("Brushshe", "smoothing")
         self.brush_smoothing_factor = config.getint("Brushshe", "brush_smoothing_factor")  # Between: 3..64
@@ -1314,15 +1314,7 @@ class Brushshe(ctk.CTk):
             elif shape == "Line":
                 # self.draw_line(x_begin, y_begin, x_end, y_end)
                 bh_draw_line(
-                    tmp_draw,
-                    x_begin,
-                    y_begin,
-                    x_end,
-                    y_end,
-                    color,
-                    self.tool_size,
-                    self.brush_shape,
-                    self.current_tool
+                    tmp_draw, x_begin, y_begin, x_end, y_end, color, self.tool_size, self.brush_shape, self.current_tool
                 )
             elif shape == "Fill rectangle":
                 tmp_draw.rectangle([x0, y0, x1, y1], fill=self.brush_color)
@@ -1472,7 +1464,7 @@ class Brushshe(ctk.CTk):
                             color,
                             self.tool_size,
                             self.brush_shape,
-                            self.current_tool
+                            self.current_tool,
                         )
 
                 if self.selected_mask_img is None:
@@ -2857,7 +2849,6 @@ class Brushshe(ctk.CTk):
         self.update_canvas()
 
     def select_by_shape(self, shape="rectangle"):
-
         self.set_tool("select", "Select", None, None, None, "cross")
 
         x_begin = None
@@ -2972,7 +2963,6 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<ButtonRelease-1>", select_end)
 
     def select_by_polygon(self):
-
         self.set_tool("select", "Select", None, None, None, "cross")
 
         xy_list = None
@@ -3010,10 +3000,11 @@ class Brushshe(ctk.CTk):
                     xy_list = []
 
                 xy_len = len(xy_list)
-                if (xy_len >= 4
-                        and xy_list[0] - delta < x < xy_list[0] + delta
-                        and xy_list[1] - delta < y < xy_list[1] + delta):
-
+                if (
+                    xy_len >= 4
+                    and xy_list[0] - delta < x < xy_list[0] + delta
+                    and xy_list[1] - delta < y < xy_list[1] + delta
+                ):
                     xy_list.append(xy_list[0])
                     xy_list.append(xy_list[1])
                     select_end(event)
@@ -3116,7 +3107,7 @@ class Brushshe(ctk.CTk):
                 outline="black",
                 fill="white",
                 width=1,
-                tag="tools"
+                tag="tools",
             )
 
         self.canvas.bind("<Button-1>", lambda e: selecting(e, "replace"))
