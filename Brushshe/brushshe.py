@@ -565,26 +565,27 @@ class Brushshe(ctk.CTk):
 
     # Keybinding without locale.
     def key_handler(self, event):
-        # Do not use with origin .bind() for equivalent key binds. Only or that, or this.
+        if self.current_tool != "text":
+            # Do not use with origin .bind() for equivalent key binds. Only or that, or this.
 
-        # Debug
-        # print(event.char, event.keycode, event.state)
+            # Debug
+            # print(event.char, event.keycode, event.state)
 
-        shift = True if event.state & 0x0001 else False
-        ctrl = True if event.state & 0x0004 else False
-        alt_l = True if event.state & 0x0008 else False
-        alt_r = True if event.state & 0x0080 else False
-        alt = True if (alt_l or alt_r) else False
-        # All else modifiers was ignored.
+            shift = True if event.state & 0x0001 else False
+            ctrl = True if event.state & 0x0004 else False
+            alt_l = True if event.state & 0x0008 else False
+            alt_r = True if event.state & 0x0080 else False
+            alt = True if (alt_l or alt_r) else False
+            # All else modifiers was ignored.
 
-        if shift is False and ctrl is False and alt is False and event.keycode == 53:  # Key-x
-            self.flip_brush_colors()
+            if shift is False and ctrl is False and alt is False and event.keycode == 53:  # Key-x
+                self.flip_brush_colors()
 
-        if shift is False and ctrl is False and alt is False and event.keycode == 56:  # Key-b
-            self.brush()
+            if shift is False and ctrl is False and alt is False and event.keycode == 56:  # Key-b
+                self.brush()
 
-        if shift is False and ctrl is False and alt is False and event.keycode == 26:  # Key-e
-            self.eraser()
+            if shift is False and ctrl is False and alt is False and event.keycode == 26:  # Key-e
+                self.eraser()
 
     def set_tools_docker(self, tools_list, columns=1):
         row = 0
@@ -1059,9 +1060,12 @@ class Brushshe(ctk.CTk):
         dialog = ctk.CTkInputDialog(text=_("Enter URL:"), title=_("Open from URL"))
         image_url = dialog.get_input()
         if image_url is not None:
-            with urlopen(image_url) as response:
-                image_data = BytesIO(response.read())
-                self.open_image(image_data)
+            try:
+                with urlopen(image_url) as response:
+                    image_data = BytesIO(response.read())
+                    self.open_image(image_data)
+            except Exception as e:
+                self.open_file_error(e)
 
     def save_current(self):
         if self.current_file is not None:
