@@ -205,7 +205,7 @@ class Brushshe(ctk.CTk):
             command=self.undo,
         )
         undo_button.pack(side=ctk.LEFT, padx=1)
-        Tooltip(undo_button, message=_("Undo") + "(Ctrl+Z)")
+        Tooltip(undo_button, message=_("Undo") + " (Ctrl+Z)")
 
         redo_icon = ctk.CTkImage(
             light_image=Image.open(resource("icons/redo_light.png")),
@@ -223,7 +223,7 @@ class Brushshe(ctk.CTk):
             command=self.redo,
         )
         redo_button.pack(side=ctk.LEFT, padx=1)
-        Tooltip(redo_button, message=_("Redo") + "(Ctrl+Y)")
+        Tooltip(redo_button, message=_("Redo") + " (Ctrl+Y)")
 
         self.tool_config_docker = ctk.CTkFrame(tools_frame)
         self.tool_config_docker.pack(side=ctk.LEFT, padx=4)
@@ -2322,7 +2322,7 @@ class Brushshe(ctk.CTk):
             if self.image.width != tmp_image.width or self.image.height != tmp_image.height:
                 is_resize = True
             self.redo_stack.append(tmp_image)
-            self.image = tmp_image.copy()
+            self.image = self.undo_stack[-1].copy()
             self.draw = ImageDraw.Draw(self.image)
             if is_resize:
                 self.selected_mask_img = None
