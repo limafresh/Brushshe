@@ -43,11 +43,11 @@ class FileDialog(ctk.CTkToplevel):
         self.up_btn.pack(side=ctk.RIGHT, padx=10, pady=10)
 
         if save:
-            extensions = [".png", ".jpg", ".gif", ".bmp", ".tiff", ".webp", ".ico", ".ppm", ".pgm", ".pbm"]
-            extension_combobox = ctk.CTkOptionMenu(
-                self.path_frame, values=extensions, width=80, command=self._combobox_callback
+            self._extensions = [".png", ".jpg", ".gif", ".bmp", ".tiff", ".webp", ".ico", ".ppm", ".pgm", ".pbm"]
+            self._extension_combobox = ctk.CTkComboBox(
+                self.path_frame, values=self._extensions, width=80, command=self._combobox_callback
             )
-            extension_combobox.pack(side=ctk.RIGHT, padx=10, pady=10)
+            self._extension_combobox.pack(side=ctk.RIGHT, padx=10, pady=10)
 
         btn_frame = ctk.CTkFrame(self.frame)
         btn_frame.pack(side=ctk.BOTTOM, fill=ctk.X, padx=10, pady=10)
@@ -121,6 +121,8 @@ class FileDialog(ctk.CTkToplevel):
         if self.save_entry.get() == "" or self.save_entry.get().startswith(" ") or self.save_entry.get().endswith(" "):
             return
         selected_path = os.path.join(self.initialdir.get(), self.save_entry.get())
+        if self._extension_combobox.get() in self._extensions:
+            self.extension = self._extension_combobox.get()
         entered_path = selected_path + self.extension
         if os.path.exists(entered_path):
             overwrite_msg = CTkMessagebox(

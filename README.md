@@ -36,7 +36,7 @@ pip install customtkinter Pillow
 4. Run file `Brushshe/brushshe.py`.
 
 ## 🚀 Features
-+ **Open**: You can open a picture from a file.
++ **Open**: You can open a picture from a file or URL.
 + **Painting**: You can choose a color, change the brush thickness and shape, and paint. You can change canvas size.
 + **Recoloring brush (new!)**: Draws through contours.
 + **Save to device**: You can save picture to your PC in different formats (PNG, JPG, GIF, BMP, TIFF, WEBP, ICO, PPM, PGM, PBM).
@@ -63,6 +63,7 @@ pip install customtkinter Pillow
 + **Cut, copy and insert**: Cut, copy or insert fragments. Works on Windows, but on Linux you need to install `xclip` (X11) or `wl-paste` (Wayland). If they are not installed, everything else will work, but when you try to paste from the buffer, you will get a message that this is impossible.
 + **Remove white background**: Replace white or really light gray background to transparent.
 + **Palettes**: use standard or custom HEX palettes.
++ **Select**: rectangle and polygon select, invert selected, deselect all.
 
 ## Hotkeys
 + *Ctrl+Z*: undo
