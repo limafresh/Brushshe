@@ -131,5 +131,7 @@
 	"Rectangle select": "Прямоугольное выделение",
 	"Polygon select": "Многоугольное выделение",
 	"Invert selected": "Инвертировать выделенное",
-	"Deselect all": "Отменить всё выделенное"
+	"Deselect all": "Отменить всё выделенное",
+	"Open from URL": "Открыть из URL",
+	"Enter URL:": "Введите URL:"
 }

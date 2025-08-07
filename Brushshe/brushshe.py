@@ -4,12 +4,14 @@ import random
 import sys
 import webbrowser
 from collections import deque
+from io import BytesIO
 from tkinter import PhotoImage
 from uuid import uuid4
 
 # import time  # Need for debug.
 import customtkinter as ctk
 import gallery
+import requests
 from brush_palette import BrushPalette
 from color_picker import AskColor
 from config_loader import config, config_file_path, write_config
@@ -100,6 +102,7 @@ class Brushshe(ctk.CTk):
         )
 
         file_dropdown.add_option(option=_("Open from file"), command=self.open_from_file)
+        file_dropdown.add_option(option=_("Open from URL"), command=self.open_from_url)
         file_dropdown.add_option(option=_("Save changes to this picture"), command=self.save_current)
         file_dropdown.add_option(option=_("Save as new picture"), command=self.save_as)
         file_dropdown.add_separator()
@@ -1051,6 +1054,15 @@ class Brushshe(ctk.CTk):
         dialog = FileDialog(self, title=_("Open from file"))
         if dialog.path:
             self.open_image(dialog.path)
+
+    def open_from_url(self):
+        dialog = ctk.CTkInputDialog(text=_("Enter URL:"), title=_("Open from URL"))
+        image_url = dialog.get_input()
+        if image_url is not None:
+            response = requests.get(image_url)
+            response.raise_for_status()
+            image_data = BytesIO(response.content)
+            self.open_image(image_data)
 
     def save_current(self):
         if self.current_file is not None:
@@ -2390,8 +2402,12 @@ class Brushshe(ctk.CTk):
 
             self.selected_mask_img = None
 
-            self.current_file = openimage
-            self.title(os.path.basename(self.current_file) + " - " + _("Brushshe"))
+            if not isinstance(openimage, BytesIO):
+                self.current_file = openimage
+                self.title(os.path.basename(self.current_file) + " - " + _("Brushshe"))
+            else:
+                self.title(_("Unnamed") + " - " + _("Brushshe"))
+                self.current_file = None
         except Exception as e:
             self.open_file_error(e)
 

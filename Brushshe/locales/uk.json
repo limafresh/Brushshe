@@ -132,5 +132,7 @@
 	"Rectangle select": "Прямокутне виділення",
 	"Polygon select": "Багатокутне виділення",
 	"Invert selected": "Інвертувати виділене",
-	"Deselect all": "Скасувати все виділене"
+	"Deselect all": "Скасувати все виділене",
+	"Open from URL": "Відкрити з URL",
+	"Enter URL:": "Введіть URL:"
 }
