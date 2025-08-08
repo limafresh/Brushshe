@@ -3,7 +3,7 @@
 ![Static Badge](https://img.shields.io/badge/Tested_on-Windows%2C_Linux-orange)
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/limafresh/Brushshe/refs/heads/main/Brushshe/icons/logo.svg" alt="logo" width="100" height="100">
+	<img src="https://raw.githubusercontent.com/limafresh/Brushshe/refs/heads/main/Brushshe/icons/logo.svg" alt="logo" width="100" height="100">
 </p>
 
 ## Description
@@ -69,9 +69,9 @@ pip install customtkinter Pillow
 + *Ctrl+Z*: undo
 + *Ctrl+Y*: redo
 + *Ctrl+S*: save to gallery
-+ *Ctrl+F*: flip colors
-+ *Ctrl+B*: brush
-+ *Ctrl+E*: eraser
++ *Ctrl+F* or *X*: flip colors
++ *Ctrl+B* or *B*: brush
++ *Ctrl+E* or *E*: eraser
 + *=*: zoom in
 + *-*: zoom out
 + *[*: down by 1 the brush or other tools size
@@ -91,7 +91,7 @@ All contributions are welcome!
 ## Credits
 + Thanks [Akascape](https://github.com/Akascape) for CTkColorPicker, CTkMenuBar, CTkMessagebox and CTkToolTip.
 + Thanks [Chip Viled](https://github.com/chipviled) for contributing.
-+ Thanks to our translators: [sagar12](https://github.com/Sagar1205b) (Hindi), [Sagar Sirbi](https://github.com/sagarsirbi) (German).
++ Thanks to our translators: [sagar12](https://github.com/Sagar1205b) (Hindi); [Sagar Sirbi](https://github.com/sagarsirbi), [iLollek](https://github.com/iLollek) (German).
 
 ## Translations
 The internationalization of this program has a simple principle - it determines what the computer's localization is (for example, *en*, *ru*, etc.), and then applies the `Brushshe/locales/{localization}.json` file, where *localization* is the computer's localization.
