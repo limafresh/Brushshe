@@ -125,5 +125,14 @@
   "Whole image": "Ganzes Bild",
   "Copied area": "Kopierter Bereich",
   "Change size": "Größe ändern",
-  "Crop": "Zuschneiden"
+  "Crop": "Zuschneiden",
+  "Refresh": "neu laden",
+	"Clear cache": "Cache leeren",
+	"Select": "Auswählen",
+	"Rectangle select": "Rechteck auswählen",
+	"Polygon select": "Polygon auswählen",
+	"Invert selected": "Ausgewählte Invertieren",
+	"Deselect all": "Ausgewählte Deselektieren",
+	"Open from URL": "Aus URL öffnen",
+	"Enter URL:": "URL Eingeben:"
 }
