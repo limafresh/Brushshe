@@ -22,8 +22,8 @@
 ### Download Brushshe for Linux
 [![Static Badge](https://img.shields.io/badge/Download-.deb_file-red?style=for-the-badge&logo=linux)](https://github.com/limafresh/Brushshe/releases) or
 [![Static Badge](https://img.shields.io/badge/Download-for_Fedora-blue?style=for-the-badge&logo=fedora)](https://github.com/limafresh/Brushshe/releases) or
-[![Static Badge](https://img.shields.io/badge/Download-.for_Mageia-blue?style=for-the-badge&logo=linux)](https://github.com/limafresh/Brushshe/releases) or
-[![Static Badge](https://img.shields.io/badge/Download-.for_OpenMandriva-blue?style=for-the-badge&logo=linux)](https://github.com/limafresh/Brushshe/releases)
+[![Static Badge](https://img.shields.io/badge/Download-for_Mageia-blue?style=for-the-badge&logo=linux)](https://github.com/limafresh/Brushshe/releases) or
+[![Static Badge](https://img.shields.io/badge/Download-for_OpenMandriva-blue?style=for-the-badge&logo=linux)](https://github.com/limafresh/Brushshe/releases)
 
 **or**
 ### Run via Python
