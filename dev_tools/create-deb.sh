@@ -7,11 +7,7 @@ echo 'WARNING: this script must be executed from the dev_tools folder!'
 echo 'Before running this script, make sure that python3-pip is installed: sudo apt install python3-pip'
 echo 'Continue (y/n)?'
 read answer
-if [ "$answer" == 'y' ]; then
-	:
-else
-	exit 0
-fi
+if [ "$answer" != 'y' ]; then exit 0; fi
 
 echo 'Creating control file...'
 mkdir -p brushshe/DEBIAN
@@ -48,6 +44,8 @@ Name[ru]=Брашше
 Comment=Painting app
 Comment[uk]=Програма для малювання
 Comment[ru]=Программа для рисования
+Comment[de]=Mal-App
+Comment[hi]=पेंटिंग ऐप
 Exec=python3 /opt/Brushshe/brushshe.py %f
 Icon=brushshe
 Terminal=false
