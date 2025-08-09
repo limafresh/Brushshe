@@ -1,5 +1,10 @@
 Write-Host 'Python is required to run the script. ONLY RUN FROM THE dev_tools FOLDER!' -ForegroundColor Cyan
 
+$answer = Read-Host 'Continue (y/n)?'
+if ($answer -ne 'y') {
+    exit 0
+}
+
 Write-Host 'Creating a virtual environment...' -ForegroundColor Blue
 python -m venv brenv
 
@@ -11,6 +16,8 @@ pip install pyinstaller pip-licenses pillow customtkinter typing-extensions
 
 Write-Host 'Creating a file with licenses...' -ForegroundColor Blue
 pip-licenses --format=plain-vertical --with-license-file --no-license-path --no-version --from=mixed --with-system --output-file=dependencies-licenses.txt
+Add-Content -Path "dependencies-licenses.txt" -Value ''
+Add-Content -Path "dependencies-licenses.txt" -Value 'This exe file (Brushshe) uses dependencies that are dual-licensed under GPL/LGPL or permissive licenses (e.g., Apache, BSD). In all such cases, the permissive license has been selected.'
 
 Write-Output 'Obtaining licenses for Python...' -ForegroundColor Blue
 Invoke-WebRequest -Uri 'https://docs.python.org/3/license.html' -OutFile 'python-licenses.html'

@@ -41,8 +41,9 @@ def show(open_image):
     gallery_frame.pack(padx=10, pady=10)
 
     # Hack for normal scrolling.
-    gallery_scrollable_frame.bind("<Enter>", lambda e: set_scroll_event(e))
-    gallery_scrollable_frame.bind("<Leave>", lambda e: remove_scroll_event(e))
+    if sys.platform == "linux":
+        gallery_scrollable_frame.bind("<Enter>", lambda e: set_scroll_event(e))
+        gallery_scrollable_frame.bind("<Leave>", lambda e: remove_scroll_event(e))
 
     def scroll_on_gallery(event):
         if event.num == 5 or event.delta < 0:
