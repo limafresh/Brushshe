@@ -135,6 +135,8 @@ class Brushshe(ctk.CTk):
             command=lambda: self.select_by_shape(shape="rectangle"),
         )
         select_dropdown.add_option(option=_("Polygon select"), command=self.select_by_polygon)
+        select_dropdown.add_option(option=_("Fuzzy select"), command=lambda: self.select_by_color(fill_limit=True))
+        select_dropdown.add_option(option=_("Select by color"), command=lambda: self.select_by_color())
         select_dropdown.add_option(option=_("Invert selected"), command=self.invert_mask)
         select_dropdown.add_option(option=_("Deselect all"), command=self.remove_mask)
 
@@ -364,6 +366,20 @@ class Brushshe(ctk.CTk):
                 "helper": _("Polygon select"),
                 "action": self.select_by_polygon,
                 "icon_name": "polygon_select",
+            },
+            {
+                "type": "button",
+                "name": _("Fuzzy select"),
+                "helper": _("Fuzzy select"),
+                "action": lambda: self.select_by_color(fill_limit=True),
+                "icon_name": "fuzzy_select",
+            },
+            {
+                "type": "button",
+                "name": _("Select by color"),
+                "helper": _("Select_by_color"),
+                "action": lambda: self.select_by_color(),
+                "icon_name": "select_by_color",
             },
             {
                 "type": "button",
@@ -2538,6 +2554,8 @@ class Brushshe(ctk.CTk):
                 onvalue="on",
                 offvalue="off",
             ).pack(side=ctk.LEFT, padx=5)
+        else:
+            pass
 
         self.canvas.configure(cursor=cursor)
         self.canvas.delete("tools")
@@ -3137,6 +3155,132 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<ButtonRelease-1>", lambda e: selecting(e, None, "unclick"))
         self.canvas.bind("<BackSpace>", key_backspace)
         self.canvas.bind("<Return>", key_enter)
+
+    def _color_diff(self, color1: float | tuple[int, ...], color2: float | tuple[int, ...]) -> float:
+        first = color1 if isinstance(color1, tuple) else (color1,)
+        second = color2 if isinstance(color2, tuple) else (color2,)
+        return sum(abs(first[i] - second[i]) for i in range(len(second)))
+
+    def select_by_color(self, fill_limit=False):
+        self.set_tool("select_by_color", "Select by color", None, None, None, "dotbox")
+
+        _mode = "replace"
+        thresh = 1
+
+        def selecting(event, mode):
+            nonlocal _mode
+
+            self.canvas.focus_set()
+
+            if mode is not None:
+                _mode = mode
+
+            self.select_init_mask()
+
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+            x = int(x)
+            y = int(y)
+
+            x_max = self.image.width - 1
+            y_max = self.image.height - 1
+
+            if x < 0:
+                x = 0
+            if x > x_max:
+                x = x_max
+            if y < 0:
+                y = 0
+            if y > y_max:
+                y = y_max
+
+            draw = ImageDraw.Draw(self.selected_mask_img)
+
+            if _mode == "replace":
+                draw.rectangle([0, 0, x_max, y_max], fill=0)
+
+            if _mode == "subtract":
+                fill_color = 0
+            else:  # add or replace
+                fill_color = 255
+
+            if not fill_limit:
+                pixels_mask = self.selected_mask_img.load()
+                pixels_image = self.image.load()
+
+                assert pixels_image is not None
+
+                try:
+                    background = pixels_image[x, y]
+                except (ValueError, IndexError):
+                    return
+
+                for ii in range(x_max + 1):
+                    for jj in range(y_max + 1):
+                        try:
+                            p = pixels_image[ii, jj]
+                            if self._color_diff(p, background) <= thresh:
+                                pixels_mask[ii, jj] = fill_color
+                        except (ValueError, IndexError):
+                            pass
+            else:
+                self._floodfill_mask(self.image, self.selected_mask_img, (x, y), fill_color)
+
+            self.update_canvas()
+
+        self.canvas.bind("<Button-1>", lambda e: selecting(e, "replace"))
+        self.canvas.bind("<Shift-Button-1>", lambda e: selecting(e, "add"))
+        self.canvas.bind("<Control-Button-1>", lambda e: selecting(e, "subtract"))
+
+    def _floodfill_mask(
+        self,
+        image: Image.Image,
+        mask: Image.Image,
+        xy: tuple[int, int],
+        value: float | tuple[int, ...],
+        border: float | tuple[int, ...] | None = None,
+        thresh: float = 0,
+    ) -> None:
+
+        pixel = image.copy().load()
+        pixel_m = mask.load()
+        assert pixel is not None
+        assert pixel_m is not None
+        x, y = xy
+        try:
+            background = pixel[x, y]
+            # if self._color_diff(value, background) <= thresh:
+            #     return  # seed point already has fill color
+            pixel[x, y] = value
+            pixel_m[x, y] = value
+        except (ValueError, IndexError):
+            return  # seed point outside image
+        edge = {(x, y)}
+
+        # Default floodfill algorithm.
+        full_edge = set()
+        while edge:
+            new_edge = set()
+            for x, y in edge:
+                for s, t in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                    # If already processed, or if a coordinate is negative, skip
+                    if (s, t) in full_edge or s < 0 or t < 0:
+                        continue
+                    try:
+                        p = pixel[s, t]
+                    except (ValueError, IndexError):
+                        pass
+                    else:
+                        full_edge.add((s, t))
+                        if border is None:
+                            fill = self._color_diff(p, background) <= thresh
+                        else:
+                            fill = p not in (value, border)
+                        if fill:
+                            pixel[s, t] = value
+                            pixel_m[s, t] = value
+                            new_edge.add((s, t))
+            full_edge = edge
+            edge = new_edge
 
 
 ctk.set_appearance_mode(config.get("Brushshe", "theme"))
