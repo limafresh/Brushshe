@@ -370,14 +370,14 @@ class Brushshe(ctk.CTk):
             {
                 "type": "button",
                 "name": _("Fuzzy select"),
-                "helper": _("Fuzzy select"),
+                "helper": _("Fuzzy select (limited select by color)"),
                 "action": lambda: self.select_by_color(fill_limit=True),
                 "icon_name": "fuzzy_select",
             },
             {
                 "type": "button",
                 "name": _("Select by color"),
-                "helper": _("Select_by_color"),
+                "helper": _("Select by color"),
                 "action": lambda: self.select_by_color(),
                 "icon_name": "select_by_color",
             },
