@@ -62,6 +62,7 @@ class FileDialog(ctk.CTkToplevel):
                 ".tga",
                 ".tiff",
                 ".webp",
+                ".pdf",  # only for save, not for open
             ]
             self._extension_combobox = ctk.CTkComboBox(
                 self.path_frame, values=self._extensions, width=80, command=self._combobox_callback
