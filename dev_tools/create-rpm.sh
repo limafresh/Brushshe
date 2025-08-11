@@ -50,7 +50,7 @@ EOF
 echo 'Creating spec file...'
 cat <<EOF > brushshe.spec
 Name:           brushshe
-Version:        2.2.0
+Version:        2.3.0
 Release:        1.$release_name
 Summary:        Raster graphical editor
 Summary(uk):    Растровий графічний редактор

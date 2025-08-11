@@ -133,5 +133,8 @@
 	"Invert selected": "Инвертировать выделенное",
 	"Deselect all": "Отменить всё выделенное",
 	"Open from URL": "Открыть из URL",
-	"Enter URL:": "Введите URL:"
+	"Enter URL:": "Введите URL:",
+	"Fuzzy select": "Нечёткое выделение",
+	"Fuzzy select (limited select by color)": "Нечёткое выделение (ограниченное выделение по цвету)",
+	"Select by color": "Выделение по цвету"
 }

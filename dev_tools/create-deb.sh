@@ -13,7 +13,7 @@ echo 'Creating control file...'
 mkdir -p brushshe/DEBIAN
 cat <<EOF > brushshe/DEBIAN/control
 Package: brushshe
-Version: 2.2.0
+Version: 2.3.0
 Section: graphics
 Priority: optional
 Depends: python3, python3-tk, python3-pil, python3-pil.imagetk

@@ -65,9 +65,9 @@ class Brushshe(ctk.CTk):
         """ Version """
         self.version_prefix = ""
         self.version_major = "2"
-        self.version_minor = "2"
+        self.version_minor = "3"
         self.version_patch = "0"
-        self.version_suffix = ' "Ushuaia"'
+        self.version_suffix = ' "Vientiane"'
 
         self.version_full = "{0}{1}.{2}.{3}{4}".format(
             self.version_prefix,
