@@ -43,7 +43,26 @@ class FileDialog(ctk.CTkToplevel):
         self.up_btn.pack(side=ctk.RIGHT, padx=10, pady=10)
 
         if save:
-            self._extensions = [".png", ".jpg", ".gif", ".bmp", ".tiff", ".webp", ".ico", ".ppm", ".pgm", ".pbm"]
+            # https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html
+            self._extensions = [
+                ".png",
+                ".jpeg",
+                ".gif",
+                ".bmp",
+                ".dds",
+                ".dib",
+                ".eps",
+                ".icns",
+                ".ico",
+                ".im",
+                ".mpo",
+                ".pcx",
+                ".ppm",
+                ".sgi",
+                ".tga",
+                ".tiff",
+                ".webp",
+            ]
             self._extension_combobox = ctk.CTkComboBox(
                 self.path_frame, values=self._extensions, width=80, command=self._combobox_callback
             )
