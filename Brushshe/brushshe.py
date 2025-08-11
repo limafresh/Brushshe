@@ -3240,7 +3240,6 @@ class Brushshe(ctk.CTk):
         border: float | tuple[int, ...] | None = None,
         thresh: float = 0,
     ) -> None:
-
         pixel = image.copy().load()
         pixel_m = mask.load()
         assert pixel is not None
