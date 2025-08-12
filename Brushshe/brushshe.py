@@ -552,8 +552,6 @@ class Brushshe(ctk.CTk):
             "pineapple",
             "grass",
             "rain",
-            "brucklin",
-            "brushshe",
             "strawberry",
             "butterfly",
             "flower2",

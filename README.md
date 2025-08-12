@@ -42,7 +42,7 @@ pip install customtkinter Pillow
 + **Open**: You can open a picture from a file or URL.
 + **Painting**: You can choose a color, change the brush thickness and shape, and paint. You can change canvas size.
 + **Recoloring brush (new!)**: Draws through contours.
-+ **Save to device**: You can save picture to your PC in different formats (PNG, JPEG, GIF, BMP, DDS, DIB, EPS, ICNS, ICO, IM, MPO, PCX, PPM, SGI, TGA, TIFF, WEBP PDF (only for save)).
++ **Save to device**: You can save picture to your PC in different formats (PNG, JPEG, GIF, BMP, DDS, DIB, EPS, ICNS, ICO, IM, MPO, PCX, PPM, SGI, TGA, TIFF, WEBP, PDF (only for save)).
 + **Undo and redo**: You can undo and redo last actions.
 + **Eraser**: Removing excess with an eraser.
 + **Fill**: Can fill areas of a drawing. Can work slowly on large areas, and not work on RGBA-images.
@@ -103,6 +103,7 @@ The internationalization of this program has a simple principle - it determines 
 + Project license - *MPL 2.0* (old code under MPL 2.0 or GNU GPLv3)
 + CTkColorPicker and CTkMenuBar license - *CC0 1.0*
 + License for program translations (`Brushshe/locales/*.json`) - *CC0 1.0*
++ Stickers and frames license - *CC0 1.0*
 + Fonts - *OFL*
 + Picture on screenshot - [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), by Chip Viled, drawn in Brushshe
 
