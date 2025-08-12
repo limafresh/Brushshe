@@ -2,6 +2,7 @@ import math
 import os
 import random
 import sys
+import time
 import webbrowser
 from collections import deque
 from io import BytesIO
@@ -138,7 +139,11 @@ class Brushshe(ctk.CTk):
         select_dropdown.add_option(option=_("Fuzzy select"), command=lambda: self.select_by_color(fill_limit=True))
         select_dropdown.add_option(option=_("Select by color"), command=lambda: self.select_by_color())
         select_dropdown.add_option(option=_("Invert selected"), command=self.invert_mask)
+        select_dropdown.add_option(option=_("Select all"), command=self.select_all_mask)
         select_dropdown.add_option(option=_("Deselect all"), command=self.remove_mask)
+        select_dropdown.add_separator()
+        select_dropdown.add_option(option=_("Display mask as fill"), command=lambda: self.set_mask_type(0))
+        select_dropdown.add_option(option=_("Display mask as ants (experimental)"), command=lambda: self.set_mask_type(1))
 
         tools_menu = menu.add_cascade(_("Tools"))
         tools_dropdown = CustomDropdownMenu(widget=tools_menu)
@@ -570,9 +575,15 @@ class Brushshe(ctk.CTk):
         }
         self.fonts = list(self.fonts_dict.keys())
 
+        self.composer.mask_type = 0  # Type: 0 - fill, 1 - ants
+
         self.update()  # Update interface before recalculate canvas.
         self.force_resize_canvas()
         self.update_canvas()
+
+        self.timer_mask_time_for_update = 200  # ms
+        self.timer_mask_last_update = 0
+        self.timer_mask_update = self.after(self.timer_mask_time_for_update, self.mask_update)
 
         if len(sys.argv) > 1:
             self.open_image(sys.argv[1])
@@ -842,6 +853,8 @@ class Brushshe(ctk.CTk):
         # Debug
         # t2 = time.perf_counter(), time.process_time()
         # print(f" Real time: {t2[0] - t1[0]:.6f} sec. CPU time: {t2[1] - t1[1]:.6f} sec")
+
+        self.timer_mask_last_update = int(time.time() * 1000)  # Set current time in ms
 
     # def _update_canvas(self):
     #     # Please try not to cram into this function what can be moved to others.
@@ -2867,13 +2880,13 @@ class Brushshe(ctk.CTk):
 
         if self.selected_mask_img is None:
             self.selected_mask_img = Image.new("L", (self.image.width, self.image.height), "white")
-
         if self.selected_mask_img.width != self.image.width or self.selected_mask_img.height != self.image.height:
             self.selected_mask_img = Image.new("L", (self.image.width, self.image.height), "white")
 
     def remove_mask(self):
         self.selected_mask_img = None
         self.composer.mask_img = None
+
         self.update_canvas()
 
     def invert_mask(self):
@@ -2882,6 +2895,16 @@ class Brushshe(ctk.CTk):
         tmp_mask_img = ImageOps.invert(self.selected_mask_img)
         self.selected_mask_img = tmp_mask_img
         del tmp_mask_img
+
+        self.update_canvas()
+
+    def select_all_mask(self):
+        self.select_init_mask()
+
+        x_max = self.image.width - 1
+        y_max = self.image.height - 1
+        draw = ImageDraw.Draw(self.selected_mask_img)
+        draw.rectangle([0, 0, x_max, y_max], fill=255)
 
         self.update_canvas()
 
@@ -3280,6 +3303,26 @@ class Brushshe(ctk.CTk):
                             new_edge.add((s, t))
             full_edge = edge
             edge = new_edge
+
+    # Timer for musk
+    def mask_update(self):
+        mm_time = int(time.time() * 1000)
+
+        if (self.composer.mask_type != 0
+                and self.selected_mask_img is not None
+                and self.timer_mask_last_update + 500 < mm_time):
+            #self.timer_mask_last_update = mm_time
+            self.composer.inc_ants_position()
+            self.update_canvas()
+            # print("DEBUG: ants update: {}".format(mm_time))
+
+        # Repeat timer
+        self.timer_mask_update = self.after(self.timer_mask_time_for_update, self.mask_update)
+
+    def set_mask_type(self, type: int = 0):
+        self.composer.mask_type = type
+        #self.timer_mask_last_update = int(time.time() * 1000)
+        self.update_canvas()
 
 
 ctk.set_appearance_mode(config.get("Brushshe", "theme"))
