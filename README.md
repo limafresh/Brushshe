@@ -49,7 +49,7 @@ pip install customtkinter Pillow
 + **Eyedropper**: Right click on the desired place on the canvas to get its color and paint with it.
 + **Spray**: Spray paint.
 + **Background**: You can choose the background color.
-+ **Stickers**: You can add stickers from Brushshe sticker set (all sticker images are drawn by me or created by AI) and resize them. You can also add a sticker from a file.
++ **Stickers**: You can add stickers from Brushshe sticker set (all sticker images are drawn by me or created by AI) and resize them. You can also add a sticker from a file or URL.
 + **Text**: You can place text and change its size.
 + **Frames**: You can decorate the picture with frames.
 + **Shapes**: Rectangle and oval (with or without fill), line, bezier curve.

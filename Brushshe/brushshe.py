@@ -1140,17 +1140,37 @@ class Brushshe(ctk.CTk):
                 except Exception as e:
                     self.open_file_error(e)
 
+        def sticker_from_url():
+            dialog = ctk.CTkInputDialog(text=_("Enter URL:"), title=_("Open from URL"))
+            image_url = dialog.get_input()
+            if image_url is not None:
+                try:
+                    with urlopen(image_url) as response:
+                        image_data = BytesIO(response.read())
+                        sticker_image = Image.open(image_data)
+                        self.set_current_sticker(sticker_image)
+                except Exception as e:
+                    self.open_file_error(e)
+
+        def tabview_callback():
+            if tabview.get() == _("From file"):
+                sticker_from_file()
+            elif tabview.get() == _("From URL"):
+                sticker_from_url()
+            tabview.set(_("From set"))
+
         sticker_choose = ctk.CTkToplevel(self)
         sticker_choose.geometry("370x500")
         sticker_choose.title(_("Choose a sticker"))
 
-        tabview = ctk.CTkTabview(sticker_choose)
-        tabview.add(_("Choose a sticker"))
-        tabview.add(_("Sticker from file"))
-        tabview.set(_("Choose a sticker"))
+        tabview = ctk.CTkTabview(sticker_choose, command=tabview_callback)
+        tabview.add(_("From set"))
+        tabview.add(_("From file"))
+        tabview.add(_("From URL"))
+        tabview.set(_("From set"))
         tabview.pack(fill=ctk.BOTH, expand=True, padx=10, pady=10)
 
-        stickers_scrollable_frame = ctk.CTkScrollableFrame(tabview.tab(_("Choose a sticker")))
+        stickers_scrollable_frame = ctk.CTkScrollableFrame(tabview.tab(_("From set")))
         stickers_scrollable_frame.pack(fill=ctk.BOTH, expand=True)
 
         stickers_frame = ctk.CTkFrame(stickers_scrollable_frame)
@@ -1170,12 +1190,6 @@ class Brushshe(ctk.CTk):
             if column == 2:
                 column = 0
                 row += 1
-
-        ctk.CTkButton(
-            tabview.tab(_("Sticker from file")),
-            text=_("Choose sticker from file\nthen click where you want\nit on the picture"),
-            command=sticker_from_file,
-        ).pack(padx=10, pady=10)
 
     def set_current_sticker(self, sticker_image):  # Choose a sticker
         self.set_tool("sticker", "Stickers", self.sticker_size, 10, 250, "cross")
