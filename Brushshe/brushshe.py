@@ -658,6 +658,7 @@ class Brushshe(ctk.CTk):
             "sticker": 250,
             "text": 96,
             "insert": 500,
+            "real size sticker": 500,
         }
         if new_size < 1:
             new_size = 1
@@ -1189,9 +1190,16 @@ class Brushshe(ctk.CTk):
                 column = 0
                 row += 1
 
-    def set_current_sticker(self, sticker_image):  # Choose a sticker
-        self.set_tool("sticker", "Stickers", self.sticker_size, 10, 250, "cross")
-        self.insert_simple(sticker_image)
+    def set_current_sticker(self, sticker_image=None):  # Choose a sticker
+        if sticker_image:
+            self.last_sticker_image = sticker_image
+
+        if self.is_sticker_use_real_size.get() == "off":
+            self.set_tool("sticker", "Stickers", self.sticker_size, 10, 250, "cross")
+            self.insert_simple(self.last_sticker_image)
+        else:
+            self.set_tool("real size sticker", "Stickers", 100, 1, 500, "cross")
+            self.insert_simple(self.last_sticker_image)
 
     def text_tool(self):
         def add_text(event):
@@ -1807,11 +1815,8 @@ class Brushshe(ctk.CTk):
             nonlocal image_tmp, image_tmp_view, image_tk, current_zoom, x1, y1
 
             if self.current_tool == "sticker":
-                if self.is_sticker_use_real_size.get() == "off":
-                    sticker_height = int(insert_image.height * self.tool_size / insert_image.width)
-                    image_tmp = insert_image.resize((self.tool_size, sticker_height))
-                else:
-                    image_tmp = insert_image
+                sticker_height = int(insert_image.height * self.tool_size / insert_image.width)
+                image_tmp = insert_image.resize((self.tool_size, sticker_height))
                 it_width = image_tmp.width
                 it_height = image_tmp.height
             else:
@@ -2166,7 +2171,10 @@ class Brushshe(ctk.CTk):
             self.sticker_size = int(value)
         elif self.current_tool == "text":
             self.font_size = int(value)
-        self.tool_size_label.configure(text=self.tool_size)
+        if self.current_tool in ["insert", "real size sticker"]:
+            self.tool_size_label.configure(text=f"{self.tool_size} %")
+        else:
+            self.tool_size_label.configure(text=self.tool_size)
         self.tool_size_tooltip.configure(message=self.tool_size)
 
     def get_tool_size(self):
@@ -2534,7 +2542,10 @@ class Brushshe(ctk.CTk):
             self.tool_size_slider.configure(from_=from_, to=to)
             self.tool_size_slider.set(self.tool_size)
             self.tool_size_slider.pack(side=ctk.LEFT, padx=1)
-            self.tool_size_label.configure(text=self.tool_size)
+            if self.current_tool in ["insert", "real size sticker"]:
+                self.tool_size_label.configure(text=f"{self.tool_size} %")
+            else:
+                self.tool_size_label.configure(text=self.tool_size)
             self.tool_size_label.pack(side=ctk.LEFT, padx=5)
             self.tool_size_tooltip.configure(message=self.tool_size)
 
@@ -2559,13 +2570,14 @@ class Brushshe(ctk.CTk):
             )
             font_optionmenu.set(self.current_font)
             font_optionmenu.pack(side=ctk.LEFT, padx=1)
-        elif self.current_tool == "sticker":
+        elif self.current_tool == "sticker" or self.current_tool == "real size sticker":
             ctk.CTkCheckBox(
                 self.tool_config_docker,
                 text=_("Use real size"),
                 variable=self.is_sticker_use_real_size,
                 onvalue="on",
                 offvalue="off",
+                command=self.set_current_sticker,
             ).pack(side=ctk.LEFT, padx=5)
 
         self.canvas.configure(cursor=cursor)
