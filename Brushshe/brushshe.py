@@ -1811,8 +1811,9 @@ class Brushshe(ctk.CTk):
                     sticker_height = int(insert_image.height * self.tool_size / insert_image.width)
                     image_tmp = insert_image.resize((self.tool_size, sticker_height))
                 else:
-                    it_width = insert_image.width
-                    it_height = insert_image.height
+                    image_tmp = insert_image
+                it_width = image_tmp.width
+                it_height = image_tmp.height
             else:
                 it_width = int(insert_image.width / 100 * self.tool_size)
                 it_height = int(insert_image.height / 100 * self.tool_size)
