@@ -1815,16 +1815,14 @@ class Brushshe(ctk.CTk):
             nonlocal image_tmp, image_tmp_view, image_tk, current_zoom, x1, y1
 
             if self.current_tool == "sticker":
-                sticker_height = int(insert_image.height * self.tool_size / insert_image.width)
-                image_tmp = insert_image.resize((self.tool_size, sticker_height))
-                it_width = image_tmp.width
-                it_height = image_tmp.height
+                it_width = self.tool_size
+                it_height = int(insert_image.height * self.tool_size / insert_image.width)
             else:
                 it_width = int(insert_image.width / 100 * self.tool_size)
                 it_height = int(insert_image.height / 100 * self.tool_size)
                 if it_width <= 1 or it_height <= 1:
                     it_width, it_height = (1, 1)
-                image_tmp = insert_image.resize((it_width, it_height))
+            image_tmp = insert_image.resize((it_width, it_height))
 
             x, y = self.canvas_to_pict_xy(event.x, event.y)
 
