@@ -1817,8 +1817,9 @@ class Brushshe(ctk.CTk):
             else:
                 it_width = int(insert_image.width / 100 * self.tool_size)
                 it_height = int(insert_image.height / 100 * self.tool_size)
-                if it_width >= 1 or it_height >= 1:
-                    image_tmp = insert_image.resize((it_width, it_height))
+                if it_width <= 1 or it_height <= 1:
+                    it_width, it_height = (1, 1)
+                image_tmp = insert_image.resize((it_width, it_height))
 
             x, y = self.canvas_to_pict_xy(event.x, event.y)
 
@@ -1883,8 +1884,6 @@ class Brushshe(ctk.CTk):
                 dash=(5, 5),
             )
 
-        # self.canvas.bind("<Button-1>", inserting)
-        # self.canvas.bind("<B1-Motion>", inserting)
         self.canvas.bind("<ButtonRelease-1>", insert_end)
         self.canvas.bind("<Motion>", move)
         self.canvas.bind("<Leave>", leave)
