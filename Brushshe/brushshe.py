@@ -649,22 +649,20 @@ class Brushshe(ctk.CTk):
 
     def change_tool_size_bind(self, event=None, delta=1):
         new_size = self.get_tool_size() + delta
+        max_sizes = {
+            "brush": 50,
+            "r-brush": 50,
+            "eraser": 50,
+            "shape": 50,
+            "spray": 30,
+            "sticker": 250,
+            "text": 96,
+            "insert": 500,
+        }
         if new_size < 1:
             new_size = 1
-        if (
-            self.current_tool == "brush"
-            or self.current_tool == "eraser"
-            or self.current_tool == "spray"
-            or self.current_tool == "shape"
-        ):
-            if new_size > 50:
-                new_size = 50
-        elif self.current_tool == "text":
-            if new_size > 96:
-                new_size = 96
-        else:
-            if new_size > 250:
-                new_size = 250
+        if new_size > max_sizes[self.current_tool]:
+            new_size = max_sizes[self.current_tool]
         self.change_tool_size(new_size)
         self.tool_size_slider.set(int(new_size))
 
@@ -1795,7 +1793,7 @@ class Brushshe(ctk.CTk):
     def start_insert(self):
         if hasattr(self, "buffer_local") is False or self.buffer_local is None:
             return
-        self.set_tool("insert", "Insert", None, None, None, "cross")
+        self.set_tool("insert", "Insert", 100, 1, 500, "cross")
         self.insert_simple(self.buffer_local)
 
     def insert_simple(self, insert_image=None):
@@ -1813,21 +1811,24 @@ class Brushshe(ctk.CTk):
                     sticker_height = int(insert_image.height * self.tool_size / insert_image.width)
                     image_tmp = insert_image.resize((self.tool_size, sticker_height))
                 else:
-                    image_tmp = insert_image
+                    it_width = insert_image.width
+                    it_height = insert_image.height
+            else:
+                it_width = int(insert_image.width / 100 * self.tool_size)
+                it_height = int(insert_image.height / 100 * self.tool_size)
+                if it_width >= 1 or it_height >= 1:
+                    image_tmp = insert_image.resize((it_width, it_height))
 
             x, y = self.canvas_to_pict_xy(event.x, event.y)
 
-            it_width = image_tmp.width
-            it_height = image_tmp.height
             x1 = int(x - (it_width - 1) / 2)
             y1 = int(y - (it_height - 1) / 2)
             x2 = int(x1 + it_width - 1)
             y2 = int(y1 + it_height - 1)
 
-            if current_zoom != self.zoom or image_tmp_view is None or self.current_tool == "sticker":
-                image_tmp_view = image_tmp.resize((int(it_width * self.zoom), int(it_height * self.zoom)), Image.BOX)
-                image_tk = ImageTk.PhotoImage(image_tmp_view)
-                current_zoom = self.zoom
+            image_tmp_view = image_tmp.resize((int(it_width * self.zoom), int(it_height * self.zoom)), Image.BOX)
+            image_tk = ImageTk.PhotoImage(image_tmp_view)
+            current_zoom = self.zoom
 
             draw_tool(x1, y1, x2, y2)
 
@@ -2566,8 +2567,6 @@ class Brushshe(ctk.CTk):
                 onvalue="on",
                 offvalue="off",
             ).pack(side=ctk.LEFT, padx=5)
-        else:
-            pass
 
         self.canvas.configure(cursor=cursor)
         self.canvas.delete("tools")
