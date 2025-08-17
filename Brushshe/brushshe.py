@@ -1828,12 +1828,14 @@ class Brushshe(ctk.CTk):
             if self.current_tool == "sticker":
                 it_width = self.tool_size
                 it_height = int(insert_image.height * self.tool_size / insert_image.width)
+                resampling = Image.BICUBIC
             else:
                 it_width = int(insert_image.width / 100 * self.tool_size)
                 it_height = int(insert_image.height / 100 * self.tool_size)
                 if it_width <= 1 or it_height <= 1:
                     it_width, it_height = (1, 1)
-            image_tmp = insert_image.resize((it_width, it_height), Image.NEAREST)
+                resampling = Image.NEAREST
+            image_tmp = insert_image.resize((it_width, it_height), resampling)
 
             x, y = self.canvas_to_pict_xy(event.x, event.y)
 
