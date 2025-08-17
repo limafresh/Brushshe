@@ -727,19 +727,28 @@ class Brushshe(ctk.CTk):
             self.update_canvas()
 
     def when_closing(self):
-        closing_msg = CTkMessagebox(
-            title=_("You are leaving Brushshe"),
-            message=_("Continue?"),
-            option_1=_("Yes"),
-            option_2=_("No"),
-            icon=resource("icons/question.png"),
-            icon_size=(100, 100),
-            sound=True,
-        )
-        if closing_msg.get() == _("Yes"):
-            if self.is_reset_settings_after_exiting:
-                os.remove(config_file_path)
-            self.destroy()
+        if ImageChops.difference(self.saved_copy, self.image).getbbox():
+            closing_msg = CTkMessagebox(
+                title=_("You are leaving Brushshe"),
+                message=_("Continue?"),
+                option_1=_("Yes"),
+                option_2=_("No"),
+                option_3=_("Save"),
+                icon=resource("icons/question.png"),
+                icon_size=(100, 100),
+                sound=True,
+            )
+            if closing_msg.get() == _("Yes"):
+                self.destroy_app()
+            elif closing_msg.get() == _("Save"):
+                self.save_current()
+        else:
+            self.destroy_app()
+
+    def destroy_app(self):
+        if self.is_reset_settings_after_exiting:
+            os.remove(config_file_path)
+        self.destroy()
 
     def scroll_on_canvasy(self, event):
         if event.num == 5 or event.delta < 0:
@@ -1084,6 +1093,7 @@ class Brushshe(ctk.CTk):
         if self.current_file is not None:
             try:
                 self.image.save(self.current_file)
+                self.saved_copy = self.image.copy()
                 CTkMessagebox(
                     title=_("Saved"),
                     message=_("Changes to your existing picture have been saved successfully!"),
@@ -1101,6 +1111,7 @@ class Brushshe(ctk.CTk):
         if dialog.path:
             try:
                 self.image.save(dialog.path)
+                self.saved_copy = self.image.copy()
                 CTkMessagebox(
                     title=_("Saved"),
                     message=_("The picture has been successfully saved to your device in format")
@@ -2136,6 +2147,7 @@ class Brushshe(ctk.CTk):
         self.bg_color = color
 
         self.image = Image.new(mode, (640, 480), color)
+        self.saved_copy = self.image.copy()
         self.draw = ImageDraw.Draw(self.image)
         self.canvas.xview_moveto(0)
         self.canvas.yview_moveto(0)
@@ -2383,6 +2395,7 @@ class Brushshe(ctk.CTk):
         while file_path.exists():
             file_path = gallery.gallery_folder / f"{uuid4()}.png"
         self.image.save(file_path)
+        self.saved_copy = self.image.copy()
 
         self.current_file = str(file_path)
         self.title(os.path.basename(self.current_file) + " - " + _("Brushshe"))
@@ -2436,6 +2449,7 @@ class Brushshe(ctk.CTk):
         try:
             self.bg_color = "white"
             self.image = Image.open(openimage)
+            self.saved_copy = self.image.copy()
             self.picture_postconfigure()
 
             self.selected_mask_img = None

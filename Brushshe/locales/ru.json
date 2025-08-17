@@ -138,5 +138,6 @@
 	"Select by color": "Выделение по цвету",
 	"From set": "Из набора",
 	"From file": "Из файла",
-	"From URL": "Из URL"
+	"From URL": "Из URL",
+	"Save": "Сохранить"
 }
