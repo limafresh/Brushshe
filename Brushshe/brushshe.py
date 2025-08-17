@@ -1822,7 +1822,7 @@ class Brushshe(ctk.CTk):
                 it_height = int(insert_image.height / 100 * self.tool_size)
                 if it_width <= 1 or it_height <= 1:
                     it_width, it_height = (1, 1)
-            image_tmp = insert_image.resize((it_width, it_height))
+            image_tmp = insert_image.resize((it_width, it_height), Image.NEAREST)
 
             x, y = self.canvas_to_pict_xy(event.x, event.y)
 
