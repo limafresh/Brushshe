@@ -727,21 +727,21 @@ class Brushshe(ctk.CTk):
             self.update_canvas()
 
     def when_closing(self):
-        if ImageChops.difference(self.saved_copy, self.image).getbbox():
+        if ImageChops.difference(self.saved_copy, self.image).getbbox() or self.saved_copy.size != self.image.size:
             closing_msg = CTkMessagebox(
                 title=_("You are leaving Brushshe"),
                 message=_("Continue?"),
-                option_1=_("Yes"),
+                option_1=_("Save"),
                 option_2=_("No"),
-                option_3=_("Save"),
+                option_3=_("Yes"),
                 icon=resource("icons/question.png"),
                 icon_size=(100, 100),
                 sound=True,
             )
-            if closing_msg.get() == _("Yes"):
-                self.destroy_app()
-            elif closing_msg.get() == _("Save"):
+            if closing_msg.get() == _("Save"):
                 self.save_current()
+            elif closing_msg.get() == _("Yes"):
+                self.destroy_app()
         else:
             self.destroy_app()
 
