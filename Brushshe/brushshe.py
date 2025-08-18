@@ -730,7 +730,7 @@ class Brushshe(ctk.CTk):
         if ImageChops.difference(self.saved_copy, self.image).getbbox() or self.saved_copy.size != self.image.size:
             closing_msg = CTkMessagebox(
                 title=_("You are leaving Brushshe"),
-                message=_("Continue?"),
+                message=_("There are unsaved changes. Exit?"),
                 option_1=_("Save"),
                 option_2=_("No"),
                 option_3=_("Yes"),

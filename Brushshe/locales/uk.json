@@ -140,5 +140,6 @@
 	"From set": "З набору",
 	"From file": "З файлу",
 	"From URL": "З URL",
-	"Save": "Зберегти"
+	"Save": "Зберегти",
+	"There are unsaved changes. Exit?": "Є незбережені змінення. Вийти?"
 }
