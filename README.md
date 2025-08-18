@@ -100,12 +100,13 @@ All contributions are welcome!
 The internationalization of this program has a simple principle - it determines what the computer's localization is (for example, *en*, *ru*, etc.), and then applies the `Brushshe/locales/{localization}.json` file, where *localization* is the computer's localization.
 
 ## License
-+ Project license - *MPL 2.0* (old code under MPL 2.0 or GNU GPLv3)
-+ CTkColorPicker and CTkMenuBar license - *CC0 1.0*
++ Project license - *MPL 2.0* (old code before the license change - under MPL 2.0 or GNU GPLv3)
++ CTkMessagebox and CTkMenuBar license - *CC0 1.0*
 + License for program translations (`Brushshe/locales/*.json`) - *CC0 1.0*
 + Stickers and frames license - *CC0 1.0*
-+ Fonts - *OFL*
-+ Picture on screenshot - [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), by Chip Viled, drawn in Brushshe
++ Fonts - *OFL 1.1*
++ [Picture on screenshot](https://github.com/limafresh/Brushshe/pull/15) - [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), by Chip Viled, drawn in Brushshe
++ Builds (for example .exe, .deb) may contain other components
 
 ## For developers
 ### Linter
