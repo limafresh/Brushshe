@@ -91,22 +91,18 @@ class Brushshe(ctk.CTk):
 
         file_menu = menu.add_cascade(_("File"))
         file_dropdown = CustomDropdownMenu(widget=file_menu)
-
         file_dropdown.add_option(option=_("New"), command=lambda: self.new_picture("white"))
+        file_dropdown.add_option(option=_("New with other color"), command=self.other_bg_color)
         file_dropdown.add_option(
-            option=_("New with other color"), command=self.other_bg_color
-        )  # TODO: Use dialog from there.
-        file_dropdown.add_option(
-            option=_("New transparent"),
-            command=lambda: self.new_picture(color="#00000000", mode="RGBA"),
+            option=_("New transparent"), command=lambda: self.new_picture(color="#00000000", mode="RGBA")
         )
-
+        file_dropdown.add_separator()
         file_dropdown.add_option(option=_("Open from file"), command=self.open_from_file)
         file_dropdown.add_option(option=_("Open from URL"), command=self.open_from_url)
+        file_dropdown.add_option(option=_("Open my gallery"), command=lambda: gallery.show(self.open_image))
+        file_dropdown.add_separator()
         file_dropdown.add_option(option=_("Save changes to this picture"), command=self.save_current)
         file_dropdown.add_option(option=_("Save as new picture"), command=self.save_as)
-        file_dropdown.add_separator()
-        file_dropdown.add_option(option=_("Open my gallery"), command=lambda: gallery.show(self.open_image))
         file_dropdown.add_option(option=_("Save to my gallery"), command=self.save_to_gallery)
         file_dropdown.add_separator()
         file_dropdown.add_option(option=_("Import palette (hex)"), command=self.import_palette)
