@@ -140,5 +140,6 @@
 	"From file": "Из файла",
 	"From URL": "Из URL",
 	"Save": "Сохранить",
-	"There are unsaved changes. Exit?": "Есть несохранённые изменения. Выйти?"
+	"There are unsaved changes. Exit?": "Есть несохранённые изменения. Выйти?",
+	"Smoothing": "Сглаживание"
 }

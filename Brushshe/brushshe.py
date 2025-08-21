@@ -492,6 +492,7 @@ class Brushshe(ctk.CTk):
         self.is_reset_settings_after_exiting = False
         self.current_file = None
         self.is_sticker_use_real_size = ctk.StringVar(value="off")
+        self.is_insert_smoothing = ctk.StringVar(value="off")
 
         self.canvas.bind("<Button-3>", self.eyedropper)
 
@@ -1830,7 +1831,10 @@ class Brushshe(ctk.CTk):
                 it_height = int(insert_image.height / 100 * self.tool_size)
                 if it_width <= 1 or it_height <= 1:
                     it_width, it_height = (1, 1)
-                resampling = Image.NEAREST
+                if self.is_insert_smoothing.get() == "off":
+                    resampling = Image.NEAREST
+                else:
+                    resampling = Image.BICUBIC
             image_tmp = insert_image.resize((it_width, it_height), resampling)
 
             x, y = self.canvas_to_pict_xy(event.x, event.y)
@@ -2588,6 +2592,14 @@ class Brushshe(ctk.CTk):
                 onvalue="on",
                 offvalue="off",
                 command=self.set_current_sticker,
+            ).pack(side=ctk.LEFT, padx=5)
+        elif self.current_tool == "insert":
+            ctk.CTkCheckBox(
+                self.tool_config_docker,
+                text=_("Smoothing"),
+                variable=self.is_insert_smoothing,
+                onvalue="on",
+                offvalue="off",
             ).pack(side=ctk.LEFT, padx=5)
 
         self.canvas.configure(cursor=cursor)
