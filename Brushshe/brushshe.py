@@ -2936,6 +2936,7 @@ class Brushshe(ctk.CTk):
         self.selected_mask_img = None
         self.composer.mask_img = None
 
+        self.composer.set_force_update_mask()
         self.update_canvas()
 
     def invert_mask(self):
@@ -2945,6 +2946,7 @@ class Brushshe(ctk.CTk):
         self.selected_mask_img = tmp_mask_img
         del tmp_mask_img
 
+        self.composer.set_force_update_mask()
         self.update_canvas()
 
     def select_all_mask(self):
@@ -2955,6 +2957,7 @@ class Brushshe(ctk.CTk):
         draw = ImageDraw.Draw(self.selected_mask_img)
         draw.rectangle([0, 0, x_max, y_max], fill=255)
 
+        self.composer.set_force_update_mask()
         self.update_canvas()
 
     def select_by_shape(self, shape="rectangle"):
@@ -3040,6 +3043,7 @@ class Brushshe(ctk.CTk):
             else:  # add or replace
                 draw.rectangle([x1, y1, x2, y2], fill="white")
 
+            self.composer.set_force_update_mask()
             self.update_canvas()
 
         def draw_tool(x1, y1, x2, y2):
@@ -3147,6 +3151,7 @@ class Brushshe(ctk.CTk):
 
             xy_list = None
 
+            self.composer.set_force_update_mask()
             self.update_canvas()
 
         def key_backspace(event):
@@ -3228,11 +3233,6 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<BackSpace>", key_backspace)
         self.canvas.bind("<Return>", key_enter)
 
-    def _color_diff(self, color1: float | tuple[int, ...], color2: float | tuple[int, ...]) -> float:
-        first = color1 if isinstance(color1, tuple) else (color1,)
-        second = color2 if isinstance(color2, tuple) else (color2,)
-        return sum(abs(first[i] - second[i]) for i in range(len(second)))
-
     def select_by_color(self, fill_limit=False):
         self.set_tool("select_by_color", "Select by color", None, None, None, "dotbox")
 
@@ -3297,11 +3297,17 @@ class Brushshe(ctk.CTk):
             else:
                 self._floodfill_mask(self.image, self.selected_mask_img, (x, y), fill_color)
 
+            self.composer.set_force_update_mask()
             self.update_canvas()
 
         self.canvas.bind("<Button-1>", lambda e: selecting(e, "replace"))
         self.canvas.bind("<Shift-Button-1>", lambda e: selecting(e, "add"))
         self.canvas.bind("<Control-Button-1>", lambda e: selecting(e, "subtract"))
+
+    def _color_diff(self, color1: float | tuple[int, ...], color2: float | tuple[int, ...]) -> float:
+        first = color1 if isinstance(color1, tuple) else (color1,)
+        second = color2 if isinstance(color2, tuple) else (color2,)
+        return sum(abs(first[i] - second[i]) for i in range(len(second)))
 
     def _floodfill_mask(
         self,
@@ -3360,7 +3366,8 @@ class Brushshe(ctk.CTk):
         if (self.composer.mask_type != 0
                 and self.selected_mask_img is not None
                 and self.timer_mask_last_update + 500 < mm_time):
-            #self.timer_mask_last_update = mm_time
+            # self.timer_mask_last_update = mm_time
+
             self.composer.inc_ants_position()
             self.update_canvas()
             # print("DEBUG: ants update: {}".format(mm_time))
@@ -3370,7 +3377,9 @@ class Brushshe(ctk.CTk):
 
     def set_mask_type(self, type: int = 0):
         self.composer.mask_type = type
-        #self.timer_mask_last_update = int(time.time() * 1000)
+        # self.timer_mask_last_update = int(time.time() * 1000)
+
+        self.composer.set_force_update_mask()
         self.update_canvas()
 
 
