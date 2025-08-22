@@ -32,6 +32,10 @@ class BhComposer:
         self.ants_position_update = False
 
         self.mask_img = None  # Must be gray image (L mode)
+        self.tails_area = None
+
+        self.cache_mask_img = None
+        self.cache_tails_area = None
 
     def inc_ants_position(self):
         self.ants_position += 4
@@ -90,8 +94,9 @@ class BhComposer:
         self.width = image.width
         self.height = image.height
 
-    def set_mask_image(self, image: Image):
-        self.mask_img = image
+    def set_mask_image(self, image: Image, tails_area: tuple[4] | None):
+        self.mask_img = image  # After cut and resize.
+        self.tails_area = tails_area
 
     def get_compose_image(self, x1, y1, x2, y2):
         if self.l_image is None:
@@ -125,37 +130,44 @@ class BhComposer:
 
         if self.mask_img is not None:
             # TODO: Add mask cache.
-            tmp_mask_img = self.mask_img.copy()
 
-            if tmp_mask_img.mode != "L":
-                tmp_mask_img.convert("L")
+            if self.tails_area != self.cache_tails_area or self.cache_mask_img is None:
 
-            if self.mask_type == 0:
-                tmp_mask_img2 = ImageChops.invert(tmp_mask_img)
-                tmp_mask_img = ImageChops.multiply(tmp_mask_img2, Image.new("L", (w, h), 128))
-                tmp_image = Image.new("RGBA", (w, h), (255, 0, 0, 127))
-                image.paste(tmp_image, (0, 0), tmp_mask_img)
-            else:
-                # TODO: Need optimization.
-                tmp_image = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-                tmp_mask_img2 = ImageChops.invert(tmp_mask_img).filter(ImageFilter.CONTOUR)
-                tmp_mask_img3 = ImageChops.invert(tmp_mask_img2)
+                # TODO: continue !!!
+                tmp_mask_img = self.mask_img.copy()
 
-                tmp_image.paste(tmp_mask_img2, (0, 0), tmp_mask_img3)
+                if tmp_mask_img.mode != "L":
+                    tmp_mask_img.convert("L")
 
-                if (self.ants_position_update is True
-                        or self.ants_image is None
-                        or w != self.ants_image.width
-                        or h != self.ants_image.height):
+                if self.mask_type == 0:
+                    tmp_mask_img2 = ImageChops.invert(tmp_mask_img)
+                    tmp_mask_img3 = ImageChops.multiply(tmp_mask_img2, Image.new("L", (w, h), 128))
+                    tmp_image = Image.new("RGBA", (w, h), (255, 0, 0, 127))
 
-                    self.ants_image = Image.new("L", (w, h), 0)
-                    self.ants_position_update = False
-                    for i_ in range(0, w, self.background_size):
-                        for j_ in range(0, h - 1, self.background_size):
-                            self.ants_image.paste(self.ants_tile_image, (i_ - self.ants_position, j_))
+                    self.cache_mask_img = tmp_mask_img3
 
-                tmp_image_3 = tmp_image.convert("L")
-                tmp_image_2 = ImageChops.add(tmp_image_3, self.ants_image)
-                image.paste(tmp_image_2, (0, 0), tmp_image)
+                    image.paste(tmp_image, (0, 0), tmp_mask_img3)
+                else:
+                    # TODO: Need optimization.
+                    tmp_image = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+                    tmp_mask_img2 = ImageChops.invert(tmp_mask_img).filter(ImageFilter.CONTOUR)
+                    tmp_mask_img3 = ImageChops.invert(tmp_mask_img2)
+
+                    tmp_image.paste(tmp_mask_img2, (0, 0), tmp_mask_img3)
+
+                    if (self.ants_position_update is True
+                            or self.ants_image is None
+                            or w != self.ants_image.width
+                            or h != self.ants_image.height):
+
+                        self.ants_image = Image.new("L", (w, h), 0)
+                        self.ants_position_update = False
+                        for i_ in range(0, w, self.background_size):
+                            for j_ in range(0, h - 1, self.background_size):
+                                self.ants_image.paste(self.ants_tile_image, (i_ - self.ants_position, j_))
+
+                    tmp_image_3 = tmp_image.convert("L")
+                    tmp_image_2 = ImageChops.add(tmp_image_3, self.ants_image)
+                    image.paste(tmp_image_2, (0, 0), tmp_image)
 
         return image

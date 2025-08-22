@@ -885,15 +885,17 @@ class Brushshe(ctk.CTk):
                     Image.NEAREST,
                 )
 
+            tails_area = None
+
             self.composer.set_l_image(canvas_image)
-            self.composer.set_mask_image(mask_image)
+            self.composer.set_mask_image(mask_image, tails_area)
 
             compose_image = self.composer.get_compose_image(0, 0, canvas_image.width - 1, canvas_image.height - 1)
 
             self.img_tk = ImageTk.PhotoImage(compose_image)
             self.canvas.itemconfig(self.canvas_image, image=self.img_tk)
             self.canvas.moveto(self.canvas_image, 0, 0)
-            self.canvas_tails_area = None
+            self.canvas_tails_area = tails_area
 
             return
 
@@ -950,15 +952,17 @@ class Brushshe(ctk.CTk):
             else:
                 mask_image = tmp_mask_image.resize((r_w, r_h), Image.NEAREST)
 
+            tails_area = (x1, y1, x2, y2)
+
             self.composer.set_l_image(canvas_image)
-            self.composer.set_mask_image(mask_image)
+            self.composer.set_mask_image(mask_image, tails_area)
 
             compose_image = self.composer.get_compose_image(x1, y1, x2 + dx, y2 + dy)
 
             self.img_tk = ImageTk.PhotoImage(compose_image)
             self.canvas.itemconfig(self.canvas_image, image=self.img_tk)
             self.canvas.moveto(self.canvas_image, x1_correct, y1_correct)
-            self.canvas_tails_area = (x1, y1, x2, y2)
+            self.canvas_tails_area = tails_area
 
             return
 
