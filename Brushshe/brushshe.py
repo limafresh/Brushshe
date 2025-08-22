@@ -92,22 +92,18 @@ class Brushshe(ctk.CTk):
 
         file_menu = menu.add_cascade(_("File"))
         file_dropdown = CustomDropdownMenu(widget=file_menu)
-
         file_dropdown.add_option(option=_("New"), command=lambda: self.new_picture("white"))
+        file_dropdown.add_option(option=_("New with other color"), command=self.other_bg_color)
         file_dropdown.add_option(
-            option=_("New with other color"), command=self.other_bg_color
-        )  # TODO: Use dialog from there.
-        file_dropdown.add_option(
-            option=_("New transparent"),
-            command=lambda: self.new_picture(color="#00000000", mode="RGBA"),
+            option=_("New transparent"), command=lambda: self.new_picture(color="#00000000", mode="RGBA")
         )
-
+        file_dropdown.add_separator()
         file_dropdown.add_option(option=_("Open from file"), command=self.open_from_file)
         file_dropdown.add_option(option=_("Open from URL"), command=self.open_from_url)
+        file_dropdown.add_option(option=_("Open my gallery"), command=lambda: gallery.show(self.open_image))
+        file_dropdown.add_separator()
         file_dropdown.add_option(option=_("Save changes to this picture"), command=self.save_current)
         file_dropdown.add_option(option=_("Save as new picture"), command=self.save_as)
-        file_dropdown.add_separator()
-        file_dropdown.add_option(option=_("Open my gallery"), command=lambda: gallery.show(self.open_image))
         file_dropdown.add_option(option=_("Save to my gallery"), command=self.save_to_gallery)
         file_dropdown.add_separator()
         file_dropdown.add_option(option=_("Import palette (hex)"), command=self.import_palette)
@@ -501,6 +497,7 @@ class Brushshe(ctk.CTk):
         self.is_reset_settings_after_exiting = False
         self.current_file = None
         self.is_sticker_use_real_size = ctk.StringVar(value="off")
+        self.is_insert_smoothing = ctk.StringVar(value="off")
 
         self.canvas.bind("<Button-3>", self.eyedropper)
 
@@ -557,8 +554,6 @@ class Brushshe(ctk.CTk):
             "pineapple",
             "grass",
             "rain",
-            "brucklin",
-            "brushshe",
             "strawberry",
             "butterfly",
             "flower2",
@@ -662,22 +657,21 @@ class Brushshe(ctk.CTk):
 
     def change_tool_size_bind(self, event=None, delta=1):
         new_size = self.get_tool_size() + delta
+        max_sizes = {
+            "brush": 50,
+            "r-brush": 50,
+            "eraser": 50,
+            "shape": 50,
+            "spray": 30,
+            "sticker": 250,
+            "text": 96,
+            "insert": 500,
+            "real size sticker": 500,
+        }
         if new_size < 1:
             new_size = 1
-        if (
-            self.current_tool == "brush"
-            or self.current_tool == "eraser"
-            or self.current_tool == "spray"
-            or self.current_tool == "shape"
-        ):
-            if new_size > 50:
-                new_size = 50
-        elif self.current_tool == "text":
-            if new_size > 96:
-                new_size = 96
-        else:
-            if new_size > 250:
-                new_size = 250
+        if new_size > max_sizes[self.current_tool]:
+            new_size = max_sizes[self.current_tool]
         self.change_tool_size(new_size)
         self.tool_size_slider.set(int(new_size))
 
@@ -741,19 +735,28 @@ class Brushshe(ctk.CTk):
             self.update_canvas()
 
     def when_closing(self):
-        closing_msg = CTkMessagebox(
-            title=_("You are leaving Brushshe"),
-            message=_("Continue?"),
-            option_1=_("Yes"),
-            option_2=_("No"),
-            icon=resource("icons/question.png"),
-            icon_size=(100, 100),
-            sound=True,
-        )
-        if closing_msg.get() == _("Yes"):
-            if self.is_reset_settings_after_exiting:
-                os.remove(config_file_path)
-            self.destroy()
+        if ImageChops.difference(self.saved_copy, self.image).getbbox() or self.saved_copy.size != self.image.size:
+            closing_msg = CTkMessagebox(
+                title=_("You are leaving Brushshe"),
+                message=_("There are unsaved changes. Exit?"),
+                option_1=_("Save"),
+                option_2=_("No"),
+                option_3=_("Yes"),
+                icon=resource("icons/question.png"),
+                icon_size=(100, 100),
+                sound=True,
+            )
+            if closing_msg.get() == _("Save"):
+                self.save_current()
+            elif closing_msg.get() == _("Yes"):
+                self.destroy_app()
+        else:
+            self.destroy_app()
+
+    def destroy_app(self):
+        if self.is_reset_settings_after_exiting:
+            os.remove(config_file_path)
+        self.destroy()
 
     def scroll_on_canvasy(self, event):
         if event.num == 5 or event.delta < 0:
@@ -1104,6 +1107,7 @@ class Brushshe(ctk.CTk):
         if self.current_file is not None:
             try:
                 self.image.save(self.current_file)
+                self.saved_copy = self.image.copy()
                 CTkMessagebox(
                     title=_("Saved"),
                     message=_("Changes to your existing picture have been saved successfully!"),
@@ -1121,6 +1125,7 @@ class Brushshe(ctk.CTk):
         if dialog.path:
             try:
                 self.image.save(dialog.path)
+                self.saved_copy = self.image.copy()
                 CTkMessagebox(
                     title=_("Saved"),
                     message=_("The picture has been successfully saved to your device in format")
@@ -1159,17 +1164,37 @@ class Brushshe(ctk.CTk):
                 except Exception as e:
                     self.open_file_error(e)
 
+        def sticker_from_url():
+            dialog = ctk.CTkInputDialog(text=_("Enter URL:"), title=_("Open from URL"))
+            image_url = dialog.get_input()
+            if image_url is not None:
+                try:
+                    with urlopen(image_url) as response:
+                        image_data = BytesIO(response.read())
+                        sticker_image = Image.open(image_data)
+                        self.set_current_sticker(sticker_image)
+                except Exception as e:
+                    self.open_file_error(e)
+
+        def tabview_callback():
+            if tabview.get() == _("From file"):
+                sticker_from_file()
+            elif tabview.get() == _("From URL"):
+                sticker_from_url()
+            tabview.set(_("From set"))
+
         sticker_choose = ctk.CTkToplevel(self)
         sticker_choose.geometry("370x500")
         sticker_choose.title(_("Choose a sticker"))
 
-        tabview = ctk.CTkTabview(sticker_choose)
-        tabview.add(_("Choose a sticker"))
-        tabview.add(_("Sticker from file"))
-        tabview.set(_("Choose a sticker"))
+        tabview = ctk.CTkTabview(sticker_choose, command=tabview_callback)
+        tabview.add(_("From set"))
+        tabview.add(_("From file"))
+        tabview.add(_("From URL"))
+        tabview.set(_("From set"))
         tabview.pack(fill=ctk.BOTH, expand=True, padx=10, pady=10)
 
-        stickers_scrollable_frame = ctk.CTkScrollableFrame(tabview.tab(_("Choose a sticker")))
+        stickers_scrollable_frame = ctk.CTkScrollableFrame(tabview.tab(_("From set")))
         stickers_scrollable_frame.pack(fill=ctk.BOTH, expand=True)
 
         stickers_frame = ctk.CTkFrame(stickers_scrollable_frame)
@@ -1190,15 +1215,16 @@ class Brushshe(ctk.CTk):
                 column = 0
                 row += 1
 
-        ctk.CTkButton(
-            tabview.tab(_("Sticker from file")),
-            text=_("Choose sticker from file\nthen click where you want\nit on the picture"),
-            command=sticker_from_file,
-        ).pack(padx=10, pady=10)
+    def set_current_sticker(self, sticker_image=None):  # Choose a sticker
+        if sticker_image:
+            self.last_sticker_image = sticker_image
 
-    def set_current_sticker(self, sticker_image):  # Choose a sticker
-        self.set_tool("sticker", "Stickers", self.sticker_size, 10, 250, "cross")
-        self.insert_simple(sticker_image)
+        if self.is_sticker_use_real_size.get() == "off":
+            self.set_tool("sticker", "Stickers", self.sticker_size, 10, 250, "cross")
+            self.insert_simple(self.last_sticker_image)
+        else:
+            self.set_tool("real size sticker", "Stickers", 100, 1, 500, "cross")
+            self.insert_simple(self.last_sticker_image)
 
     def text_tool(self):
         def add_text(event):
@@ -1800,7 +1826,7 @@ class Brushshe(ctk.CTk):
     def start_insert(self):
         if hasattr(self, "buffer_local") is False or self.buffer_local is None:
             return
-        self.set_tool("insert", "Insert", None, None, None, "cross")
+        self.set_tool("insert", "Insert", 100, 1, 500, "cross")
         self.insert_simple(self.buffer_local)
 
     def insert_simple(self, insert_image=None):
@@ -1814,25 +1840,30 @@ class Brushshe(ctk.CTk):
             nonlocal image_tmp, image_tmp_view, image_tk, current_zoom, x1, y1
 
             if self.current_tool == "sticker":
-                if self.is_sticker_use_real_size.get() == "off":
-                    sticker_height = int(insert_image.height * self.tool_size / insert_image.width)
-                    image_tmp = insert_image.resize((self.tool_size, sticker_height))
+                it_width = self.tool_size
+                it_height = int(insert_image.height * self.tool_size / insert_image.width)
+                resampling = Image.BICUBIC
+            else:
+                it_width = int(insert_image.width / 100 * self.tool_size)
+                it_height = int(insert_image.height / 100 * self.tool_size)
+                if it_width <= 1 or it_height <= 1:
+                    it_width, it_height = (1, 1)
+                if self.is_insert_smoothing.get() == "off":
+                    resampling = Image.NEAREST
                 else:
-                    image_tmp = insert_image
+                    resampling = Image.BICUBIC
+            image_tmp = insert_image.resize((it_width, it_height), resampling)
 
             x, y = self.canvas_to_pict_xy(event.x, event.y)
 
-            it_width = image_tmp.width
-            it_height = image_tmp.height
             x1 = int(x - (it_width - 1) / 2)
             y1 = int(y - (it_height - 1) / 2)
             x2 = int(x1 + it_width - 1)
             y2 = int(y1 + it_height - 1)
 
-            if current_zoom != self.zoom or image_tmp_view is None or self.current_tool == "sticker":
-                image_tmp_view = image_tmp.resize((int(it_width * self.zoom), int(it_height * self.zoom)), Image.BOX)
-                image_tk = ImageTk.PhotoImage(image_tmp_view)
-                current_zoom = self.zoom
+            image_tmp_view = image_tmp.resize((int(it_width * self.zoom), int(it_height * self.zoom)), Image.BOX)
+            image_tk = ImageTk.PhotoImage(image_tmp_view)
+            current_zoom = self.zoom
 
             draw_tool(x1, y1, x2, y2)
 
@@ -1886,8 +1917,6 @@ class Brushshe(ctk.CTk):
                 dash=(5, 5),
             )
 
-        # self.canvas.bind("<Button-1>", inserting)
-        # self.canvas.bind("<B1-Motion>", inserting)
         self.canvas.bind("<ButtonRelease-1>", insert_end)
         self.canvas.bind("<Motion>", move)
         self.canvas.bind("<Leave>", leave)
@@ -2137,6 +2166,7 @@ class Brushshe(ctk.CTk):
         self.bg_color = color
 
         self.image = Image.new(mode, (640, 480), color)
+        self.saved_copy = self.image.copy()
         self.draw = ImageDraw.Draw(self.image)
         self.canvas.xview_moveto(0)
         self.canvas.yview_moveto(0)
@@ -2170,7 +2200,10 @@ class Brushshe(ctk.CTk):
             self.sticker_size = int(value)
         elif self.current_tool == "text":
             self.font_size = int(value)
-        self.tool_size_label.configure(text=self.tool_size)
+        if self.current_tool in ["insert", "real size sticker"]:
+            self.tool_size_label.configure(text=f"{self.tool_size} %")
+        else:
+            self.tool_size_label.configure(text=self.tool_size)
         self.tool_size_tooltip.configure(message=self.tool_size)
 
     def get_tool_size(self):
@@ -2381,6 +2414,7 @@ class Brushshe(ctk.CTk):
         while file_path.exists():
             file_path = gallery.gallery_folder / f"{uuid4()}.png"
         self.image.save(file_path)
+        self.saved_copy = self.image.copy()
 
         self.current_file = str(file_path)
         self.title(os.path.basename(self.current_file) + " - " + _("Brushshe"))
@@ -2434,6 +2468,7 @@ class Brushshe(ctk.CTk):
         try:
             self.bg_color = "white"
             self.image = Image.open(openimage)
+            self.saved_copy = self.image.copy()
             self.picture_postconfigure()
 
             self.selected_mask_img = None
@@ -2538,7 +2573,10 @@ class Brushshe(ctk.CTk):
             self.tool_size_slider.configure(from_=from_, to=to)
             self.tool_size_slider.set(self.tool_size)
             self.tool_size_slider.pack(side=ctk.LEFT, padx=1)
-            self.tool_size_label.configure(text=self.tool_size)
+            if self.current_tool in ["insert", "real size sticker"]:
+                self.tool_size_label.configure(text=f"{self.tool_size} %")
+            else:
+                self.tool_size_label.configure(text=self.tool_size)
             self.tool_size_label.pack(side=ctk.LEFT, padx=5)
             self.tool_size_tooltip.configure(message=self.tool_size)
 
@@ -2563,16 +2601,23 @@ class Brushshe(ctk.CTk):
             )
             font_optionmenu.set(self.current_font)
             font_optionmenu.pack(side=ctk.LEFT, padx=1)
-        elif self.current_tool == "sticker":
+        elif self.current_tool == "sticker" or self.current_tool == "real size sticker":
             ctk.CTkCheckBox(
                 self.tool_config_docker,
                 text=_("Use real size"),
                 variable=self.is_sticker_use_real_size,
                 onvalue="on",
                 offvalue="off",
+                command=self.set_current_sticker,
             ).pack(side=ctk.LEFT, padx=5)
-        else:
-            pass
+        elif self.current_tool == "insert":
+            ctk.CTkCheckBox(
+                self.tool_config_docker,
+                text=_("Smoothing"),
+                variable=self.is_insert_smoothing,
+                onvalue="on",
+                offvalue="off",
+            ).pack(side=ctk.LEFT, padx=5)
 
         self.canvas.configure(cursor=cursor)
         self.canvas.delete("tools")

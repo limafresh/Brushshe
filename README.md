@@ -42,14 +42,14 @@ pip install customtkinter Pillow
 + **Open**: You can open a picture from a file or URL.
 + **Painting**: You can choose a color, change the brush thickness and shape, and paint. You can change canvas size.
 + **Recoloring brush (new!)**: Draws through contours.
-+ **Save to device**: You can save picture to your PC in different formats (PNG, JPEG, GIF, BMP, DDS, DIB, EPS, ICNS, ICO, IM, MPO, PCX, PPM, SGI, TGA, TIFF, WEBP PDF (only for save)).
++ **Save to device**: You can save picture to your PC in different formats (PNG, JPEG, GIF, BMP, DDS, DIB, EPS, ICNS, ICO, IM, MPO, PCX, PPM, SGI, TGA, TIFF, WEBP, PDF (only for save)).
 + **Undo and redo**: You can undo and redo last actions.
 + **Eraser**: Removing excess with an eraser.
 + **Fill**: Can fill areas of a drawing. Can work slowly on large areas, and not work on RGBA-images.
 + **Eyedropper**: Right click on the desired place on the canvas to get its color and paint with it.
 + **Spray**: Spray paint.
 + **Background**: You can choose the background color.
-+ **Stickers**: You can add stickers from Brushshe sticker set (all sticker images are drawn by me or created by AI) and resize them. You can also add a sticker from a file.
++ **Stickers**: You can add stickers from Brushshe sticker set (all sticker images are drawn by me or created by AI) and resize them. You can also add a sticker from a file or URL.
 + **Text**: You can place text and change its size.
 + **Frames**: You can decorate the picture with frames.
 + **Shapes**: Rectangle and oval (with or without fill), line, bezier curve.
@@ -100,11 +100,13 @@ All contributions are welcome!
 The internationalization of this program has a simple principle - it determines what the computer's localization is (for example, *en*, *ru*, etc.), and then applies the `Brushshe/locales/{localization}.json` file, where *localization* is the computer's localization.
 
 ## License
-+ Project license - *MPL 2.0* (old code under MPL 2.0 or GNU GPLv3)
-+ CTkColorPicker and CTkMenuBar license - *CC0 1.0*
++ Project license - *MPL 2.0* (old code before the license change - under MPL 2.0 or GNU GPLv3)
++ CTkMessagebox and CTkMenuBar license - *CC0 1.0*
 + License for program translations (`Brushshe/locales/*.json`) - *CC0 1.0*
-+ Fonts - *OFL*
-+ Picture on screenshot - [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), by Chip Viled, drawn in Brushshe
++ Stickers and frames license - *CC0 1.0*
++ Fonts - *OFL 1.1*
++ [Picture on screenshot](https://github.com/limafresh/Brushshe/pull/15) - [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), by Chip Viled, drawn in Brushshe
++ Builds (for example .exe, .deb) may contain other components
 
 ## For developers
 ### Linter

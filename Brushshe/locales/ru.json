@@ -55,7 +55,6 @@
 	"Metal": "Металл",
 	"Remove all effects": "Удалить все эффекты",
 	"Sticker from file": "Наклейка из файла",
-	"Choose sticker from file\nthen click where you want\nit on the picture": "Выберите наклейку из файла,\nа затем нажмите на нужное\nместо на рисунке",
 	"Undo": "Отменить",
 	"Redo": "Вернуть",
 	"Rotate right": "Повернуть вправо",
@@ -136,5 +135,11 @@
 	"Enter URL:": "Введите URL:",
 	"Fuzzy select": "Нечёткое выделение",
 	"Fuzzy select (limited select by color)": "Нечёткое выделение (ограниченное выделение по цвету)",
-	"Select by color": "Выделение по цвету"
+	"Select by color": "Выделение по цвету",
+	"From set": "Из набора",
+	"From file": "Из файла",
+	"From URL": "Из URL",
+	"Save": "Сохранить",
+	"There are unsaved changes. Exit?": "Есть несохранённые изменения. Выйти?",
+	"Smoothing": "Сглаживание"
 }
