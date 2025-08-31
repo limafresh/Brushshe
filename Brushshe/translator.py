@@ -42,4 +42,4 @@ else:
     language_code = None
 
 translations = {}
-load_language(language_code)
+load_language("uk")

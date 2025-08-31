@@ -103,11 +103,12 @@ class BhComposer:
         self.force_update_mask = True
 
     def get_current_ants_image(self, w, h):
-        if (self.ants_position_update is True
-                or self.ants_image is None
-                or w != self.ants_image.width
-                or h != self.ants_image.height):
-
+        if (
+            self.ants_position_update is True
+            or self.ants_image is None
+            or w != self.ants_image.width
+            or h != self.ants_image.height
+        ):
             self.ants_image = Image.new("RGB", (w, h), 0)
             self.ants_position_update = False
 
@@ -148,13 +149,13 @@ class BhComposer:
             image.paste(self.l_image, (0, 0))
 
         if self.mask_img is not None:
-
-            if (self.tails_area != self.cache_tails_area
-                    or self.cache_mask_img is None
-                    or self.cache_mask_img.width != w
-                    or self.cache_mask_img.height != h
-                    or self.force_update_mask is True):
-
+            if (
+                self.tails_area != self.cache_tails_area
+                or self.cache_mask_img is None
+                or self.cache_mask_img.width != w
+                or self.cache_mask_img.height != h
+                or self.force_update_mask is True
+            ):
                 # print("Debug: Force update mask", self.tails_area)
 
                 tmp_mask_img = self.mask_img.copy()

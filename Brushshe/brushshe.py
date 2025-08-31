@@ -10,7 +10,6 @@ from tkinter import PhotoImage
 from urllib.request import urlopen
 from uuid import uuid4
 
-# import time  # Need for debug.
 import customtkinter as ctk
 import gallery
 from brush_palette import BrushPalette
@@ -139,7 +138,9 @@ class Brushshe(ctk.CTk):
         select_dropdown.add_option(option=_("Deselect all"), command=self.remove_mask)
         select_dropdown.add_separator()
         select_dropdown.add_option(option=_("Display mask as fill"), command=lambda: self.set_mask_type(0))
-        select_dropdown.add_option(option=_("Display mask as ants (experimental)"), command=lambda: self.set_mask_type(1))
+        select_dropdown.add_option(
+            option=_("Display mask as ants (experimental)"), command=lambda: self.set_mask_type(1)
+        )
 
         tools_menu = menu.add_cascade(_("Tools"))
         tools_dropdown = CustomDropdownMenu(widget=tools_menu)
@@ -3363,9 +3364,11 @@ class Brushshe(ctk.CTk):
     def mask_update(self):
         mm_time = int(time.time() * 1000)
 
-        if (self.composer.mask_type != 0
-                and self.selected_mask_img is not None
-                and self.timer_mask_last_update + 500 < mm_time):
+        if (
+            self.composer.mask_type != 0
+            and self.selected_mask_img is not None
+            and self.timer_mask_last_update + 500 < mm_time
+        ):
             # self.timer_mask_last_update = mm_time
 
             self.composer.inc_ants_position()

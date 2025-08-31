@@ -141,5 +141,8 @@
 	"From URL": "Из URL",
 	"Save": "Сохранить",
 	"There are unsaved changes. Exit?": "Есть несохранённые изменения. Выйти?",
-	"Smoothing": "Сглаживание"
+	"Smoothing": "Сглаживание",
+	"Select all": "Выделить всё",
+	"Display mask as fill": "Отображать маску как заливку",
+	"Display mask as ants (experimental)": "Отображать маску как муравьёв (экспериментально)"
 }

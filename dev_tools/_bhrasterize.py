@@ -1,12 +1,8 @@
+from multiprocessing import Process, SimpleQueue, cpu_count
 from time import sleep
-from random import random
-from multiprocessing import Process, cpu_count, SimpleQueue
-from multiprocessing.managers import BaseManager
-from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 
-class BHRasterize():
-
+class BHRasterize:
     def __init__(self):
         self.num_workers = cpu_count()
         self.queue = SimpleQueue()
@@ -24,20 +20,20 @@ class BHRasterize():
         self.exit()
 
     def producer(self, value):
-        print('Producer: Running', flush=True)
+        print("Producer: Running", flush=True)
         self.queue.put(value)
 
     def consumer(self, queue):
         # print('Debug: Consumer start')
         while True:
             item = queue.get()
-            print('Debug: Consumer get data')
+            print("Debug: Consumer get data")
 
             if item is None:
                 return
 
             if not hasattr(item, "type"):
-                print(__name__, 'wrong type')
+                print(__name__, "wrong type")
                 continue
 
             if item.type == 1:
@@ -65,13 +61,12 @@ class BHRasterize():
             worker.join()
 
     def render_mask(self, item):
-        input_data = item.input_image_data
         # output_data = item.output_image_data
 
         item.output_image_data = [111]
 
 
-class BHRasterizeTask():
+class BHRasterizeTask:
     def __init__(self, type: int, input_image_data, output_image_data):
         self.type = type
         self.input_image_data = input_image_data
