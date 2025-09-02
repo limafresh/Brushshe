@@ -98,8 +98,9 @@ EOF
 echo 'Creating a folder for packaging into a tarball...'
 mkdir brushshe
 cp -r ../Brushshe brushshe/Brushshe
-cp ../README.md ../LICENSE ../LICENSE_CC0 brushshe.desktop brushshe.spec brushshe
+cp ../README.md ../LICENSE ../LICENSE_CC0 brushshe
 cp ../Brushshe/icons/icon.png brushshe/brushshe.png
+mv brushshe.desktop brushshe.spec brushshe
 
 if [ "$distro" != 'OpenMandriva' ]; then
 	echo 'Installing customtkinter...'
@@ -116,4 +117,4 @@ rpmbuild -tb brushshe.tar --define "_topdir $PWD"
 echo 'Deleting files and folders created during the build process and moving the .rpm package from the project folder...'
 mv RPMS/noarch/* ../../
 rm -rf BUILD BUILDROOT SPECS RPMS SRPMS brushshe
-rm brushshe.spec brushshe.desktop brushshe.tar 
+rm brushshe.tar 
