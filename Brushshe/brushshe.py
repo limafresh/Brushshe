@@ -204,7 +204,7 @@ class Brushshe(ctk.CTk):
             text=None,
             width=30,
             image=undo_icon,
-            fg_color=tools_frame.cget("fg_color"),
+            fg_color="transparent",
             hover=False,
             command=self.undo,
         )
@@ -222,7 +222,7 @@ class Brushshe(ctk.CTk):
             text=None,
             width=30,
             image=redo_icon,
-            fg_color=tools_frame.cget("fg_color"),
+            fg_color="transparent",
             hover=False,
             command=self.redo,
         )
@@ -2094,6 +2094,7 @@ class Brushshe(ctk.CTk):
             text=_("Remove all effects"),
             command=lambda: post_actions(area_copy),
             fg_color="red",
+            hover_color="#cc0000",
             text_color="white",
         ).pack(padx=10, pady=10)
 

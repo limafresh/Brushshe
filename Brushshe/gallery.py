@@ -150,6 +150,7 @@ def load_buttons():
                     image_button,
                     text="X",
                     fg_color="red",
+                    hover_color="#cc0000",
                     text_color="white",
                     width=30,
                     command=lambda img_path=img_path: delete_image(img_path),
