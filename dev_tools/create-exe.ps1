@@ -13,7 +13,7 @@ Write-Host 'Switching to the virtual environment...' -ForegroundColor Blue
 & .\brenv\Scripts\Activate.ps1
 
 Write-Host 'Installing dependencies...' -ForegroundColor Blue
-pip install pyinstaller pip-licenses pillow customtkinter typing-extensions
+pip install pyinstaller pip-licenses pillow customtkinter
 
 Write-Host 'Creating a file with licenses...' -ForegroundColor Blue
 pip-licenses --format=plain-vertical --with-license-file --no-license-path --no-version --from=mixed --with-system --output-file=dependencies-licenses.txt

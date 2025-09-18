@@ -15,22 +15,22 @@
 
 ## ⬇️ Installation
 ### Download Brushshe for Windows 64bit
-[![Static Badge](https://img.shields.io/badge/Download-.exe_file-blue?style=for-the-badge)](https://github.com/limafresh/Brushshe/releases) or
-[![Static Badge](https://img.shields.io/badge/Download-portable_.exe_file-blue?style=for-the-badge)](https://github.com/limafresh/Brushshe/releases)
+[![Static Badge](https://img.shields.io/badge/%F0%9F%AA%9F_Download-.exe_file-blue?style=for-the-badge)](https://github.com/limafresh/Brushshe/releases) or
+[![Static Badge](https://img.shields.io/badge/%F0%9F%AA%9F_Download-portable_.exe_file-blue?style=for-the-badge)](https://github.com/limafresh/Brushshe/releases)
 
 **or**
 ### Download Brushshe for Linux
-[![Static Badge](https://img.shields.io/badge/Download-.deb_file-red?style=for-the-badge&logo=linux)](https://github.com/limafresh/Brushshe/releases) or
-[![Static Badge](https://img.shields.io/badge/Download-for_Fedora-blue?style=for-the-badge&logo=fedora)](https://github.com/limafresh/Brushshe/releases) or
-[![Static Badge](https://img.shields.io/badge/Download-for_Mageia-blue?style=for-the-badge&logo=linux)](https://github.com/limafresh/Brushshe/releases) or
-[![Static Badge](https://img.shields.io/badge/Download-for_OpenMandriva-blue?style=for-the-badge&logo=linux)](https://github.com/limafresh/Brushshe/releases)
+[![Static Badge](https://img.shields.io/badge/Download-.deb_file-red?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/limafresh/Brushshe/releases) or
+[![Static Badge](https://img.shields.io/badge/Download-for_Fedora-blue?style=for-the-badge&logo=fedora&logoColor=white)](https://github.com/limafresh/Brushshe/releases) or
+[![Static Badge](https://img.shields.io/badge/Download-for_Mageia-blue?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/limafresh/Brushshe/releases) or
+[![Static Badge](https://img.shields.io/badge/Download-for_OpenMandriva-blue?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/limafresh/Brushshe/releases)
 
 **or**
 ### Run via Python
 1. Install [Python 3](https://www.python.org/downloads/), if not installed;
 2. Download the code and unpack downloaded archive:
 
-[![Download the code](https://img.shields.io/badge/Download_the_code-ZIP-orange?style=for-the-badge&logo=Python&logoColor=white)](https://github.com/limafresh/Brushshe/tags)
+[![Static Badge](https://img.shields.io/badge/Download-.zip-orange?style=for-the-badge&logo=python&logoColor=white)](https://github.com/limafresh/Brushshe/tags)
 
 3. Install *CustomTkinter* and *Pillow* - open terminal or command line and enter:
 ```bash
