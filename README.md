@@ -105,6 +105,7 @@ The internationalization of this program has a simple principle - it determines 
 + License for program translations (`Brushshe/locales/*.json`) - *CC0 1.0*
 + Stickers and frames license - *CC0 1.0*
 + Fonts - *OFL 1.1*
++ The mascot images in the `icons` folder are *also* available under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) in all commits; supplied info: `by limafresh`
 + [Picture on screenshot](https://github.com/limafresh/Brushshe/pull/15) - [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), by Chip Viled, drawn in Brushshe
 + Builds (for example .exe, .deb) may contain other components
 
