@@ -1091,7 +1091,7 @@ class Brushshe(ctk.CTk):
         start_color = ImageColor.getrgb(self.brush_color)
         end_color = ImageColor.getrgb(self.second_brush_color)
         threshold = 50
-        direction = self.gradient_mode_btn.get()
+        direction = self.gradient_mode_optionmenu.get()
 
         temp = self.image.copy()
 
@@ -1117,6 +1117,19 @@ class Brushshe(ctk.CTk):
                         ratio = (j - min_y) / max(1, (max_y - min_y))
                     elif direction == _("Horizontally"):
                         ratio = (i - min_x) / max(1, (max_x - min_x))
+                    elif direction == _("Diagonally"):
+                        ratio = ((i - min_x) + (j - min_y)) / max(1, (max_x - min_x + max_y - min_y))
+                    elif direction == _("Radially"):
+                        cx = (min_x + max_x) // 2
+                        cy = (min_y + max_y) // 2
+                        max_dist = math.hypot(max_x - cx, max_y - cy)
+                        ratio = math.hypot(i - cx, j - cy) / max(1, max_dist)
+                    elif direction == _("Rings"):
+                        cx = (min_x + max_x) // 2
+                        cy = (min_y + max_y) // 2
+                        ratio = abs(math.sin(math.hypot(i - cx, j - cy) / 10))
+                    elif direction == _("Noise"):
+                        ratio = random.random()
 
                     r = int(start_color[0] + (end_color[0] - start_color[0]) * ratio)
                     g = int(start_color[1] + (end_color[1] - start_color[1]) * ratio)
@@ -2645,11 +2658,12 @@ class Brushshe(ctk.CTk):
                 onvalue="on",
                 offvalue="off",
             ).pack(side=ctk.LEFT, padx=5)
-            self.gradient_mode_btn = ctk.CTkSegmentedButton(
-                self.tool_config_docker, values=[_("Vertically"), _("Horizontally")]
+            self.gradient_mode_optionmenu = ctk.CTkOptionMenu(
+                self.tool_config_docker,
+                values=[_("Vertically"), _("Horizontally"), _("Diagonally"), _("Radially"), _("Rings"), _("Noise")],
             )
-            self.gradient_mode_btn.set(_("Vertically"))
-            self.gradient_mode_btn.pack(side=ctk.LEFT, padx=1)
+            self.gradient_mode_optionmenu.set(_("Vertically"))
+            self.gradient_mode_optionmenu.pack(side=ctk.LEFT, padx=1)
         elif self.current_tool == "text":
             self.tx_entry = ctk.CTkEntry(self.tool_config_docker, placeholder_text=_("Enter text..."))
             self.tx_entry.pack(side=ctk.LEFT, padx=5)

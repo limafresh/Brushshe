@@ -147,5 +147,9 @@
 	"Display mask as ants (experimental)": "Відображати маску як мурах (експериментально)",
 	"Gradient": "Градієнт",
 	"Vertically": "Вертикально",
-	"Horizontally": "Горизонтально"
+	"Horizontally": "Горизонтально",
+	"Diagonally": "По діагоналі",
+	"Radially": "Радіально",
+	"Rings": "Кільця",
+	"Noise": "Шум"
 }
