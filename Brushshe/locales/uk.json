@@ -145,5 +145,7 @@
 	"Smoothing": "Згладжування",
 	"Display mask as fill": "Відображати маску як заливку",
 	"Display mask as ants (experimental)": "Відображати маску як мурах (експериментально)",
-	"Gradient": "Градієнт"
+	"Gradient": "Градієнт",
+	"Vertically": "Вертикально",
+	"Horizontally": "Горизонтально"
 }

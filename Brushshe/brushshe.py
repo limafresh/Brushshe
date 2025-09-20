@@ -1085,26 +1085,24 @@ class Brushshe(ctk.CTk):
         def color_distance(c1, c2):
             return ((c1[0] - c2[0]) ** 2 + (c1[1] - c2[1]) ** 2 + (c1[2] - c2[2]) ** 2) ** 0.5
 
+        if not (0 <= x < self.image.width and 0 <= y < self.image.height):
+            return
+
         start_color = ImageColor.getrgb(self.brush_color)
         end_color = ImageColor.getrgb(self.second_brush_color)
-        target_color = self.image.getpixel((x, y))
         threshold = 50
+        direction = self.gradient_mode_btn.get()
 
-        color_mask = Image.new("L", self.image.size, 0)
-        for i in range(self.image.width):
-            for j in range(self.image.height):
-                pixel = self.image.getpixel((i, j))
-                if len(pixel) == 4 and pixel[3] == 0:
-                    continue
-                if color_distance(pixel[:3], target_color[:3]) <= threshold:
-                    color_mask.putpixel((i, j), 255)
+        temp = self.image.copy()
 
+        fill_color = (255, 0, 255, 255) if self.image.mode == "RGBA" else (255, 0, 255)
         try:
-            ImageDraw.floodfill(color_mask, (x, y), 128)
+            ImageDraw.floodfill(temp, (x, y), fill_color, thresh=threshold)
         except Exception:
             return
 
-        mask = color_mask.point(lambda p: 255 if p == 128 else 0)
+        diff = ImageChops.difference(self.image.convert("RGB"), temp.convert("RGB"))
+        mask = diff.convert("L").point(lambda p: 255 if p != 0 else 0)
 
         bbox = mask.getbbox()
         if not bbox:
@@ -1112,15 +1110,22 @@ class Brushshe(ctk.CTk):
         min_x, min_y, max_x, max_y = bbox
 
         gradient = Image.new(self.image.mode, self.image.size)
-        for j in range(min_y, min(max_y + 1, self.image.height)):
-            ratio = (j - min_y) / max(1, (max_y - min_y))
-            r = int(start_color[0] + (end_color[0] - start_color[0]) * ratio)
-            g = int(start_color[1] + (end_color[1] - start_color[1]) * ratio)
-            b = int(start_color[2] + (end_color[2] - start_color[2]) * ratio)
-            color = (r, g, b)
-            for i in range(min_x, min(max_x + 1, self.image.width)):
-                if mask.getpixel((i, j)) == 255:
-                    gradient.putpixel((i, j), color)
+        for j in range(min_y, max_y + 1):
+            for i in range(min_x, max_x + 1):
+                if 0 <= i < mask.width and 0 <= j < mask.height and mask.getpixel((i, j)) == 255:
+                    if direction == _("Vertically"):
+                        ratio = (j - min_y) / max(1, (max_y - min_y))
+                    elif direction == _("Horizontally"):
+                        ratio = (i - min_x) / max(1, (max_x - min_x))
+
+                    r = int(start_color[0] + (end_color[0] - start_color[0]) * ratio)
+                    g = int(start_color[1] + (end_color[1] - start_color[1]) * ratio)
+                    b = int(start_color[2] + (end_color[2] - start_color[2]) * ratio)
+
+                    if self.image.mode == "RGBA":
+                        gradient.putpixel((i, j), (r, g, b, 255))
+                    else:
+                        gradient.putpixel((i, j), (r, g, b))
 
         filled = Image.composite(gradient, self.image, mask)
 
@@ -1128,9 +1133,6 @@ class Brushshe(ctk.CTk):
             self.image.paste(filled)
         else:
             self.image.paste(filled, (0, 0), self.selected_mask_img)
-
-        self.update_canvas()
-        self.undo_stack.append(self.image.copy())
 
     def open_from_file(self):
         dialog = FileDialog(self, title=_("Open from file"))
@@ -2643,6 +2645,11 @@ class Brushshe(ctk.CTk):
                 onvalue="on",
                 offvalue="off",
             ).pack(side=ctk.LEFT, padx=5)
+            self.gradient_mode_btn = ctk.CTkSegmentedButton(
+                self.tool_config_docker, values=[_("Vertically"), _("Horizontally")]
+            )
+            self.gradient_mode_btn.set(_("Vertically"))
+            self.gradient_mode_btn.pack(side=ctk.LEFT, padx=1)
         elif self.current_tool == "text":
             self.tx_entry = ctk.CTkEntry(self.tool_config_docker, placeholder_text=_("Enter text..."))
             self.tx_entry.pack(side=ctk.LEFT, padx=5)
