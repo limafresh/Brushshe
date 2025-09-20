@@ -41,11 +41,11 @@ pip install customtkinter Pillow
 ## 🚀 Features
 + **Open**: You can open a picture from a file or URL.
 + **Painting**: You can choose a color, change the brush thickness and shape, and paint. You can change canvas size.
-+ **Recoloring brush (new!)**: Draws through contours.
++ **Recoloring brush**: Draws through contours.
 + **Save to device**: You can save picture to your PC in different formats (PNG, JPEG, GIF, BMP, DDS, DIB, EPS, ICNS, ICO, IM, MPO, PCX, PPM, SGI, TGA, TIFF, WEBP, PDF (only for save)).
 + **Undo and redo**: You can undo and redo last actions.
 + **Eraser**: Removing excess with an eraser.
-+ **Fill**: Can fill areas of a drawing. Can work slowly on large areas, and not work on RGBA-images.
++ **Fill**: You can fill areas of a drawing, including with a gradient fill.
 + **Eyedropper**: Right click on the desired place on the canvas to get its color and paint with it.
 + **Spray**: Spray paint.
 + **Background**: You can choose the background color.
@@ -61,7 +61,7 @@ pip install customtkinter Pillow
 + **Paste image from clipboard**: You can paste image from clipboard.
 + **View**: Zoom in, zoom out, reset zoom.
 + **Change size**: You can change the size by cropping or scaling.
-+ **Palettes**: There are 3 built-in palette sets in the settings, and if there are not enough of them, you can load your own from .hex files.
++ **Palettes**: There are 4 built-in palette sets in the settings, and if there are not enough of them, you can load your own from .hex files.
 + **Brush smoothing**: Brush smoothing with params.
 + **Cut, copy and insert**: Cut, copy or insert fragments. Works on Windows, but on Linux you need to install `xclip` (X11) or `wl-paste` (Wayland). If they are not installed, everything else will work, but when you try to paste from the buffer, you will get a message that this is impossible.
 + **Remove white background**: Replace white or really light gray background to transparent.

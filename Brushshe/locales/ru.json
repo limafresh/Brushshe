@@ -144,5 +144,6 @@
 	"Smoothing": "Сглаживание",
 	"Select all": "Выделить всё",
 	"Display mask as fill": "Отображать маску как заливку",
-	"Display mask as ants (experimental)": "Отображать маску как муравьёв (экспериментально)"
+	"Display mask as ants (experimental)": "Отображать маску как муравьёв (экспериментально)",
+	"Gradient": "Градиент"
 }

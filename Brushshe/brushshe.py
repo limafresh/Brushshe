@@ -497,6 +497,7 @@ class Brushshe(ctk.CTk):
         self.font_path = resource("assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
         self.is_reset_settings_after_exiting = False
         self.current_file = None
+        self.is_gradient_fill = ctk.StringVar(value="off")
         self.is_sticker_use_real_size = ctk.StringVar(value="off")
         self.is_insert_smoothing = ctk.StringVar(value="off")
 
@@ -1057,33 +1058,74 @@ class Brushshe(ctk.CTk):
         self.brush_color = self.obtained_color
         self.brush_palette.main_color = self.obtained_color
 
-    def start_fill(self):  # beta
+    def start_fill(self):
         self.set_tool("fill", "Fill", None, None, None, "cross")
         self.canvas.bind("<Button-1>", self.fill)
 
     def fill(self, event):
         x, y = self.canvas_to_pict_xy(event.x, event.y)
-
-        if self.selected_mask_img is None:
-            tmp_image = self.image
-        else:
-            tmp_image = self.image.copy()
+        tmp_image = self.image if self.selected_mask_img is None else self.image.copy()
 
         if self.image.mode == "RGBA":
-            ImageDraw.floodfill(
-                tmp_image,
-                (x, y),
-                self.rgb_tuple_to_rgba_tuple(ImageColor.getrgb(self.brush_color), 255),
-            )
+            fill_color = self.rgb_tuple_to_rgba_tuple(ImageColor.getrgb(self.brush_color), 255)
         else:
-            ImageDraw.floodfill(tmp_image, (x, y), ImageColor.getrgb(self.brush_color))
+            fill_color = ImageColor.getrgb(self.brush_color)
+
+        if self.is_gradient_fill.get() == "on":
+            self.gradient_fill(x, y)
+        else:
+            ImageDraw.floodfill(tmp_image, (x, y), fill_color)
+            if self.selected_mask_img is not None:
+                self.image.paste(tmp_image, (0, 0), self.selected_mask_img)
+
+        self.update_canvas()
+        self.undo_stack.append(self.image.copy())
+
+    def gradient_fill(self, x, y):
+        def color_distance(c1, c2):
+            return ((c1[0] - c2[0]) ** 2 + (c1[1] - c2[1]) ** 2 + (c1[2] - c2[2]) ** 2) ** 0.5
+
+        start_color = ImageColor.getrgb(self.brush_color)
+        end_color = ImageColor.getrgb(self.second_brush_color)
+        target_color = self.image.getpixel((x, y))
+        threshold = 50
+
+        color_mask = Image.new("L", self.image.size, 0)
+        for i in range(self.image.width):
+            for j in range(self.image.height):
+                pixel = self.image.getpixel((i, j))
+                if color_distance(pixel, target_color) <= threshold:
+                    color_mask.putpixel((i, j), 255)
+
+        try:
+            ImageDraw.floodfill(color_mask, (x, y), 128)
+        except Exception:
+            return
+
+        mask = color_mask.point(lambda p: 255 if p == 128 else 0)
+
+        bbox = mask.getbbox()
+        if not bbox:
+            return
+        min_x, min_y, max_x, max_y = bbox
+
+        gradient = Image.new(self.image.mode, self.image.size)
+        for j in range(min_y, min(max_y + 1, self.image.height)):
+            ratio = (j - min_y) / max(1, (max_y - min_y))
+            r = int(start_color[0] + (end_color[0] - start_color[0]) * ratio)
+            g = int(start_color[1] + (end_color[1] - start_color[1]) * ratio)
+            b = int(start_color[2] + (end_color[2] - start_color[2]) * ratio)
+            color = (r, g, b)
+            for i in range(min_x, min(max_x + 1, self.image.width)):
+                if mask.getpixel((i, j)) == 255:
+                    gradient.putpixel((i, j), color)
+
+        filled = Image.composite(gradient, self.image, mask)
 
         if self.selected_mask_img is None:
-            pass
+            self.image.paste(filled)
         else:
-            self.image.paste(tmp_image, (0, 0), self.selected_mask_img)
-
-        del tmp_image
+            self.image.paste(filled, (0, 0), self.selected_mask_img)
 
         self.update_canvas()
         self.undo_stack.append(self.image.copy())
@@ -2591,6 +2633,14 @@ class Brushshe(ctk.CTk):
             elif self.brush_shape == "square":
                 brush_shape_btn.set("■")
             brush_shape_btn.pack(side=ctk.LEFT, padx=5)
+        elif self.current_tool == "fill":
+            ctk.CTkCheckBox(
+                self.tool_config_docker,
+                text=_("Gradient"),
+                variable=self.is_gradient_fill,
+                onvalue="on",
+                offvalue="off",
+            ).pack(side=ctk.LEFT, padx=5)
         elif self.current_tool == "text":
             self.tx_entry = ctk.CTkEntry(self.tool_config_docker, placeholder_text=_("Enter text..."))
             self.tx_entry.pack(side=ctk.LEFT, padx=5)
