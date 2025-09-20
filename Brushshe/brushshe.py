@@ -1094,7 +1094,9 @@ class Brushshe(ctk.CTk):
         for i in range(self.image.width):
             for j in range(self.image.height):
                 pixel = self.image.getpixel((i, j))
-                if color_distance(pixel, target_color) <= threshold:
+                if len(pixel) == 4 and pixel[3] == 0:
+                    continue
+                if color_distance(pixel[:3], target_color[:3]) <= threshold:
                     color_mask.putpixel((i, j), 255)
 
         try:
