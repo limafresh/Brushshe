@@ -150,5 +150,7 @@
 	"Diagonally": "По диагонали",
 	"Radially": "Радиально",
 	"Rings": "Кольца",
-	"Noise": "Шум"
+	"Noise": "Шум",
+	"Brightness": "Яркость",
+	"Contrast": "Контраст"
 }

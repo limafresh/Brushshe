@@ -578,7 +578,17 @@ class Brushshe(ctk.CTk):
         }
         self.fonts = list(self.fonts_dict.keys())
 
-        self.effect_values = ["Blur", "Detail", "Contour", "Grayscale", "Mirror", "Metal", "Inversion"]
+        self.effect_values = [
+            "Blur",
+            "Detail",
+            "Contour",
+            "Grayscale",
+            "Mirror",
+            "Metal",
+            "Inversion",
+            "Brightness",
+            "Contrast",
+        ]
 
         self.composer.mask_type = 0  # Type: 0 - fill, 1 - ants
 
@@ -2117,6 +2127,10 @@ class Brushshe(ctk.CTk):
             result = self.image.copy().filter(ImageFilter.EMBOSS)
         elif effect_value == _("Inversion"):
             result = ImageOps.invert(self.image.copy())
+        elif effect_value == _("Brightness"):
+            result = ImageEnhance.Brightness(self.image.copy()).enhance(self.tool_size / 10)
+        elif effect_value == _("Contrast"):
+            result = ImageEnhance.Contrast(self.image.copy()).enhance(self.tool_size / 10)
         post_actions()
 
     def about_program(self):
