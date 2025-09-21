@@ -2792,9 +2792,10 @@ class Brushshe(ctk.CTk):
         ready_size_button.pack(padx=10, pady=10)
 
     def settings(self):
-        def change_theme():
-            ctk.set_appearance_mode(theme_var.get())
-            config.set("Brushshe", "theme", theme_var.get())
+        def change_theme(value):
+            mode = {_("Light"): "light", _("Dark"): "dark"}.get(value, "system")
+            ctk.set_appearance_mode(mode)
+            config.set("Brushshe", "theme", mode)
             write_config()
 
         def change_undo_levels():
@@ -2836,15 +2837,13 @@ class Brushshe(ctk.CTk):
 
         ctk.CTkLabel(theme_frame, text=_("Theme")).pack(padx=10, pady=10)
 
-        theme_var = ctk.StringVar(value=config.get("Brushshe", "theme"))
-        for theme_name in ["System", "Light", "Dark"]:
-            ctk.CTkRadioButton(
-                theme_frame,
-                text=_(theme_name),
-                variable=theme_var,
-                value=theme_name,
-                command=change_theme,
-            ).pack(padx=10, pady=10)
+        theme_btn = ctk.CTkSegmentedButton(
+            theme_frame,
+            values=[_("System"), _("Light"), _("Dark")],
+            command=change_theme,
+        )
+        theme_btn.set(_(config.get("Brushshe", "theme").capitalize()))
+        theme_btn.pack(padx=10, pady=10)
 
         undo_levels_frame = ctk.CTkFrame(settings_frame)
         undo_levels_frame.pack(padx=10, pady=10, fill="x")
