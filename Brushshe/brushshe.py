@@ -151,6 +151,7 @@ class Brushshe(ctk.CTk):
         draw_tools_submenu.add_option(option=_("Fill"), command=self.fill)
         draw_tools_submenu.add_option(option=_("Recoloring Brush"), command=self.recoloring_brush)
         draw_tools_submenu.add_option(option=_("Spray"), command=self.spray)
+        draw_tools_submenu.add_option(option=_("Text"), command=self.text_tool)
 
         shapes_submenu = tools_dropdown.add_submenu(_("Shapes"))
         shape_options = ["Rectangle", "Oval", "Fill rectangle", "Fill oval", "Line"]
@@ -164,16 +165,14 @@ class Brushshe(ctk.CTk):
         edit_submenu.add_option(option=_("Insert"), command=lambda: self.start_insert())
         edit_submenu.add_option(option=_("Crop"), command=lambda: self.crop_simple())
 
+        tools_dropdown.add_option(option=_("Effects"), command=self.effects)
+
         tools_icon_size = (20, 20)
         tools_dropdown.add_separator()
         smile_icon = ctk.CTkImage(Image.open(resource("icons/smile.png")), size=tools_icon_size)
         tools_dropdown.add_option(option=_("Stickers"), image=smile_icon, command=self.show_stickers_choice)
-        text_icon = ctk.CTkImage(Image.open(resource("icons/text.png")), size=tools_icon_size)
-        tools_dropdown.add_option(option=_("Text"), image=text_icon, command=self.text_tool)
         frame_icon = ctk.CTkImage(Image.open(resource("icons/frame.png")), size=tools_icon_size)
         tools_dropdown.add_option(option=_("Frames"), image=frame_icon, command=self.show_frame_choice)
-        effects_icon = ctk.CTkImage(Image.open(resource("icons/effects.png")), size=tools_icon_size)
-        tools_dropdown.add_option(option=_("Effects"), image=effects_icon, command=self.effects)
         tools_dropdown.add_separator()
         tools_dropdown.add_option(option=_("Remove white background"), command=self.remove_white_background)
 
@@ -281,6 +280,13 @@ class Brushshe(ctk.CTk):
                 "helper": _("Spray"),
                 "action": self.spray,
                 "icon_name": "spray",
+            },
+            {
+                "type": "button",
+                "name": _("Text"),
+                "helper": _("Text"),
+                "action": self.text_tool,
+                "icon_name": "text",
             },
             {"type": "separator"},
             {
@@ -390,14 +396,14 @@ class Brushshe(ctk.CTk):
                 "action": self.remove_mask,
                 "icon_name": "deselect_all",
             },
-            # {"type": "separator"},
-            # {
-            #     "type": "button",
-            #     "name": _("test"),
-            #     "helper": _("test"),
-            #     "action": None,
-            #     "icon_name": "test",
-            # },
+            {"type": "separator"},
+            {
+                "type": "button",
+                "name": _("Effects"),
+                "helper": _("Effects"),
+                "action": self.effects,
+                "icon_name": "effects",
+            },
         ]
 
         self.set_tools_docker(tools_list, 2)
