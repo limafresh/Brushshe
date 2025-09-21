@@ -572,6 +572,8 @@ class Brushshe(ctk.CTk):
         }
         self.fonts = list(self.fonts_dict.keys())
 
+        self.effect_values = ["Blur", "Detail", "Contour", "Grayscale", "Mirror", "Metal", "Inversion"]
+
         self.composer.mask_type = 0  # Type: 0 - fill, 1 - ants
 
         self.update()  # Update interface before recalculate canvas.
@@ -2081,104 +2083,35 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<ButtonRelease-1>", crop_end)
 
     def effects(self):
-        def post_actions(result):
+        self.set_tool("effects", "Effects", 10, 1, 20, "circle")
+
+    def apply_effect(self):
+        def post_actions():
             if self.selected_mask_img is None:
                 self.image = result
-                self.update_canvas()
                 self.draw = ImageDraw.Draw(self.image)
             else:
                 self.image.paste(result, (0, 0), self.selected_mask_img)
-                self.update_canvas()
+            self.update_canvas()
             self.undo_stack.append(self.image.copy())
 
-        def blur():
-            radius = blur_slider.get()
-            result = image_copy.filter(ImageFilter.GaussianBlur(radius=radius))
-            post_actions(result)
+        effect_value = self.effects_optionmenu.get()
 
-        def detail():
-            factor = detail_slider.get()
-            enhancer = ImageEnhance.Sharpness(image_copy)
-            result = enhancer.enhance(factor)
-            post_actions(result)
-
-        def contour():
-            result = image_copy.filter(ImageFilter.CONTOUR)
-            post_actions(result)
-
-        def grayscale():
-            result = ImageOps.grayscale(image_copy)
-            post_actions(result)
-
-        def mirror():
-            result = ImageOps.mirror(image_copy)
-            post_actions(result)
-
-        def metal():
-            result = image_copy.filter(ImageFilter.EMBOSS)
-            post_actions(result)
-
-        def inversion():
-            result = ImageOps.invert(image_copy)
-            post_actions(result)
-
-        effects_win = ctk.CTkToplevel(self)
-        effects_win.title(_("Effects"))
-        effects_win.geometry("250x500")
-
-        effects_frame = ctk.CTkScrollableFrame(effects_win)
-        effects_frame.pack(fill=ctk.BOTH, expand=True, padx=10, pady=10)
-
-        ctk.CTkButton(
-            effects_win,
-            text=_("Remove all effects"),
-            command=lambda: post_actions(image_copy),
-            fg_color="red",
-            hover_color="#cc0000",
-            text_color="white",
-        ).pack(padx=10, pady=10)
-
-        # Blur
-        blur_frame = ctk.CTkFrame(effects_frame)
-        blur_frame.pack(padx=10, pady=10)
-
-        ctk.CTkLabel(blur_frame, text=_("Blur")).pack(padx=10, pady=10)
-
-        blur_slider = ctk.CTkSlider(blur_frame, from_=0, to=20)
-        blur_slider.pack(padx=10, pady=10)
-
-        ctk.CTkButton(blur_frame, text=_("Apply"), command=blur).pack(padx=10, pady=10)
-
-        # Detail
-        detail_frame = ctk.CTkFrame(effects_frame)
-        detail_frame.pack(padx=10, pady=10)
-
-        ctk.CTkLabel(detail_frame, text=_("Detail")).pack(padx=10, pady=10)
-
-        detail_slider = ctk.CTkSlider(detail_frame, from_=1, to=20)
-        detail_slider.pack(padx=10, pady=10)
-
-        ctk.CTkButton(detail_frame, text=_("Apply"), command=detail).pack(padx=10, pady=10)
-
-        effects_dict = {  # dictionary for effects which without slider
-            "Contour": contour,
-            "Grayscale": grayscale,
-            "Mirror": mirror,
-            "Metal": metal,
-            "Inversion": inversion,
-        }
-
-        for effect_name, effect_command in effects_dict.items():
-            effect_frame = ctk.CTkFrame(effects_frame)
-            effect_frame.pack(padx=10, pady=10)
-
-            ctk.CTkLabel(effect_frame, text=_(effect_name)).pack(padx=10, pady=10)
-
-            ctk.CTkButton(effect_frame, text=_("Apply"), command=effect_command).pack(padx=10, pady=10)
-
-        image_copy = self.image.copy()
-
-        effects_win.grab_set()
+        if effect_value == _("Blur"):
+            result = self.image.copy().filter(ImageFilter.GaussianBlur(radius=self.tool_size))
+        elif effect_value == _("Detail"):
+            result = ImageEnhance.Sharpness(self.image.copy()).enhance(self.tool_size)
+        elif effect_value == _("Contour"):
+            result = self.image.copy().filter(ImageFilter.CONTOUR)
+        elif effect_value == _("Grayscale"):
+            result = ImageOps.grayscale(self.image.copy())
+        elif effect_value == _("Mirror"):
+            result = ImageOps.mirror(self.image.copy())
+        elif effect_value == _("Metal"):
+            result = self.image.copy().filter(ImageFilter.EMBOSS)
+        elif effect_value == _("Inversion"):
+            result = ImageOps.invert(self.image.copy())
+        post_actions()
 
     def about_program(self):
         about_text = _(
@@ -2660,6 +2593,14 @@ class Brushshe(ctk.CTk):
                 offvalue="off",
                 command=self.set_current_sticker,
             ).pack(side=ctk.LEFT, padx=5)
+        elif self.current_tool == "effects":
+            self.effects_optionmenu = ctk.CTkOptionMenu(
+                self.tool_config_docker, values=[_(value) for value in self.effect_values]
+            )
+            self.effects_optionmenu.pack(side=ctk.LEFT, padx=5)
+            ctk.CTkButton(self.tool_config_docker, text="OK", width=35, command=self.apply_effect).pack(
+                side=ctk.LEFT, padx=1
+            )
         elif self.current_tool == "insert":
             ctk.CTkCheckBox(
                 self.tool_config_docker,
