@@ -2081,69 +2081,50 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<ButtonRelease-1>", crop_end)
 
     def effects(self):
-        def set_effects_area_copy():
-            nonlocal area_copy
-            if effects_area.get() == 1:
-                area_copy = image_copy
-            else:
-                area_copy = buffer_local_copy
-
         def post_actions(result):
-            if effects_area.get() == 1:
+            if self.selected_mask_img is None:
                 self.image = result
                 self.update_canvas()
                 self.draw = ImageDraw.Draw(self.image)
-                self.undo_stack.append(self.image.copy())
             else:
-                self.buffer_local = result
+                self.image.paste(result, (0, 0), self.selected_mask_img)
+                self.update_canvas()
+            self.undo_stack.append(self.image.copy())
 
         def blur():
             radius = blur_slider.get()
-            result = area_copy.filter(ImageFilter.GaussianBlur(radius=radius))
+            result = image_copy.filter(ImageFilter.GaussianBlur(radius=radius))
             post_actions(result)
 
         def detail():
             factor = detail_slider.get()
-            enhancer = ImageEnhance.Sharpness(area_copy)
+            enhancer = ImageEnhance.Sharpness(image_copy)
             result = enhancer.enhance(factor)
             post_actions(result)
 
         def contour():
-            result = area_copy.filter(ImageFilter.CONTOUR)
+            result = image_copy.filter(ImageFilter.CONTOUR)
             post_actions(result)
 
         def grayscale():
-            result = ImageOps.grayscale(area_copy)
+            result = ImageOps.grayscale(image_copy)
             post_actions(result)
 
         def mirror():
-            result = ImageOps.mirror(area_copy)
+            result = ImageOps.mirror(image_copy)
             post_actions(result)
 
         def metal():
-            result = area_copy.filter(ImageFilter.EMBOSS)
+            result = image_copy.filter(ImageFilter.EMBOSS)
             post_actions(result)
 
         def inversion():
-            result = ImageOps.invert(area_copy)
+            result = ImageOps.invert(image_copy)
             post_actions(result)
 
         effects_win = ctk.CTkToplevel(self)
         effects_win.title(_("Effects"))
         effects_win.geometry("250x500")
-
-        effects_area = ctk.IntVar(value=1)
-        whole_image_radiobutton = ctk.CTkRadioButton(
-            effects_win, text=_("Whole image"), command=set_effects_area_copy, variable=effects_area, value=1
-        )
-        whole_image_radiobutton.pack(padx=10, pady=10)
-        copied_area_radiobutton = ctk.CTkRadioButton(
-            effects_win, text=_("Copied area"), command=set_effects_area_copy, variable=effects_area, value=2
-        )
-        copied_area_radiobutton.pack(padx=10, pady=10)
-
-        if hasattr(self, "buffer_local") is False or self.buffer_local is None:
-            copied_area_radiobutton.configure(state="disabled")
 
         effects_frame = ctk.CTkScrollableFrame(effects_win)
         effects_frame.pack(fill=ctk.BOTH, expand=True, padx=10, pady=10)
@@ -2151,7 +2132,7 @@ class Brushshe(ctk.CTk):
         ctk.CTkButton(
             effects_win,
             text=_("Remove all effects"),
-            command=lambda: post_actions(area_copy),
+            command=lambda: post_actions(image_copy),
             fg_color="red",
             hover_color="#cc0000",
             text_color="white",
@@ -2197,13 +2178,7 @@ class Brushshe(ctk.CTk):
 
         image_copy = self.image.copy()
 
-        if hasattr(self, "buffer_local") and self.buffer_local is not None:
-            buffer_local_copy = self.buffer_local.copy()
-
-        area_copy = None
-        set_effects_area_copy()
-
-        effects_win.grab_set()  # Disable main window
+        effects_win.grab_set()
 
     def about_program(self):
         about_text = _(

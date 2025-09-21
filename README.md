@@ -53,7 +53,7 @@ pip install customtkinter Pillow
 + **Text**: You can place text and change its size.
 + **Frames**: You can decorate the picture with frames.
 + **Shapes**: Rectangle and oval (with or without fill), line, bezier curve.
-+ **Effects**: Blur, detail, contour, grayscale, inversion and other. It can be applied to the whole image or to the copied area. Not work on GIF images.
++ **Effects**: Blur, detail, contour, grayscale, inversion and other. Not work on GIF images.
 + **My Gallery**: Window showing images drawn in Brushshe and "saved to gallery". Images from the gallery are stored in `<user_home_folder>/Pictures/Brushshe Images` or `<user_home_folder>/Brushshe Images` on some minimalistic Linux distributions.
 + **Dark theme**: There is a light and dark theme.
 + **Rotate**: Rotate right, rotate left.
