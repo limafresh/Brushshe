@@ -106,6 +106,8 @@ class Brushshe(ctk.CTk):
         file_dropdown.add_option(option=_("Save to my gallery"), command=self.save_to_gallery)
         file_dropdown.add_separator()
         file_dropdown.add_option(option=_("Import palette (hex)"), command=self.import_palette)
+        file_dropdown.add_separator()
+        file_dropdown.add_option(option=_("Exit"), command=self.when_closing)
 
         image_menu = menu.add_cascade(_("Image"))
         image_dropdown = CustomDropdownMenu(widget=image_menu)
