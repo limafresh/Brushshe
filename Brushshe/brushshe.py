@@ -495,8 +495,11 @@ class Brushshe(ctk.CTk):
         self.brush_smoothing_factor = config.getint("Brushshe", "brush_smoothing_factor")  # Between: 3..64
         self.brush_smoothing_quality = config.getint("Brushshe", "brush_smoothing_quality")  # Between: 1..64
 
+        self.autosave_var = ctk.BooleanVar(value=config.getboolean("Brushshe", "autosave"))
+
         self.composer = BhComposer(0, 0)  # Empty init.
 
+        self.current_file = None
         self.new_picture(self.bg_color, first_time=True)
         self.brush()
 
@@ -504,7 +507,6 @@ class Brushshe(ctk.CTk):
         self.current_font = "Open Sans"
         self.font_path = resource("assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
         self.is_reset_settings_after_exiting = False
-        self.current_file = None
         self.is_gradient_fill = ctk.StringVar(value="off")
         self.is_sticker_use_real_size = ctk.StringVar(value="off")
         self.is_insert_smoothing = ctk.StringVar(value="off")
@@ -856,6 +858,11 @@ class Brushshe(ctk.CTk):
                 color = self.rgb_tuple_to_rgba_tuple(self.rgb_color_to_tuple(color), 255)
         return color
 
+    def record_action(self):
+        self.undo_stack.append(self.image.copy())
+        if self.autosave_var.get() and self.current_file is not None:
+            self.save_current(autosave=True)
+
     def draw_line(self, x1, y1, x2, y2):
         color = self.get_tool_main_color()
 
@@ -1066,7 +1073,7 @@ class Brushshe(ctk.CTk):
         self.force_resize_canvas()
         self.update_canvas()
 
-        self.undo_stack.append(self.image.copy())
+        self.record_action()
 
     def eyedropper(self, event):
         # Get the coordinates of the click event
@@ -1099,7 +1106,7 @@ class Brushshe(ctk.CTk):
                 self.image.paste(tmp_image, (0, 0), self.selected_mask_img)
 
         self.update_canvas()
-        self.undo_stack.append(self.image.copy())
+        self.record_action()
 
     def gradient_fill(self, x, y):
         def color_distance(c1, c2):
@@ -1183,18 +1190,19 @@ class Brushshe(ctk.CTk):
             except Exception as e:
                 self.open_file_error(e)
 
-    def save_current(self):
+    def save_current(self, autosave=False):
         if self.current_file is not None:
             try:
                 self.image.save(self.current_file)
                 self.saved_copy = self.image.copy()
-                CTkMessagebox(
-                    title=_("Saved"),
-                    message=_("Changes to your existing picture have been saved successfully!"),
-                    icon=resource("icons/saved.png"),
-                    icon_size=(100, 100),
-                    sound=True,
-                )
+                if not autosave:
+                    CTkMessagebox(
+                        title=_("Saved"),
+                        message=_("Changes to your existing picture have been saved successfully!"),
+                        icon=resource("icons/saved.png"),
+                        icon_size=(100, 100),
+                        sound=True,
+                    )
             except Exception as e:
                 self.save_file_error(e)
         else:
@@ -1310,7 +1318,7 @@ class Brushshe(ctk.CTk):
         def add_text(event):
             self.draw.text((self.text_x, self.text_y), self.tx_entry.get(), fill=self.brush_color, font=self.imagefont)
             self.update_canvas()
-            self.undo_stack.append(self.image.copy())
+            self.record_action()
 
         def draw_text_halo(event):
             self.canvas.delete("tools")
@@ -1368,7 +1376,7 @@ class Brushshe(ctk.CTk):
             self.image.paste(resized_frame, (0, 0), resized_frame)
 
             self.update_canvas()
-            self.undo_stack.append(self.image.copy())
+            self.record_action()
 
         frames_win = ctk.CTkToplevel(self)
         frames_win.title(_("Frames"))
@@ -1484,7 +1492,7 @@ class Brushshe(ctk.CTk):
                 del tmp_image
 
             self.update_canvas()
-            self.undo_stack.append(self.image.copy())
+            self.record_action()
 
             # Removing unnecessary variables for normal selection of the next shape in the menu
             #   and disabling other side effects.
@@ -1629,7 +1637,7 @@ class Brushshe(ctk.CTk):
 
                 self.canvas.delete(bezier_id)
                 self.update_canvas()
-                self.undo_stack.append(self.image.copy())
+                self.record_action()
 
                 # Reset nonlocal variables.
                 canvas_points = []
@@ -1691,7 +1699,7 @@ class Brushshe(ctk.CTk):
 
             point_history = None
             prev_x, prev_y = (None, None)
-            self.undo_stack.append(self.image.copy())
+            self.record_action()
 
         def move(event):
             x, y = self.canvas_to_pict_xy(event.x, event.y)
@@ -1783,7 +1791,7 @@ class Brushshe(ctk.CTk):
             tmp_img = Image.new(self.image.mode, (self.image.width, self.image.height), bg_color)
             self.image.paste(tmp_img, (0, 0), tmp_img_mask)
             del tmp_img
-            self.undo_stack.append(self.image.copy())
+            self.record_action()
 
         self.update_canvas()
 
@@ -1872,7 +1880,7 @@ class Brushshe(ctk.CTk):
                         fill="#00000000",
                         outline="#00000000",
                     )
-                self.undo_stack.append(self.image.copy())  # Need only for cut.
+                self.record_action()  # Need only for cut.
 
             self.update_canvas()
 
@@ -1959,7 +1967,7 @@ class Brushshe(ctk.CTk):
                 self.image.paste(image_tmp, (x1, y1))
 
             self.update_canvas()
-            self.undo_stack.append(self.image.copy())
+            self.record_action()
 
         def leave(event):
             self.canvas.delete("tools")
@@ -2111,7 +2119,7 @@ class Brushshe(ctk.CTk):
             else:
                 self.image.paste(result, (0, 0), self.selected_mask_img)
             self.update_canvas()
-            self.undo_stack.append(self.image.copy())
+            self.record_action()
 
         effect_value = self.effects_optionmenu.get()
 
@@ -2173,7 +2181,7 @@ class Brushshe(ctk.CTk):
         self.force_resize_canvas()
         self.update_canvas()
 
-        self.undo_stack.append(self.image.copy())
+        self.record_action()
         self.title(_("Unnamed") + " - " + _("Brushshe"))
         self.current_file = None
 
@@ -2268,7 +2276,7 @@ class Brushshe(ctk.CTk):
 
             point_history = None
             prev_x, prev_y = (None, None)
-            self.undo_stack.append(self.image.copy())
+            self.record_action()
 
         def move(event):
             x, y = self.canvas_to_pict_xy(event.x, event.y)
@@ -2360,7 +2368,7 @@ class Brushshe(ctk.CTk):
                 self.after_cancel(self.spray_job)
                 self.spray_job = None
             self.prev_x, self.prev_y = (None, None)
-            self.undo_stack.append(self.image.copy())
+            self.record_action()
 
         self.set_tool("spray", "Spray", self.spray_size, 5, 30, "spraycan")
 
@@ -2393,7 +2401,7 @@ class Brushshe(ctk.CTk):
             if self.image.width != tmp_image.width or self.image.height != tmp_image.height:
                 is_resize = True
             self.image = tmp_image
-            self.undo_stack.append(self.image.copy())
+            self.record_action()
             self.draw = ImageDraw.Draw(self.image)
             if is_resize:
                 self.selected_mask_img = None
@@ -2526,7 +2534,7 @@ class Brushshe(ctk.CTk):
         self.force_resize_canvas()
         self.update_canvas()
 
-        self.undo_stack.append(self.image.copy())
+        self.record_action()
 
     def set_tool(self, tool, tool_name, tool_size, from_, to, cursor):
         self.current_tool = tool
@@ -2747,19 +2755,23 @@ class Brushshe(ctk.CTk):
             config.set("Brushshe", "smoothing", str(self.is_brush_smoothing))
             write_config()
 
-        def brush_smoothing_factor_event(event):
-            self.brush_smoothing_factor = brush_smoothing_factor_var.get()
-            config.set("Brushshe", "brush_smoothing_factor", str(self.brush_smoothing_factor))
+        def bsq_event(value):
+            self.brush_smoothing_quality = int(value)
+            config.set("Brushshe", "brush_smoothing_quality", str(self.brush_smoothing_quality))
             write_config()
 
-        def brush_smoothing_quality_event(event):
-            self.brush_smoothing_quality = brush_smoothing_quality_var.get()
-            config.set("Brushshe", "brush_smoothing_quality", str(self.brush_smoothing_quality))
+        def bsf_event(value):
+            self.brush_smoothing_factor = int(value)
+            config.set("Brushshe", "brush_smoothing_factor", str(self.brush_smoothing_factor))
             write_config()
 
         def palette_radiobutton_callback():
             self.import_palette(resource(f"assets/palettes/{palette_var.get()}_palette.hex"))
             config.set("Brushshe", "palette", palette_var.get())
+            write_config()
+
+        def autosave_switch_event():
+            config.set("Brushshe", "autosave", str(self.autosave_var.get()))
             write_config()
 
         settings_tl = ctk.CTkToplevel(self)
@@ -2808,24 +2820,16 @@ class Brushshe(ctk.CTk):
         ).pack(padx=10, pady=10)
 
         ctk.CTkLabel(smooth_frame, text=_("Brush smoothing quality")).pack(padx=10, pady=10)
-        brush_smoothing_quality_var = ctk.IntVar(value=self.brush_smoothing_quality)
-        ctk.CTkSlider(
-            smooth_frame,
-            variable=brush_smoothing_quality_var,
-            command=brush_smoothing_quality_event,
-            from_=1,
-            to=64,
-        ).pack(padx=10, pady=10)
+
+        bsq_slider = ctk.CTkSlider(smooth_frame, from_=1, to=64, command=bsq_event)
+        bsq_slider.set(self.brush_smoothing_quality)
+        bsq_slider.pack(padx=10, pady=10)
 
         ctk.CTkLabel(smooth_frame, text=_("Brush smoothing factor (weight)")).pack(padx=10, pady=1)
-        brush_smoothing_factor_var = ctk.IntVar(value=self.brush_smoothing_factor)
-        ctk.CTkSlider(
-            smooth_frame,
-            variable=brush_smoothing_factor_var,
-            command=brush_smoothing_factor_event,
-            from_=3,
-            to=64,
-        ).pack(padx=10, pady=10)
+
+        bsf_slider = ctk.CTkSlider(smooth_frame, from_=3, to=64, command=bsf_event)
+        bsf_slider.set(self.brush_smoothing_factor)
+        bsf_slider.pack(padx=10, pady=10)
 
         palette_frame = ctk.CTkFrame(settings_frame)
         palette_frame.pack(padx=10, pady=10, fill="x")
@@ -2841,6 +2845,18 @@ class Brushshe(ctk.CTk):
                 value=palette_name,
                 command=palette_radiobutton_callback,
             ).pack(padx=10, pady=10)
+
+        autosave_frame = ctk.CTkFrame(settings_frame)
+        autosave_frame.pack(padx=10, pady=10, fill="x")
+
+        ctk.CTkSwitch(
+            autosave_frame,
+            text=_("Autosave"),
+            variable=self.autosave_var,
+            onvalue=True,
+            offvalue=False,
+            command=autosave_switch_event,
+        ).pack(padx=10, pady=10)
 
         check_new_version_frame = ctk.CTkFrame(settings_frame)
         check_new_version_frame.pack(padx=10, pady=10, fill="x")
@@ -3398,6 +3414,6 @@ class Brushshe(ctk.CTk):
 
 
 ctk.set_appearance_mode(config.get("Brushshe", "theme"))
-ctk.set_default_color_theme(resource("brushshe_theme.json"))
+ctk.set_default_color_theme(resource("assets/brushshe_theme.json"))
 app = Brushshe()
 app.mainloop()
