@@ -35,6 +35,7 @@ from PIL import (
     ImageStat,
     ImageTk,
 )
+from scroll import scroll
 from spinbox import IntSpinbox
 from tooltip import Tooltip
 from translator import _
@@ -1284,6 +1285,7 @@ class Brushshe(ctk.CTk):
 
         stickers_scrollable_frame = ctk.CTkScrollableFrame(tabview.tab(_("From set")))
         stickers_scrollable_frame.pack(fill=ctk.BOTH, expand=True)
+        scroll(stickers_scrollable_frame)
 
         stickers_frame = ctk.CTkFrame(stickers_scrollable_frame)
         stickers_frame.pack()
@@ -2781,6 +2783,7 @@ class Brushshe(ctk.CTk):
 
         settings_frame = ctk.CTkScrollableFrame(settings_tl, fg_color="transparent")
         settings_frame.pack(padx=10, pady=10, fill="both", expand=True)
+        scroll(settings_frame)
 
         theme_frame = ctk.CTkFrame(settings_frame)
         theme_frame.pack(padx=10, pady=10, fill="x")

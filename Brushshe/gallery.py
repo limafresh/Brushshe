@@ -8,6 +8,7 @@ import customtkinter as ctk
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from CTkMessagebox import CTkMessagebox
 from PIL import Image
+from scroll import scroll
 from tooltip import Tooltip
 from translator import _
 
@@ -36,31 +37,10 @@ def show(open_image):
 
     gallery_scrollable_frame = ctk.CTkScrollableFrame(my_gallery)
     gallery_scrollable_frame.pack(fill=ctk.BOTH, expand=True, padx=0, pady=0)
+    scroll(gallery_scrollable_frame)
 
     gallery_frame = ctk.CTkFrame(gallery_scrollable_frame)
     gallery_frame.pack(padx=10, pady=10)
-
-    # Hack for normal scrolling.
-    if sys.platform == "linux":
-        gallery_scrollable_frame.bind("<Enter>", lambda e: set_scroll_event(e))
-        gallery_scrollable_frame.bind("<Leave>", lambda e: remove_scroll_event(e))
-
-    def scroll_on_gallery(event):
-        if event.num == 5 or event.delta < 0:
-            count = 1
-        if event.num == 4 or event.delta > 0:
-            count = -1
-        gallery_scrollable_frame._parent_canvas.yview("scroll", count, "units")
-
-    def set_scroll_event(event):
-        gallery_scrollable_frame._parent_canvas.bind_all("<MouseWheel>", lambda e: scroll_on_gallery(e))
-        gallery_scrollable_frame._parent_canvas.bind_all("<Button-4>", lambda e: scroll_on_gallery(e))
-        gallery_scrollable_frame._parent_canvas.bind_all("<Button-5>", lambda e: scroll_on_gallery(e))
-
-    def remove_scroll_event(event):
-        gallery_scrollable_frame._parent_canvas.unbind_all("<MouseWheel>")
-        gallery_scrollable_frame._parent_canvas.unbind_all("<Button-4>")
-        gallery_scrollable_frame._parent_canvas.unbind_all("<Button-5>")
 
     # Threads work bad with Tkinter event_loop.
     # Cache must be enough for normal work after first open gallery.
