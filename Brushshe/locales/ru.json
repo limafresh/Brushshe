@@ -154,5 +154,6 @@
 	"Brightness": "Яркость",
 	"Contrast": "Контраст",
 	"Exit": "Выход",
-	"Autosave": "Автосохранение"
+	"Autosave": "Автосохранение",
+	"Capture the entire screen": "Захватить весь экран"
 }
