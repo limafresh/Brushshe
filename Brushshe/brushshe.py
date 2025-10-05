@@ -2091,7 +2091,7 @@ class Brushshe(ctk.CTk):
                 int(y1 * self.zoom),
                 int((x2 + 1) * self.zoom - 1),
                 int((y2 + 1) * self.zoom - 1),
-                outline="yellow",
+                outline="white",
                 width=1,
                 tag="tools",
             )
@@ -2103,7 +2103,7 @@ class Brushshe(ctk.CTk):
                 outline="black",
                 width=1,
                 tag="tools",
-                dash=(2, 2),
+                dash=(5, 5),
             )
 
         self.canvas.bind("<Button-1>", cropping)
@@ -2576,7 +2576,7 @@ class Brushshe(ctk.CTk):
                 int(y1),
                 int(x2 + 1),
                 int(y2 + 1),
-                outline="yellow",
+                outline="white",
                 width=1,
                 tag="screenshot_tool",
             )
@@ -2588,7 +2588,7 @@ class Brushshe(ctk.CTk):
                 outline="black",
                 width=1,
                 tag="screenshot_tool",
-                dash=(2, 2),
+                dash=(5, 5),
             )
 
         screenshot_canvas.bind("<Button-1>", cropping)
