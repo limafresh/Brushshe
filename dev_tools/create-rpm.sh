@@ -21,9 +21,9 @@ else
 fi
 release_name="${distro,,}"
 if [ "$distro" != 'OpenMandriva' ]; then
-	licenses='MPL-2.0 AND CC0-1.0 AND OFL-1.1-no-RFN AND OFL-1.1-RFN AND MIT AND Apache-2.0 AND BSD-3-Clause AND (Apache-2.0 OR BSD-2-Clause)'
+	licenses='MPL-2.0 AND CC0-1.0 AND (MPL-2.0 OR CC-BY-4.0) AND OFL-1.1-no-RFN AND OFL-1.1-RFN AND MIT AND Apache-2.0 AND BSD-3-Clause AND (Apache-2.0 OR BSD-2-Clause)'
 else
-	licenses='MPL-2.0 AND CC0-1.0 AND OFL-1.1-no-RFN AND OFL-1.1-RFN'
+	licenses='MPL-2.0 AND CC0-1.0 AND (MPL-2.0 OR CC-BY-4.0) AND OFL-1.1-no-RFN AND OFL-1.1-RFN'
 fi
 
 echo 'Creating a .desktop file...'
