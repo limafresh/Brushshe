@@ -18,6 +18,7 @@ def load_config():
         "brush_smoothing_factor": "10",
         "brush_smoothing_quality": "20",
         "palette": "default",
+        "autosave": "False",
     }
 
     if not config.has_section("Brushshe"):
@@ -29,9 +30,6 @@ def load_config():
 
     write_config()
 
-
-# FIXME: It's wrong way. It can be only for portable version.
-#   On linux the config must be on some like ~/.config/brushshe/brushshe_config.ini
 
 if platform.system() == "Linux":
     config_dir = Path.home() / ".config" / "brushshe"

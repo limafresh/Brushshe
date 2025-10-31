@@ -21,9 +21,9 @@ else
 fi
 release_name="${distro,,}"
 if [ "$distro" != 'OpenMandriva' ]; then
-	licenses='MPL-2.0 AND CC0-1.0 AND OFL-1.1-no-RFN AND OFL-1.1-RFN AND MIT AND Apache-2.0 AND BSD-3-Clause AND (Apache-2.0 OR BSD-2-Clause)'
+	licenses='MPL-2.0 AND CC0-1.0 AND (MPL-2.0 OR CC-BY-4.0) AND OFL-1.1-no-RFN AND OFL-1.1-RFN AND MIT AND Apache-2.0 AND BSD-3-Clause AND (Apache-2.0 OR BSD-2-Clause)'
 else
-	licenses='MPL-2.0 AND CC0-1.0 AND OFL-1.1-no-RFN AND OFL-1.1-RFN'
+	licenses='MPL-2.0 AND CC0-1.0 AND (MPL-2.0 OR CC-BY-4.0) AND OFL-1.1-no-RFN AND OFL-1.1-RFN'
 fi
 
 echo 'Creating a .desktop file...'
@@ -44,13 +44,13 @@ Icon=brushshe
 Terminal=false
 Categories=Graphics;
 StartupWMClass=Brushshe
-MimeType=image/png;image/jpeg;image/gif;image/bmp;image/tiff;image/webp;image/x-icon;image/x-portable-pixmap;image/x-portable-graymap;image/x-portable-bitmap;
+MimeType=image/png;image/jpeg;image/gif;image/bmp;image/vnd.ms-dds;image/x-bmp;image/x-eps;image/x-icns;image/x-icon;image/im;image/mpo;image/x-pcx;image/x-portable-pixmap;image/x-sgi;image/x-tga;image/tiff;image/webp;
 EOF
 
 echo 'Creating spec file...'
 cat <<EOF > brushshe.spec
 Name:           brushshe
-Version:        2.2.0
+Version:        2.3.0
 Release:        1.$release_name
 Summary:        Raster graphical editor
 Summary(uk):    Растровий графічний редактор
@@ -98,8 +98,9 @@ EOF
 echo 'Creating a folder for packaging into a tarball...'
 mkdir brushshe
 cp -r ../Brushshe brushshe/Brushshe
-cp ../README.md ../LICENSE ../LICENSE_CC0 brushshe.desktop brushshe.spec brushshe
+cp ../README.md ../LICENSE ../LICENSE_CC0 brushshe
 cp ../Brushshe/icons/icon.png brushshe/brushshe.png
+mv brushshe.desktop brushshe.spec brushshe
 
 if [ "$distro" != 'OpenMandriva' ]; then
 	echo 'Installing customtkinter...'
@@ -116,4 +117,4 @@ rpmbuild -tb brushshe.tar --define "_topdir $PWD"
 echo 'Deleting files and folders created during the build process and moving the .rpm package from the project folder...'
 mv RPMS/noarch/* ../../
 rm -rf BUILD BUILDROOT SPECS RPMS SRPMS brushshe
-rm brushshe.spec brushshe.desktop brushshe.tar 
+rm brushshe.tar 

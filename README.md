@@ -15,22 +15,22 @@
 
 ## ⬇️ Installation
 ### Download Brushshe for Windows 64bit
-[![Static Badge](https://img.shields.io/badge/Download-.exe_file-blue?style=for-the-badge)](https://github.com/limafresh/Brushshe/releases) or
-[![Static Badge](https://img.shields.io/badge/Download-portable_.exe_file-blue?style=for-the-badge)](https://github.com/limafresh/Brushshe/releases)
+[![Static Badge](https://img.shields.io/badge/%F0%9F%AA%9F_Download-.exe_file-blue?style=for-the-badge)](https://github.com/limafresh/Brushshe/releases) or
+[![Static Badge](https://img.shields.io/badge/%F0%9F%AA%9F_Download-portable_.exe_file-blue?style=for-the-badge)](https://github.com/limafresh/Brushshe/releases)
 
 **or**
 ### Download Brushshe for Linux
-[![Static Badge](https://img.shields.io/badge/Download-.deb_file-red?style=for-the-badge&logo=linux)](https://github.com/limafresh/Brushshe/releases) or
-[![Static Badge](https://img.shields.io/badge/Download-for_Fedora-blue?style=for-the-badge&logo=fedora)](https://github.com/limafresh/Brushshe/releases) or
-[![Static Badge](https://img.shields.io/badge/Download-for_Mageia-blue?style=for-the-badge&logo=linux)](https://github.com/limafresh/Brushshe/releases) or
-[![Static Badge](https://img.shields.io/badge/Download-for_OpenMandriva-blue?style=for-the-badge&logo=linux)](https://github.com/limafresh/Brushshe/releases)
+[![Static Badge](https://img.shields.io/badge/Download-.deb_file-red?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/limafresh/Brushshe/releases) or
+[![Static Badge](https://img.shields.io/badge/Download-for_Fedora-blue?style=for-the-badge&logo=fedora&logoColor=white)](https://github.com/limafresh/Brushshe/releases) or
+[![Static Badge](https://img.shields.io/badge/Download-for_Mageia-blue?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/limafresh/Brushshe/releases) or
+[![Static Badge](https://img.shields.io/badge/Download-for_OpenMandriva-blue?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/limafresh/Brushshe/releases)
 
 **or**
 ### Run via Python
 1. Install [Python 3](https://www.python.org/downloads/), if not installed;
 2. Download the code and unpack downloaded archive:
 
-[![Download the code](https://img.shields.io/badge/Download_the_code-ZIP-orange?style=for-the-badge&logo=Python&logoColor=white)](https://github.com/limafresh/Brushshe/tags)
+[![Static Badge](https://img.shields.io/badge/Download-.zip-orange?style=for-the-badge&logo=python&logoColor=white)](https://github.com/limafresh/Brushshe/tags)
 
 3. Install *CustomTkinter* and *Pillow* - open terminal or command line and enter:
 ```bash
@@ -41,19 +41,19 @@ pip install customtkinter Pillow
 ## 🚀 Features
 + **Open**: You can open a picture from a file or URL.
 + **Painting**: You can choose a color, change the brush thickness and shape, and paint. You can change canvas size.
-+ **Recoloring brush (new!)**: Draws through contours.
-+ **Save to device**: You can save picture to your PC in different formats (PNG, JPG, GIF, BMP, TIFF, WEBP, ICO, PPM, PGM, PBM).
-+ **Undo and redo**: You can undo and redo 10 last actions.
++ **Recoloring brush**: Draws through contours.
++ **Save to device**: You can save picture to your PC in different formats (PNG, JPEG, GIF, BMP, DDS, DIB, EPS, ICNS, ICO, IM, MPO, PCX, PPM, SGI, TGA, TIFF, WEBP, PDF (only for save)). Autosave is supported.
++ **Undo and redo**: You can undo and redo last actions.
 + **Eraser**: Removing excess with an eraser.
-+ **Fill**: Can fill areas of a drawing. Can work slowly on large areas, and not work on RGBA-images.
++ **Fill**: You can fill areas of a drawing, including with a gradient fill.
 + **Eyedropper**: Right click on the desired place on the canvas to get its color and paint with it.
 + **Spray**: Spray paint.
 + **Background**: You can choose the background color.
-+ **Stickers**: You can add stickers from Brushshe sticker set (all sticker images are drawn by me or created by AI) and resize them. You can also add a sticker from a file.
++ **Stickers**: You can add stickers from Brushshe sticker set (all sticker images are drawn by me or created by AI) and resize them. You can also add a sticker from a file or URL.
 + **Text**: You can place text and change its size.
 + **Frames**: You can decorate the picture with frames.
 + **Shapes**: Rectangle and oval (with or without fill), line, bezier curve.
-+ **Effects**: Blur, detail, contour, grayscale, inversion and other. It can be applied to the whole image or to the copied area. Not work on GIF images.
++ **Effects**: Blur, detail, contour, grayscale, inversion and other. Not work on GIF images.
 + **My Gallery**: Window showing images drawn in Brushshe and "saved to gallery". Images from the gallery are stored in `<user_home_folder>/Pictures/Brushshe Images` or `<user_home_folder>/Brushshe Images` on some minimalistic Linux distributions.
 + **Dark theme**: There is a light and dark theme.
 + **Rotate**: Rotate right, rotate left.
@@ -61,12 +61,12 @@ pip install customtkinter Pillow
 + **Paste image from clipboard**: You can paste image from clipboard.
 + **View**: Zoom in, zoom out, reset zoom.
 + **Change size**: You can change the size by cropping or scaling.
-+ **Palettes**: There are 3 built-in palette sets in the settings, and if there are not enough of them, you can load your own from .hex files.
++ **Palettes**: There are 4 built-in palette sets in the settings, and if there are not enough of them, you can load your own from .hex files.
 + **Brush smoothing**: Brush smoothing with params.
 + **Cut, copy and insert**: Cut, copy or insert fragments. Works on Windows, but on Linux you need to install `xclip` (X11) or `wl-paste` (Wayland). If they are not installed, everything else will work, but when you try to paste from the buffer, you will get a message that this is impossible.
 + **Remove white background**: Replace white or really light gray background to transparent.
 + **Palettes**: use standard or custom HEX palettes.
-+ **Select**: rectangle and polygon select, invert selected, deselect all.
++ **Select**: rectangle and polygon select, invert selected, deselect all, fuzzy select, select by color.
 
 ## Hotkeys
 + *Ctrl+Z*: undo
@@ -100,11 +100,14 @@ All contributions are welcome!
 The internationalization of this program has a simple principle - it determines what the computer's localization is (for example, *en*, *ru*, etc.), and then applies the `Brushshe/locales/{localization}.json` file, where *localization* is the computer's localization.
 
 ## License
-+ Project license - *MPL 2.0* (old code under MPL 2.0 or GNU GPLv3)
-+ CTkColorPicker and CTkMenuBar license - *CC0 1.0*
++ Project license - *MPL 2.0* (old code before the license change - under MPL 2.0 or GNU GPLv3)
++ CTkMessagebox and CTkMenuBar license - *CC0 1.0*
 + License for program translations (`Brushshe/locales/*.json`) - *CC0 1.0*
-+ Fonts - *OFL*
-+ Picture on screenshot - [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), by Chip Viled, drawn in Brushshe
++ Stickers and frames license - *CC0 1.0*
++ Fonts - *OFL 1.1*
++ The mascot images in the `icons` folder are *also* available under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) in all commits; supplied info: `by limafresh`
++ [Picture on screenshot](https://github.com/limafresh/Brushshe/pull/15) - [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), by Chip Viled, drawn in Brushshe
++ Builds (for example .exe, .deb) may contain other components
 
 ## For developers
 ### Linter

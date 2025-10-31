@@ -13,7 +13,7 @@ echo 'Creating control file...'
 mkdir -p brushshe/DEBIAN
 cat <<EOF > brushshe/DEBIAN/control
 Package: brushshe
-Version: 2.2.0
+Version: 2.3.0
 Section: graphics
 Priority: optional
 Depends: python3, python3-tk, python3-pil, python3-pil.imagetk
@@ -51,7 +51,7 @@ Icon=brushshe
 Terminal=false
 Categories=Graphics;
 StartupWMClass=Brushshe
-MimeType=image/png;image/jpeg;image/gif;image/bmp;image/tiff;image/webp;image/x-icon;image/x-portable-pixmap;image/x-portable-graymap;image/x-portable-bitmap;
+MimeType=image/png;image/jpeg;image/gif;image/bmp;image/vnd.ms-dds;image/x-bmp;image/x-eps;image/x-icns;image/x-icon;image/im;image/mpo;image/x-pcx;image/x-portable-pixmap;image/x-sgi;image/x-tga;image/tiff;image/webp;
 EOF
 
 echo 'Copying licenses and README...'

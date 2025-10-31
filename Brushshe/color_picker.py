@@ -1,14 +1,19 @@
-# CTk Color Picker for ctk
 # Original Author: Akash Bora (Akascape)
 # Contributers: Victor Vimbert-Guerlais (helloHackYnow)
 # Modifed by Brushshe developers for Brushshe app
 
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 import math
 import os
+import random
 import sys
 
 import customtkinter as ctk
 from PIL import Image, ImageTk
+from translator import _
 
 
 def resource(relative_path):
@@ -91,6 +96,9 @@ class AskColor(ctk.CTkToplevel):
         self.entry.insert(0, self.default_hex_color)
         self.entry.bind("<Return>", self.entry_return)
 
+        random_color_button = ctk.CTkButton(master=self.frame, text=_("Random color"), command=self.random_color_choice)
+        random_color_button.pack(fill="both", padx=10, pady=10)
+
         self.button = ctk.CTkButton(master=self.frame, text="OK", command=self._ok_event)
         self.button.pack(fill="both", padx=10, pady=10)
 
@@ -107,6 +115,11 @@ class AskColor(ctk.CTkToplevel):
         self._color = self.entry._fg_color
         self.master.wait_window(self)
         return self._color
+
+    def random_color_choice(self):
+        self.entry.delete(0, ctk.END)
+        self.entry.insert(0, "#{:06x}".format(random.randint(0, 0xFFFFFF)))
+        self._ok_event()
 
     def _ok_event(self, event=None):
         try:

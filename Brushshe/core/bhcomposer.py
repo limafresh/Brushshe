@@ -1,5 +1,5 @@
 # import math
-from PIL import Image, ImageChops, ImageDraw
+from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 
 class BhComposer:
@@ -19,12 +19,30 @@ class BhComposer:
         self.background_color_2 = "#D0D0D0"
         self.background_size = 256
         self.background_tile_size = 16
+        self.ants_tile_size = 16
+        self.mask_type = 0
         self.background_tile_image = self.generate_tile_image()
+        self.ants_tile_image = self.generate_ants_image()
 
         self.l_image = None
         self.background_image = None
 
+        self.ants_image = None
+        self.ants_position = 0
+        self.ants_position_update = False
+
         self.mask_img = None  # Must be gray image (L mode)
+        self.tails_area = None
+
+        self.cache_mask_img = None
+        self.cache_tails_area = None
+        self.force_update_mask = False
+
+    def inc_ants_position(self):
+        self.ants_position += 4
+        if self.ants_position >= 15:
+            self.ants_position = 0
+        self.ants_position_update = True
 
     def generate_tile_image(self):
         image_bg = Image.new("RGB", (self.background_size, self.background_size), self.background_color_1)
@@ -48,6 +66,24 @@ class BhComposer:
 
         return image_bg
 
+    def generate_ants_image(self):
+        white = 255
+
+        image_bg = Image.new("L", (self.background_size, self.background_size), 0)
+        image_ants = Image.new("L", (self.ants_tile_size, self.ants_tile_size), 0)
+        draw_ants = ImageDraw.Draw(image_ants)
+
+        draw_ants.line((-2, 18, 18, -2), fill=white, width=6)
+        draw_ants.line((-6, 6, 6, -6), fill=white, width=6)
+        draw_ants.line((10, 22, 22, 10), fill=white, width=6)
+
+        dr = self.background_size // self.ants_tile_size
+        for i_ in range(0, dr):
+            for j_ in range(0, dr):
+                image_bg.paste(image_ants, (i_ * self.ants_tile_size, j_ * self.ants_tile_size))
+
+        return image_bg
+
     def get_background_tile_image(self):
         return self.background_tile_image
 
@@ -59,8 +95,28 @@ class BhComposer:
         self.width = image.width
         self.height = image.height
 
-    def set_mask_image(self, image: Image):
-        self.mask_img = image
+    def set_mask_image(self, image: Image, tails_area: tuple[4] | None):
+        self.mask_img = image  # After cut and resize.
+        self.tails_area = tails_area
+
+    def set_force_update_mask(self):
+        self.force_update_mask = True
+
+    def get_current_ants_image(self, w, h):
+        if (
+            self.ants_position_update is True
+            or self.ants_image is None
+            or w != self.ants_image.width
+            or h != self.ants_image.height
+        ):
+            self.ants_image = Image.new("RGB", (w, h), 0)
+            self.ants_position_update = False
+
+            for i_ in range(0, w, self.background_size):
+                for j_ in range(0, h - 1, self.background_size):
+                    self.ants_image.paste(self.ants_tile_image, (i_ - self.ants_position, j_))
+
+        return self.ants_image
 
     def get_compose_image(self, x1, y1, x2, y2):
         if self.l_image is None:
@@ -78,8 +134,8 @@ class BhComposer:
         w = x2 - x1 + 1
         h = y2 - y1 + 1
 
+        # Background image MUST be RGB (without alpha) for optimization on tk (and ctk).
         if self.background_image is None or w != self.background_image.width or h != self.background_image.height:
-            # Background image MUST be RGB (without alpha) for optimization on tk (and ctk).
             self.background_image = Image.new("RGB", (w, h), self.background_color_1)
             for i_ in range(0, w - 1, self.background_size):
                 for j_ in range(0, h - 1, self.background_size):
@@ -93,15 +149,50 @@ class BhComposer:
             image.paste(self.l_image, (0, 0))
 
         if self.mask_img is not None:
-            tmp_mask_img = self.mask_img.copy()
+            if (
+                self.tails_area != self.cache_tails_area
+                or self.cache_mask_img is None
+                or self.cache_mask_img.width != w
+                or self.cache_mask_img.height != h
+                or self.force_update_mask is True
+            ):
+                # print("Debug: Force update mask", self.tails_area)
 
-            if tmp_mask_img.mode != "L":
-                tmp_mask_img.convert("L")
+                tmp_mask_img = self.mask_img.copy()
 
-            tmp_mask_img2 = ImageChops.invert(tmp_mask_img)  # We want see mask in this place.
-            tmp_mask_img = ImageChops.multiply(tmp_mask_img2, Image.new("L", (w, h), 128))
+                self.cache_tails_area = self.tails_area
+                self.force_update_mask = False
 
-            tmp_image = Image.new("RGBA", (w, h), (255, 0, 0, 127))
-            image.paste(tmp_image, (0, 0), tmp_mask_img)
+                if tmp_mask_img.mode != "L":
+                    tmp_mask_img.convert("L")
+
+                if self.mask_type == 0:
+                    tmp_mask_img2 = ImageChops.invert(tmp_mask_img)
+                    tmp_mask_img3 = ImageChops.multiply(tmp_mask_img2, Image.new("L", (w, h), 128))
+                    tmp_image = Image.new("RGBA", (w, h), (255, 0, 0, 127))
+                    tmp_image.putalpha(tmp_mask_img3)
+
+                    self.cache_mask_img = tmp_image
+
+                    # image.paste(tmp_image, (0, 0), tmp_image)
+                else:
+                    tmp_image = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+                    tmp_mask_img2 = ImageChops.invert(tmp_mask_img).filter(ImageFilter.CONTOUR)
+                    tmp_mask_img3 = ImageChops.invert(tmp_mask_img2)
+
+                    tmp_image.paste(tmp_mask_img2, (0, 0), tmp_mask_img3)
+
+                    self.cache_mask_img = tmp_image
+
+                    # tmp_image_3 = tmp_image.convert("L")
+                    # tmp_image_2 = ImageChops.add(tmp_image_3, self.get_current_ants_image(w, h))
+                    # image.paste(tmp_image_2, (0, 0), tmp_image)
+
+            if self.mask_type == 0:
+                image.paste(self.cache_mask_img, (0, 0), self.cache_mask_img)
+            else:
+                tmp_image = self.cache_mask_img.convert("RGB")
+                tmp_image_2 = ImageChops.add(tmp_image, self.get_current_ants_image(w, h))
+                image.paste(tmp_image_2, (0, 0), self.cache_mask_img)
 
         return image
