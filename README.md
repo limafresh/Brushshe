@@ -72,6 +72,9 @@ pip install customtkinter Pillow
 + *Ctrl+Z*: undo
 + *Ctrl+Y*: redo
 + *Ctrl+S*: save to gallery
++ *Ctrl+X*: cut
++ *Ctrl+C*: copy
++ *Ctrl+V*: insert
 + *Ctrl+F* or *X*: flip colors
 + *Ctrl+B* or *B*: brush
 + *Ctrl+E* or *E*: eraser

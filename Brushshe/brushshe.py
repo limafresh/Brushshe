@@ -338,21 +338,21 @@ class Brushshe(ctk.CTk):
             {
                 "type": "button",
                 "name": _("Cut"),
-                "helper": _("Cut"),  # + " (Ctrl+X)",
+                "helper": _("Cut") + " (Ctrl+X)",
                 "action": lambda: self.copy_tool(deleted=True),
                 "icon_name": "cut",
             },
             {
                 "type": "button",
                 "name": _("Copy"),
-                "helper": _("Copy"),  # + " (Ctrl+C)",
+                "helper": _("Copy") + " (Ctrl+C)",
                 "action": lambda: self.copy_tool(),
                 "icon_name": "copy",
             },
             {
                 "type": "button",
                 "name": _("Insert"),
-                "helper": _("Insert"),  # + " (Ctrl+V)",
+                "helper": _("Insert") + " (Ctrl+V)",
                 "action": self.start_insert,
                 "icon_name": "insert",
             },
@@ -520,6 +520,10 @@ class Brushshe(ctk.CTk):
         self.bind("<Control-z>", lambda e: self.undo())
         self.bind("<Control-y>", lambda e: self.redo())
         self.bind("<Control-s>", lambda e: self.save_to_gallery())
+
+        self.bind("<Control-x>", lambda e: self.copy_tool(deleted=True))
+        self.bind("<Control-c>", lambda e: self.copy_tool())
+        self.bind("<Control-v>", lambda e: self.start_insert())
 
         # I changed the hotkeys because they don't work if the layout is not Latin,
         # and they are also intercepted when entering text
