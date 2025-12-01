@@ -75,6 +75,7 @@ pip install customtkinter Pillow
 + *Ctrl+X*: cut
 + *Ctrl+C*: copy
 + *Ctrl+V*: insert
++ *Delete*: delete
 + *Ctrl+F* or *X*: flip colors
 + *Ctrl+B* or *B*: brush
 + *Ctrl+E* or *E*: eraser

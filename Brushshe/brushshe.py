@@ -524,6 +524,7 @@ class Brushshe(ctk.CTk):
         self.bind("<Control-x>", lambda e: self.copy_tool(deleted=True))
         self.bind("<Control-c>", lambda e: self.copy_tool())
         self.bind("<Control-v>", lambda e: self.start_insert())
+        self.bind("<Delete>", lambda e: self.delete_selected())
 
         # I changed the hotkeys because they don't work if the layout is not Latin,
         # and they are also intercepted when entering text
@@ -1916,6 +1917,19 @@ class Brushshe(ctk.CTk):
         self.canvas.bind("<Button-1>", selecting)
         self.canvas.bind("<B1-Motion>", selecting)
         self.canvas.bind("<ButtonRelease-1>", select_end)
+
+    def delete_selected(self):
+        if self.selected_mask_img is None:
+            return
+
+        bg_color = self.bg_color
+        if self.image.mode == "RGBA":
+            bg_color = (0, 0, 0, 0)
+        tmp_img = Image.new(self.image.mode, (self.image.width, self.image.height), bg_color)
+        self.image.paste(tmp_img, (0, 0), self.selected_mask_img)
+        del tmp_img
+        self.record_action()
+        self.update_canvas()
 
     def start_insert(self):
         if hasattr(self, "buffer_local") is False or self.buffer_local is None:
