@@ -101,15 +101,15 @@ class BrushsheLogic:
 
             try:
                 tool_icon = ctk.CTkImage(
-                    light_image=Image.open(resource(f"icons/{tool_icon_name}_light.png")),
-                    dark_image=Image.open(resource(f"icons/{tool_icon_name}_dark.png")),
+                    light_image=Image.open(resource(f"assets/icons/{tool_icon_name}_light.png")),
+                    dark_image=Image.open(resource(f"assets/icons/{tool_icon_name}_dark.png")),
                     size=(22, 22),
                 )
             except Exception:
                 # tool_icon = None
                 tool_icon = ctk.CTkImage(
-                    light_image=Image.open(resource("icons/not_found_light.png")),
-                    dark_image=Image.open(resource("icons/not_found_dark.png")),
+                    light_image=Image.open(resource("assets/icons/not_found_light.png")),
+                    dark_image=Image.open(resource("assets/icons/not_found_dark.png")),
                     size=(22, 22),
                 )
 
@@ -303,11 +303,11 @@ class BrushsheLogic:
         color = self.get_tool_main_color()
 
         if self.selected_mask_img is None:
-            bh_draw_line(self.draw, x1, y1, x2, y2, color, self.tool_size, data.brush_shape, self.current_tool)
+            bh_draw_line(self.draw, x1, y1, x2, y2, color, data.tool_size, data.brush_shape, self.current_tool)
         else:
             tmp_image = self.image.copy()
             tmp_draw = ImageDraw.Draw(tmp_image)
-            bh_draw_line(tmp_draw, x1, y1, x2, y2, color, self.tool_size, data.brush_shape, self.current_tool)
+            bh_draw_line(tmp_draw, x1, y1, x2, y2, color, data.tool_size, data.brush_shape, self.current_tool)
             self.image.paste(tmp_image, (0, 0), self.selected_mask_img)
             del tmp_image
 
@@ -727,7 +727,7 @@ class BrushsheLogic:
             self.ui.canvas.delete("tools")
 
             x, y = self.canvas_to_pict_xy(event.x, event.y)
-            self.imagefont = ImageFont.truetype(self.font_path, self.tool_size)
+            self.imagefont = ImageFont.truetype(data.font_path, data.tool_size)
 
             bbox = self.draw.textbbox((0, 0), self.tx_entry.get(), font=self.imagefont)
 
@@ -768,12 +768,12 @@ class BrushsheLogic:
 
     def font_optionmenu_callback(self, value):
         data.current_font = value
-        self.font_path = resource(data.fonts_dict.get(value))
-        self.imagefont = ImageFont.truetype(self.font_path, self.tool_size)
+        data.font_path = resource(data.fonts_dict.get(value))
+        self.imagefont = ImageFont.truetype(data.font_path, data.tool_size)
 
     def show_frame_choice(self):
         def on_frames_click(index):
-            selected_frame = frames[index]
+            selected_frame = data.frames[index]
             resized_frame = selected_frame.resize((self.image.width, self.image.height))
 
             self.image.paste(resized_frame, (0, 0), resized_frame)
@@ -784,29 +784,10 @@ class BrushsheLogic:
         frames_win = ctk.CTkToplevel(self.ui)
         frames_win.title(_("Frames"))
 
-        frames_names = [
-            "frame1",
-            "frame2",
-            "frame3",
-            "frame4",
-            "frame5",
-            "frame6",
-            "frame7",
-        ]
-        frames_thumbnails = [
-            ctk.CTkImage(
-                Image.open(resource(f"assets/frames_preview/{name}.png")),
-                size=(100, 100),
-            )
-            for name in frames_names
-        ]
-
-        frames = [Image.open(resource(f"assets/frames/{name}.png")) for name in frames_names]
-
         row = 0
         column = 0
 
-        for i, image in enumerate(frames_thumbnails):
+        for i, image in enumerate(data.frames_thumbnails):
             ctk.CTkButton(frames_win, text=None, image=image, command=lambda i=i: on_frames_click(i)).grid(
                 column=column, row=row, padx=10, pady=10
             )
@@ -873,13 +854,13 @@ class BrushsheLogic:
             color = self.get_tool_main_color()
 
             if shape == "Rectangle":
-                tmp_draw.rectangle([x0, y0, x1, y1], outline=data.brush_color, width=self.tool_size)
+                tmp_draw.rectangle([x0, y0, x1, y1], outline=data.brush_color, width=data.tool_size)
             elif shape == "Oval":
-                tmp_draw.ellipse([x0, y0, x1, y1], outline=data.brush_color, width=self.tool_size)
+                tmp_draw.ellipse([x0, y0, x1, y1], outline=data.brush_color, width=data.tool_size)
             elif shape == "Line":
                 # self.draw_line(x_begin, y_begin, x_end, y_end)
                 bh_draw_line(
-                    tmp_draw, x_begin, y_begin, x_end, y_end, color, self.tool_size, data.brush_shape, self.current_tool
+                    tmp_draw, x_begin, y_begin, x_end, y_end, color, data.tool_size, data.brush_shape, self.current_tool
                 )
             elif shape == "Fill rectangle":
                 tmp_draw.rectangle([x0, y0, x1, y1], fill=data.brush_color)
@@ -1027,7 +1008,7 @@ class BrushsheLogic:
                             int(points[it + 1][0]),
                             int(points[it + 1][1]),
                             color,
-                            self.tool_size,
+                            data.tool_size,
                             data.brush_shape,
                             self.current_tool,
                         )
@@ -1118,18 +1099,18 @@ class BrushsheLogic:
                 color_to = self.rgb_tuple_to_rgba_tuple(color_to, 255)
 
             if self.selected_mask_img is None:
-                bh_draw_recoloring_line(self.image, x1, y1, x2, y2, color_from, color_to, self.tool_size)
+                bh_draw_recoloring_line(self.image, x1, y1, x2, y2, color_from, color_to, data.tool_size)
             else:
                 tmp_image = self.image.copy()
-                bh_draw_recoloring_line(tmp_image, x1, y1, x2, y2, color_from, color_to, self.tool_size)
+                bh_draw_recoloring_line(tmp_image, x1, y1, x2, y2, color_from, color_to, data.tool_size)
                 self.image.paste(tmp_image, (0, 0), self.selected_mask_img)
                 del tmp_image
 
         def draw_brush_halo(x, y):
             self.ui.canvas.delete("tools")
 
-            d1 = (self.tool_size - 1) // 2
-            d2 = self.tool_size // 2
+            d1 = (data.tool_size - 1) // 2
+            d2 = data.tool_size // 2
 
             self.ui.canvas.create_rectangle(
                 int((x - d1) * data.zoom - 1),
@@ -1344,12 +1325,12 @@ class BrushsheLogic:
             nonlocal image_tmp, image_tmp_view, image_tk, current_zoom, x1, y1
 
             if self.current_tool == "sticker":
-                it_width = self.tool_size
-                it_height = int(insert_image.height * self.tool_size / insert_image.width)
+                it_width = data.tool_size
+                it_height = int(insert_image.height * data.tool_size / insert_image.width)
                 resampling = Image.BICUBIC
             else:
-                it_width = int(insert_image.width / 100 * self.tool_size)
-                it_height = int(insert_image.height / 100 * self.tool_size)
+                it_width = int(insert_image.width / 100 * data.tool_size)
+                it_height = int(insert_image.height / 100 * data.tool_size)
                 if it_width <= 1 or it_height <= 1:
                     it_width, it_height = (1, 1)
                 if data.is_insert_smoothing.get() == "off":
@@ -1540,9 +1521,9 @@ class BrushsheLogic:
         effect_value = self.effects_optionmenu.get()
 
         if effect_value == _("Blur"):
-            result = self.image.copy().filter(ImageFilter.GaussianBlur(radius=self.tool_size))
+            result = self.image.copy().filter(ImageFilter.GaussianBlur(radius=data.tool_size))
         elif effect_value == _("Detail"):
-            result = ImageEnhance.Sharpness(self.image.copy()).enhance(self.tool_size)
+            result = ImageEnhance.Sharpness(self.image.copy()).enhance(data.tool_size)
         elif effect_value == _("Contour"):
             result = self.image.copy().filter(ImageFilter.CONTOUR)
         elif effect_value == _("Grayscale"):
@@ -1554,9 +1535,9 @@ class BrushsheLogic:
         elif effect_value == _("Inversion"):
             result = ImageOps.invert(self.image.copy())
         elif effect_value == _("Brightness"):
-            result = ImageEnhance.Brightness(self.image.copy()).enhance(self.tool_size / 10)
+            result = ImageEnhance.Brightness(self.image.copy()).enhance(data.tool_size / 10)
         elif effect_value == _("Contrast"):
-            result = ImageEnhance.Contrast(self.image.copy()).enhance(self.tool_size / 10)
+            result = ImageEnhance.Contrast(self.image.copy()).enhance(data.tool_size / 10)
         post_actions()
 
     def new_picture(self, color="#FFFFFF", mode="RGB", first_time=False):
@@ -1585,7 +1566,7 @@ class BrushsheLogic:
         data.current_file = None
 
     def change_tool_size(self, value):
-        self.tool_size = int(value)
+        data.tool_size = int(value)
         if self.current_tool == "brush" or self.current_tool == "r-brush":
             data.brush_size = int(value)
         elif self.current_tool == "eraser":
@@ -1599,13 +1580,13 @@ class BrushsheLogic:
         elif self.current_tool == "text":
             data.font_size = int(value)
         if self.current_tool in ["insert", "real size sticker"]:
-            self.ui.tool_size_label.configure(text=f"{self.tool_size} %")
+            self.ui.tool_size_label.configure(text=f"{data.tool_size} %")
         else:
-            self.ui.tool_size_label.configure(text=self.tool_size)
-        self.ui.tool_size_tooltip.configure(message=self.tool_size)
+            self.ui.tool_size_label.configure(text=data.tool_size)
+        self.ui.tool_size_tooltip.configure(message=data.tool_size)
 
     def get_tool_size(self):
-        res = self.tool_size
+        res = data.tool_size
         if self.current_tool == "brush" or self.current_tool == "r-brush":
             res = data.brush_size
         elif self.current_tool == "eraser":
@@ -1684,8 +1665,8 @@ class BrushsheLogic:
         def draw_brush_halo(x, y):
             self.ui.canvas.delete("tools")
 
-            d1 = (self.tool_size - 1) // 2
-            d2 = self.tool_size // 2
+            d1 = (data.tool_size - 1) // 2
+            d2 = data.tool_size // 2
 
             # TODO: Need use the pixel perfect halo for zoom >= 2 if it doesn't too slow.
 
@@ -1742,10 +1723,10 @@ class BrushsheLogic:
                 tmp_image = self.image.copy()
                 tmp_draw = ImageDraw.Draw(tmp_image)
 
-            for i in range(self.tool_size * 2):
-                offset_x = random.randint(-self.tool_size, self.tool_size)
-                offset_y = random.randint(-self.tool_size, self.tool_size)
-                if offset_x**2 + offset_y**2 <= self.tool_size**2:
+            for i in range(data.tool_size * 2):
+                offset_x = random.randint(-data.tool_size, data.tool_size)
+                offset_y = random.randint(-data.tool_size, data.tool_size)
+                if offset_x**2 + offset_y**2 <= data.tool_size**2:
                     tmp_draw.point((data.prev_x + offset_x, data.prev_y + offset_y), fill=data.brush_color)
 
             if self.selected_mask_img is None:
@@ -2074,16 +2055,16 @@ class BrushsheLogic:
             self.ui.tool_size_label.pack_forget()
         else:
             self.ui.tool_label.configure(text=_(tool_name) + ":")
-            self.tool_size = tool_size
+            data.tool_size = tool_size
             self.ui.tool_size_slider.configure(from_=from_, to=to)
-            self.ui.tool_size_slider.set(self.tool_size)
+            self.ui.tool_size_slider.set(data.tool_size)
             self.ui.tool_size_slider.pack(side=ctk.LEFT, padx=1)
             if self.current_tool in ["insert", "real size sticker"]:
-                self.ui.tool_size_label.configure(text=f"{self.tool_size} %")
+                self.ui.tool_size_label.configure(text=f"{data.tool_size} %")
             else:
-                self.ui.tool_size_label.configure(text=self.tool_size)
+                self.ui.tool_size_label.configure(text=data.tool_size)
             self.ui.tool_size_label.pack(side=ctk.LEFT, padx=5)
-            self.ui.tool_size_tooltip.configure(message=self.tool_size)
+            self.ui.tool_size_tooltip.configure(message=data.tool_size)
 
         if self.current_tool in ["brush", "eraser"]:
             brush_shape_btn = ctk.CTkSegmentedButton(

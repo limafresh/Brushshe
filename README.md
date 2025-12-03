@@ -101,7 +101,7 @@ All contributions are welcome!
 + Thanks to our translators: [sagar12](https://github.com/Sagar1205b) (Hindi); [Sagar Sirbi](https://github.com/sagarsirbi), [iLollek](https://github.com/iLollek) (German).
 
 ## Translations
-The internationalization of this program has a simple principle - it determines what the computer's localization is (for example, *en*, *ru*, etc.), and then applies the `Brushshe/locales/{localization}.json` file, where *localization* is the computer's localization.
+The internationalization of this program has a simple principle - it determines what the computer's localization is (for example, *en*, *ru*, etc.), and then applies the `Brushshe/assets/locales/{localization}.json` file, where *localization* is the computer's localization.
 
 ## Licenses
 + Project license - *MPL 2.0* (old code before the license change - under MPL 2.0 or GNU GPLv3)
@@ -111,7 +111,6 @@ The internationalization of this program has a simple principle - it determines 
 + Builds (for example .exe, .deb) may contain other components
 ### Public domain components (paths are relative)
 + Contents of the `assets/` folder (stickers, frames, etc., except `fonts/`) - *CC0 1.0*
-+ Contents of the `locales/` and `icons/` folders - *CC0 1.0*
 + CTkMenuBar - *CC0 1.0*
 + `README.md` (this file), `ui.py`, other files with the CC0 header - *CC0 1.0*
 

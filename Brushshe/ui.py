@@ -40,7 +40,7 @@ class BrushsheUi(ctk.CTk):
         if os.name == "nt":
             self.iconbitmap(resource("icons/icon.ico"))
         else:
-            self.iconphoto(True, PhotoImage(file=resource("icons/icon.png")))
+            self.iconphoto(True, PhotoImage(file=resource("assets/icons/icon.png")))
         self.protocol("WM_DELETE_WINDOW", self.logic.when_closing)
 
         """ Menu """
@@ -130,9 +130,9 @@ class BrushsheUi(ctk.CTk):
 
         tools_icon_size = (20, 20)
         tools_dropdown.add_separator()
-        smile_icon = ctk.CTkImage(Image.open(resource("icons/smile.png")), size=tools_icon_size)
+        smile_icon = ctk.CTkImage(Image.open(resource("assets/icons/smile.png")), size=tools_icon_size)
         tools_dropdown.add_option(option=_("Stickers"), image=smile_icon, command=self.logic.show_stickers_choice)
-        frame_icon = ctk.CTkImage(Image.open(resource("icons/frame.png")), size=tools_icon_size)
+        frame_icon = ctk.CTkImage(Image.open(resource("assets/icons/frame.png")), size=tools_icon_size)
         tools_dropdown.add_option(option=_("Frames"), image=frame_icon, command=self.logic.show_frame_choice)
         tools_dropdown.add_separator()
         tools_dropdown.add_option(option=_("Remove white background"), command=self.logic.remove_white_background)
@@ -146,7 +146,7 @@ class BrushsheUi(ctk.CTk):
             option=_("Reset settings after exiting"), command=self.logic.reset_settings_after_exiting
         )
         # Icon taken from CTkMessagebox by Akascape
-        info_icon = ctk.CTkImage(Image.open(resource("icons/info.png")), size=tools_icon_size)
+        info_icon = ctk.CTkImage(Image.open(resource("assets/icons/info.png")), size=tools_icon_size)
         other_dropdown.add_option(option=_("About program"), image=info_icon, command=messagebox.about_brushshe)
 
         """Top bar"""
@@ -157,8 +157,8 @@ class BrushsheUi(ctk.CTk):
         # Width and height of all icons - 512 px
 
         undo_icon = ctk.CTkImage(
-            light_image=Image.open(resource("icons/undo_light.png")),
-            dark_image=Image.open(resource("icons/undo_dark.png")),
+            light_image=Image.open(resource("assets/icons/undo_light.png")),
+            dark_image=Image.open(resource("assets/icons/undo_dark.png")),
             size=(22, 22),
         )
         undo_button = ctk.CTkButton(
@@ -174,8 +174,8 @@ class BrushsheUi(ctk.CTk):
         Tooltip(undo_button, message=_("Undo") + " (Ctrl+Z)")
 
         redo_icon = ctk.CTkImage(
-            light_image=Image.open(resource("icons/redo_light.png")),
-            dark_image=Image.open(resource("icons/redo_dark.png")),
+            light_image=Image.open(resource("assets/icons/redo_light.png")),
+            dark_image=Image.open(resource("assets/icons/redo_dark.png")),
             size=(22, 22),
         )
 

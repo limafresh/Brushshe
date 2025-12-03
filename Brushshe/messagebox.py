@@ -25,11 +25,7 @@ def resource(relative_path):
 
 
 class Messagebox(ctk.CTkToplevel):
-    ICONS = {
-        "success": None,
-        "error": None,
-        "question": None,
-    }
+    ICONS = {"success": None, "error": None, "question": None, "brucklin": None}
     ICON_BITMAP = {}
 
     def __init__(
@@ -478,8 +474,8 @@ class Messagebox(ctk.CTkToplevel):
 
     def load_icon(self, icon, icon_size):
         if icon not in self.ICONS or self.ICONS[icon] is None:
-            if icon in ["success", "error", "question"]:
-                image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "icons", icon + ".png")
+            if icon in ["success", "error", "question", "brucklin"]:
+                image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "assets", "icons", icon + ".png")
             else:
                 image_path = icon
             if icon_size:
@@ -617,7 +613,7 @@ def about_brushshe():
     about_msg = Messagebox(
         title=_("About program"),
         message=about_text + data.version_full,
-        icon=resource("icons/brucklin.png"),
+        icon="brucklin",
         icon_size=(150, 191),
         option_1="OK",
         option_2="GitHub",
