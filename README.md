@@ -112,8 +112,8 @@ The internationalization of this program has a simple principle - it determines 
 ### Public domain components (paths are relative)
 + Contents of the `assets/` folder (stickers, frames, etc., except `fonts/`) - *CC0 1.0*
 + Contents of the `locales/` and `icons/` folders - *CC0 1.0*
-+ CTkMenuBar and CTkMessagebox - *CC0 1.0*
-+ `README.md` (this file) and `main.py` - *CC0 1.0*
++ CTkMenuBar - *CC0 1.0*
++ `README.md` (this file), `ui.py`, other files with the CC0 header - *CC0 1.0*
 
 ## For developers
 ### Linter

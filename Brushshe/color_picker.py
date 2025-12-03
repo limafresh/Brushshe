@@ -12,8 +12,8 @@ import random
 import sys
 
 import customtkinter as ctk
+from core.translator import _
 from PIL import Image, ImageTk
-from translator import _
 
 
 def resource(relative_path):

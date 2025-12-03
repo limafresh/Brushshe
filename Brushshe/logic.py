@@ -3,7 +3,6 @@ import os
 import random
 import sys
 import time
-import webbrowser
 from collections import deque
 from io import BytesIO
 from urllib.request import urlopen
@@ -11,13 +10,16 @@ from uuid import uuid4
 
 import customtkinter as ctk
 import gallery
+import messagebox
 from color_picker import AskColor
-from config_loader import config, config_file_path, write_config
 from core.bezier import make_bezier
 from core.bhbrush import bh_draw_line, bh_draw_recoloring_line
 from core.bhcomposer import BhComposer
 from core.bhhistory import BhHistory, BhPoint
-from CTkMessagebox import CTkMessagebox
+from core.config_loader import config, config_file_path, write_config
+from core.scroll import scroll
+from core.tooltip import Tooltip
+from core.translator import _
 from file_dialog import FileDialog
 from PIL import (
     Image,
@@ -32,9 +34,6 @@ from PIL import (
     ImageStat,
     ImageTk,
 )
-from scroll import scroll
-from tooltip import Tooltip
-from translator import _
 
 
 def resource(relative_path):
@@ -315,19 +314,10 @@ class BrushsheLogic:
 
     def when_closing(self):
         if ImageChops.difference(self.saved_copy, self.image).getbbox() or self.saved_copy.size != self.image.size:
-            closing_msg = CTkMessagebox(
-                title=_("You are leaving Brushshe"),
-                message=_("There are unsaved changes. Exit?"),
-                option_1=_("Save"),
-                option_2=_("No"),
-                option_3=_("Yes"),
-                icon=resource("icons/question.png"),
-                icon_size=(100, 100),
-                sound=True,
-            )
-            if closing_msg.get() == _("Save"):
+            msg = messagebox.leave_brushshe()
+            if msg.get() == _("Save"):
                 self.save_current()
-            elif closing_msg.get() == _("Yes"):
+            elif msg.get() == _("Yes"):
                 self.destroy_app()
         else:
             self.destroy_app()
@@ -731,7 +721,7 @@ class BrushsheLogic:
                     image_data = BytesIO(response.read())
                     self.open_image(image_data)
             except Exception as e:
-                self.open_file_error(e)
+                messagebox.open_file_error(e)
 
     def save_current(self, autosave=False):
         if self.current_file is not None:
@@ -739,15 +729,9 @@ class BrushsheLogic:
                 self.image.save(self.current_file)
                 self.saved_copy = self.image.copy()
                 if not autosave:
-                    CTkMessagebox(
-                        title=_("Saved"),
-                        message=_("Changes to your existing picture have been saved successfully!"),
-                        icon=resource("icons/saved.png"),
-                        icon_size=(100, 100),
-                        sound=True,
-                    )
+                    messagebox.save_current()
             except Exception as e:
-                self.save_file_error(e)
+                messagebox.save_file_error(e)
         else:
             self.save_as()
 
@@ -757,27 +741,11 @@ class BrushsheLogic:
             try:
                 self.image.save(dialog.path)
                 self.saved_copy = self.image.copy()
-                CTkMessagebox(
-                    title=_("Saved"),
-                    message=_("The picture has been successfully saved to your device in format")
-                    + f" {dialog.extension}!",
-                    icon=resource("icons/saved.png"),
-                    icon_size=(100, 100),
-                    sound=True,
-                )
+                messagebox.save_as(dialog.extension)
                 self.current_file = dialog.path
                 self.ui.title(os.path.basename(self.current_file) + " - " + _("Brushshe"))
             except Exception as e:
-                self.save_file_error(e)
-
-    def save_file_error(self, e):
-        CTkMessagebox(
-            title=_("Oh, unfortunately, it happened"),
-            message=f"{_('Error - cannot save file:')} {e}",
-            icon=resource("icons/cry.png"),
-            icon_size=(100, 100),
-            sound=True,
-        )
+                messagebox.save_file_error(e)
 
     def other_bg_color(self):
         askcolor = AskColor(title=_("Choose a different background color"), initial_color="#ffffff")
@@ -793,7 +761,7 @@ class BrushsheLogic:
                     sticker_image = Image.open(dialog.path)
                     self.set_current_sticker(sticker_image)
                 except Exception as e:
-                    self.open_file_error(e)
+                    messagebox.open_file_error(e)
 
         def sticker_from_url():
             dialog = ctk.CTkInputDialog(text=_("Enter URL:"), title=_("Open from URL"))
@@ -805,7 +773,7 @@ class BrushsheLogic:
                         sticker_image = Image.open(image_data)
                         self.set_current_sticker(sticker_image)
                 except Exception as e:
-                    self.open_file_error(e)
+                    messagebox.open_file_error(e)
 
         def tabview_callback():
             if tabview.get() == _("From file"):
@@ -1700,23 +1668,6 @@ class BrushsheLogic:
             result = ImageEnhance.Contrast(self.image.copy()).enhance(self.tool_size / 10)
         post_actions()
 
-    def about_program(self):
-        about_text = _(
-            "Brushshe is a painting program where you can create whatever you like.\n\n"
-            "An eagle named Brucklin is its mascot.\n\n"
-        )
-        about_msg = CTkMessagebox(
-            title=_("About program"),
-            message=about_text + self.version_full,
-            icon=resource("icons/brucklin.png"),
-            icon_size=(150, 191),
-            option_1="OK",
-            option_2="GitHub",
-            height=400,
-        )
-        if about_msg.get() == "GitHub":
-            webbrowser.open(r"https://github.com/limafresh/Brushshe")
-
     def new_picture(self, color="#FFFFFF", mode="RGB", first_time=False):
         self.ui.canvas.delete("tools")
         self.bg_color = color
@@ -1975,13 +1926,7 @@ class BrushsheLogic:
         self.current_file = str(file_path)
         self.ui.title(os.path.basename(self.current_file) + " - " + _("Brushshe"))
 
-        CTkMessagebox(
-            title=_("Saved"),
-            message=_('The picture has been successfully saved to the gallery ("My Gallery" in the menu at the top)!'),
-            icon=resource("icons/saved.png"),
-            icon_size=(100, 100),
-            sound=True,
-        )
+        messagebox.save_to_gallery()
 
     def change_color(self, new_color):
         self.brush_color = new_color
@@ -2036,16 +1981,7 @@ class BrushsheLogic:
                 self.ui.title(_("Unnamed") + " - " + _("Brushshe"))
                 self.current_file = None
         except Exception as e:
-            self.open_file_error(e)
-
-    def open_file_error(self, e):
-        CTkMessagebox(
-            title=_("Oh, unfortunately, it happened"),
-            message=f"{_('Error - cannot open file:')} {e}",
-            icon=resource("icons/cry.png"),
-            icon_size=(100, 100),
-            sound=True,
-        )
+            messagebox.open_file_error(e)
 
     def get_contrast_color(self):
         stat = ImageStat.Stat(self.image)
@@ -2380,13 +2316,7 @@ class BrushsheLogic:
             self.image = pasted_img
             self.picture_postconfigure()
         except Exception as e:
-            CTkMessagebox(
-                title=_("Oh, unfortunately, it happened"),
-                message=f"{_('Error - cannot paste image:')} {e}",
-                icon=resource("icons/cry.png"),
-                icon_size=(100, 100),
-                sound=True,
-            )
+            messagebox.paste_error(e)
 
     def rgb_color_to_tuple(self, color):
         try:

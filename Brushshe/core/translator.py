@@ -16,7 +16,7 @@ def load_language(language_code):
     else:
         try:
             with open(
-                resource(f"locales/{language_code}.json"),
+                resource(f"../locales/{language_code}.json"),
                 "r",
                 encoding="utf-8",
             ) as f:

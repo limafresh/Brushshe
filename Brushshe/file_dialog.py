@@ -4,8 +4,8 @@ import tkinter as tk
 from tkinter import ttk
 
 import customtkinter as ctk
-from CTkMessagebox import CTkMessagebox
-from translator import _
+import messagebox
+from core.translator import _
 
 
 def resource(relative_path):
@@ -145,16 +145,8 @@ class FileDialog(ctk.CTkToplevel):
             self.extension = self._extension_combobox.get()
         entered_path = selected_path + self.extension
         if os.path.exists(entered_path):
-            overwrite_msg = CTkMessagebox(
-                title=_("A file with this name already exists"),
-                message=_("Overwrite this file?"),
-                option_1=_("Yes"),
-                option_2=_("No"),
-                icon=resource("icons/question.png"),
-                icon_size=(100, 100),
-                sound=True,
-            )
-            if overwrite_msg.get() == _("Yes"):
+            msg = messagebox.overwrite_file()
+            if msg.get() == _("Yes"):
                 self.path = entered_path
                 self.destroy()
         else:
