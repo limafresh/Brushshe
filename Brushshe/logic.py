@@ -1,9 +1,12 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 import math
 import os
 import random
 import sys
 import time
-from collections import deque
 from io import BytesIO
 from urllib.request import urlopen
 from uuid import uuid4
@@ -12,9 +15,9 @@ import customtkinter as ctk
 import gallery
 import messagebox
 from color_picker import AskColor
+from core import data
 from core.bezier import make_bezier
 from core.bhbrush import bh_draw_line, bh_draw_recoloring_line
-from core.bhcomposer import BhComposer
 from core.bhhistory import BhHistory, BhPoint
 from core.config_loader import config, config_file_path, write_config
 from core.scroll import scroll
@@ -41,127 +44,15 @@ def resource(relative_path):
     return os.path.join(base_path, relative_path)
 
 
-key_mods = {
-    0x0001: "Shift",
-    0x0002: "Caps Lock",
-    0x0004: "Control",
-    0x0008: "Left-hand Alt",
-    0x0010: "Num Lock",
-    0x0080: "Right-hand Alt",
-    0x0100: "Mouse button 1",
-    0x0200: "Mouse button 2",
-    0x0400: "Mouse button 3",
-}
-
-
 class BrushsheLogic:
     def __init__(self, ui):
         self.ui = ui
 
-        """ Version """
-        self.version_prefix = ""
-        self.version_major = "2"
-        self.version_minor = "4"
-        self.version_patch = "0"
-        self.version_suffix = ' "Windhoek"'
-
-        self.version_full = "{0}{1}.{2}.{3}{4}".format(
-            self.version_prefix,
-            self.version_major,
-            self.version_minor,
-            self.version_patch,
-            self.version_suffix,
-        )
-
-        self.autosave_var = ctk.BooleanVar(value=config.getboolean("Brushshe", "autosave"))
-        self.is_gradient_fill = ctk.StringVar(value="off")
-        self.is_sticker_use_real_size = ctk.StringVar(value="off")
-        self.is_insert_smoothing = ctk.StringVar(value="off")
-
-        # Max tail can not be more 4 MB = 1024 (width) x 1024 (height) x 4 (rgba).
-        # canvas_tail_size: Max = 1024. Default = 128. Min = 16.
-        self.canvas_tail_size = 128
-
-        # If None - no crop, if set - need check out of crop.
-        self.canvas_tails_area = None
-
-        self.brush_color = "black"
-        self.second_brush_color = "white"
-        self.bg_color = "white"
-        self.brush_shape = "circle"
-        self.undo_stack = deque(maxlen=config.getint("Brushshe", "undo_levels"))
-        self.redo_stack = deque(maxlen=config.getint("Brushshe", "undo_levels"))
-
-        self.brush_size = 2
-        self.eraser_size = 4
-        self.spray_size = 10
-        self.shape_size = 2
-        self.sticker_size = 100
-        self.font_size = 24
-        self.zoom = 1
-        self.selected_mask_img = None  # Can be gray_image or None
-
-        self.is_brush_smoothing = config.getboolean("Brushshe", "smoothing")
-        self.brush_smoothing_factor = config.getint("Brushshe", "brush_smoothing_factor")  # Between: 3..64
-        self.brush_smoothing_quality = config.getint("Brushshe", "brush_smoothing_quality")  # Between: 1..64
-
-        self.composer = BhComposer(0, 0)  # Empty init.
-
-        self.current_file = None
-        self.prev_x, self.prev_y = (None, None)
-        self.current_font = "Open Sans"
-        self.font_path = resource("assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
-        self.is_reset_settings_after_exiting = False
-
-        # Width and height of all sticker images - 88 px
-        # Width and height of new sticker images - 512 px
-        stickers_names = [
-            "smile",
-            "flower",
-            "heart",
-            "okay",
-            "cheese",
-            "face2",
-            "cat",
-            "alien",
-            "like",
-            "unicorn",
-            "pineapple",
-            "grass",
-            "rain",
-            "strawberry",
-            "butterfly",
-            "flower2",
-        ]
-        self.stickers = [Image.open(resource(f"assets/stickers/{name}.png")) for name in stickers_names]
-
-        self.fonts_dict = {
-            "Open Sans": "assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf",
-            "Monomakh": "assets/fonts/Monomakh/Monomakh-Regular.ttf",
-            "Pacifico": "assets/fonts/Pacifico/Pacifico-Regular.ttf",
-            "Comforter": "assets/fonts/Comforter/Comforter-Regular.ttf",
-            "Rubik Bubbles": "assets/fonts/Rubik_Bubbles/RubikBubbles-Regular.ttf",
-            "Press Start 2P": "assets/fonts/Press_Start_2P/PressStart2P-Regular.ttf",
-        }
-        self.fonts = list(self.fonts_dict.keys())
-
-        self.effect_values = [
-            "Blur",
-            "Detail",
-            "Contour",
-            "Grayscale",
-            "Mirror",
-            "Metal",
-            "Inversion",
-            "Brightness",
-            "Contrast",
-        ]
-
-        self.composer.mask_type = 0  # Type: 0 - fill, 1 - ants
-
         self.timer_mask_time_for_update = 200  # ms
         self.timer_mask_last_update = 0
         self.timer_mask_update = self.ui.after(self.timer_mask_time_for_update, self.mask_update)
+
+        data.init()
 
     # Keybinding without locale.
     def key_handler(self, event):
@@ -299,17 +190,17 @@ class BrushsheLogic:
 
     def v_scrollbar_command(self, a, b, c=None):
         self.ui.canvas.yview(a, b, c)
-        if self.canvas_tails_area is not None and self.get_canvas_tails_area() != self.canvas_tails_area:
+        if data.canvas_tails_area is not None and self.get_canvas_tails_area() != data.canvas_tails_area:
             self.update_canvas()
 
     def h_scrollbar_command(self, a, b, c=None):
         self.ui.canvas.xview(a, b, c)
-        if self.canvas_tails_area is not None and self.get_canvas_tails_area() != self.canvas_tails_area:
+        if data.canvas_tails_area is not None and self.get_canvas_tails_area() != data.canvas_tails_area:
             self.logic.update_canvas()
 
     def on_window_resize(self, event):
         # Update canvas after any resize window.
-        if self.zoom >= 1 and hasattr(self.ui, "canvas"):
+        if data.zoom >= 1 and hasattr(self.ui, "canvas"):
             self.update_canvas()
 
     def when_closing(self):
@@ -323,7 +214,7 @@ class BrushsheLogic:
             self.destroy_app()
 
     def destroy_app(self):
-        if self.is_reset_settings_after_exiting:
+        if data.is_reset_settings_after_exiting:
             os.remove(config_file_path)
         self.ui.destroy()
 
@@ -333,7 +224,7 @@ class BrushsheLogic:
         if event.num == 4 or event.delta > 0:
             count = -1
         self.ui.canvas.yview_scroll(count, "units")
-        if self.canvas_tails_area is not None and self.get_canvas_tails_area() != self.canvas_tails_area:
+        if data.canvas_tails_area is not None and self.get_canvas_tails_area() != data.canvas_tails_area:
             self.update_canvas()
 
     def scroll_on_canvasx(self, event):
@@ -342,7 +233,7 @@ class BrushsheLogic:
         if event.num == 4 or event.delta > 0:
             count = -1
         self.ui.canvas.xview_scroll(count, "units")
-        if self.canvas_tails_area is not None and self.get_canvas_tails_area() != self.canvas_tails_area:
+        if data.canvas_tails_area is not None and self.get_canvas_tails_area() != data.canvas_tails_area:
             self.update_canvas()
 
     def begin_moving_canvas(self, event):
@@ -350,18 +241,18 @@ class BrushsheLogic:
 
     def continue_moving_canvas(self, event):
         self.ui.canvas.scan_dragto(event.x, event.y, gain=1)
-        if self.canvas_tails_area is not None and self.get_canvas_tails_area() != self.canvas_tails_area:
+        if data.canvas_tails_area is not None and self.get_canvas_tails_area() != data.canvas_tails_area:
             self.update_canvas()
 
     def zoom_in(self, event=None):
         self.ui.canvas.delete("tools")
 
-        if 1 < self.zoom < 2:  # Need if zoom not integer but more 1 and less 2
-            self.zoom = 1
-        if 1 <= self.zoom < 12:
-            self.zoom += 1
-        elif self.zoom < 1:
-            self.zoom *= 2
+        if 1 < data.zoom < 2:  # Need if zoom not integer but more 1 and less 2
+            data.zoom = 1
+        if 1 <= data.zoom < 12:
+            data.zoom += 1
+        elif data.zoom < 1:
+            data.zoom *= 2
 
         self.force_resize_canvas_with_correct()
         self.update_canvas()
@@ -369,10 +260,10 @@ class BrushsheLogic:
     def zoom_out(self, event=None):
         self.ui.canvas.delete("tools")
 
-        if 1 < self.zoom:
-            self.zoom -= 1
-        elif 0.05 < self.zoom <= 1:  # Zooming limited down by 0.05.
-            self.zoom /= 2
+        if 1 < data.zoom:
+            data.zoom -= 1
+        elif 0.05 < data.zoom <= 1:  # Zooming limited down by 0.05.
+            data.zoom /= 2
 
         self.force_resize_canvas_with_correct()
         self.update_canvas()
@@ -380,43 +271,43 @@ class BrushsheLogic:
     def reset_zoom(self, event=None):
         self.ui.canvas.delete("tools")
 
-        self.zoom = 1
+        data.zoom = 1
 
         self.force_resize_canvas_with_correct()
         self.update_canvas()
 
     def canvas_to_pict_xy(self, x, y):
-        return self.ui.canvas.canvasx(x) // self.zoom, self.ui.canvas.canvasy(y) // self.zoom
+        return self.ui.canvas.canvasx(x) // data.zoom, self.ui.canvas.canvasy(y) // data.zoom
 
     def canvas_to_pict_xy_f(self, x, y):
-        return self.ui.canvas.canvasx(x) / self.zoom, self.ui.canvas.canvasy(y) / self.zoom
+        return self.ui.canvas.canvasx(x) / data.zoom, self.ui.canvas.canvasy(y) / data.zoom
 
     def get_tool_main_color(self):
         if self.current_tool == "eraser":
-            color = self.bg_color
+            color = data.bg_color
             if self.image.mode == "RGBA":
                 color = "#00000000"
         else:
             # For shape, etc.
-            color = self.brush_color
+            color = data.brush_color
             if self.image.mode == "RGBA":
                 color = self.rgb_tuple_to_rgba_tuple(self.rgb_color_to_tuple(color), 255)
         return color
 
     def record_action(self):
-        self.undo_stack.append(self.image.copy())
-        if self.autosave_var.get() and self.current_file is not None:
+        data.undo_stack.append(self.image.copy())
+        if data.autosave_var.get() and data.current_file is not None:
             self.save_current(autosave=True)
 
     def draw_line(self, x1, y1, x2, y2):
         color = self.get_tool_main_color()
 
         if self.selected_mask_img is None:
-            bh_draw_line(self.draw, x1, y1, x2, y2, color, self.tool_size, self.brush_shape, self.current_tool)
+            bh_draw_line(self.draw, x1, y1, x2, y2, color, self.tool_size, data.brush_shape, self.current_tool)
         else:
             tmp_image = self.image.copy()
             tmp_draw = ImageDraw.Draw(tmp_image)
-            bh_draw_line(tmp_draw, x1, y1, x2, y2, color, self.tool_size, self.brush_shape, self.current_tool)
+            bh_draw_line(tmp_draw, x1, y1, x2, y2, color, self.tool_size, data.brush_shape, self.current_tool)
             self.image.paste(tmp_image, (0, 0), self.selected_mask_img)
             del tmp_image
 
@@ -434,41 +325,41 @@ class BrushsheLogic:
         self.timer_mask_last_update = int(time.time() * 1000)  # Set current time in ms
 
     def _tailing_update_canvas(self):
-        if self.zoom < 1:
+        if data.zoom < 1:
             # https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-filters
             canvas_image = self.image.resize(
-                (math.ceil(self.image.width * self.zoom), math.ceil(self.image.height * self.zoom)), Image.BOX
+                (math.ceil(self.image.width * data.zoom), math.ceil(self.image.height * data.zoom)), Image.BOX
             )
             if self.selected_mask_img is None:
                 mask_image = None
             else:
                 mask_image = self.selected_mask_img.resize(
                     (
-                        math.ceil(self.selected_mask_img.width * self.zoom),
-                        math.ceil(self.selected_mask_img.height * self.zoom),
+                        math.ceil(self.selected_mask_img.width * data.zoom),
+                        math.ceil(self.selected_mask_img.height * data.zoom),
                     ),
                     Image.NEAREST,
                 )
 
             tails_area = None
 
-            self.composer.set_l_image(canvas_image)
-            self.composer.set_mask_image(mask_image, tails_area)
+            data.composer.set_l_image(canvas_image)
+            data.composer.set_mask_image(mask_image, tails_area)
 
-            compose_image = self.composer.get_compose_image(0, 0, canvas_image.width - 1, canvas_image.height - 1)
+            compose_image = data.composer.get_compose_image(0, 0, canvas_image.width - 1, canvas_image.height - 1)
 
             self.img_tk = ImageTk.PhotoImage(compose_image)
             self.ui.canvas.itemconfig(self.canvas_image, image=self.img_tk)
             self.ui.canvas.moveto(self.canvas_image, 0, 0)
-            self.canvas_tails_area = tails_area
+            data.canvas_tails_area = tails_area
 
             return
 
-        else:  # self.zoom > 1 or self.zoom = 1:
+        else:  # data.zoom > 1 or data.zoom = 1:
             # It work incorrect at this implementation for zoom < 1.
 
-            cw_full = math.ceil(self.image.width * self.zoom)
-            ch_full = math.ceil(self.image.height * self.zoom)
+            cw_full = math.ceil(self.image.width * data.zoom)
+            ch_full = math.ceil(self.image.height * data.zoom)
 
             (x1, y1, x2, y2) = self.get_canvas_tails_area()
 
@@ -482,15 +373,15 @@ class BrushsheLogic:
                 tmp_mask_image = self.selected_mask_img
             else:
                 tiles_xy_on_image = (
-                    math.floor(x1 / self.zoom),
-                    math.floor(y1 / self.zoom),
-                    math.floor(x2 / self.zoom) + 1,
-                    math.floor(y2 / self.zoom) + 1,
+                    math.floor(x1 / data.zoom),
+                    math.floor(y1 / data.zoom),
+                    math.floor(x2 / data.zoom) + 1,
+                    math.floor(y2 / data.zoom) + 1,
                 )
 
                 # Subpixel correct.
-                x1_correct = tiles_xy_on_image[0] * self.zoom
-                y1_correct = tiles_xy_on_image[1] * self.zoom
+                x1_correct = tiles_xy_on_image[0] * data.zoom
+                y1_correct = tiles_xy_on_image[1] * data.zoom
 
                 dx = math.floor(x1 - x1_correct)
                 dy = math.floor(y1 - y1_correct)
@@ -504,8 +395,8 @@ class BrushsheLogic:
                 else:
                     tmp_mask_image = self.selected_mask_img.crop(tiles_xy_on_image)
 
-            r_w = math.floor(tmp_canvas_image.width * self.zoom)
-            r_h = math.floor(tmp_canvas_image.height * self.zoom)
+            r_w = math.floor(tmp_canvas_image.width * data.zoom)
+            r_h = math.floor(tmp_canvas_image.height * data.zoom)
             if r_w < 1:
                 r_w = 1
             if r_h < 1:
@@ -519,21 +410,21 @@ class BrushsheLogic:
 
             tails_area = (x1, y1, x2, y2)
 
-            self.composer.set_l_image(canvas_image)
-            self.composer.set_mask_image(mask_image, tails_area)
+            data.composer.set_l_image(canvas_image)
+            data.composer.set_mask_image(mask_image, tails_area)
 
-            compose_image = self.composer.get_compose_image(x1, y1, x2 + dx, y2 + dy)
+            compose_image = data.composer.get_compose_image(x1, y1, x2 + dx, y2 + dy)
 
             self.img_tk = ImageTk.PhotoImage(compose_image)
             self.ui.canvas.itemconfig(self.canvas_image, image=self.img_tk)
             self.ui.canvas.moveto(self.canvas_image, x1_correct, y1_correct)
-            self.canvas_tails_area = tails_area
+            data.canvas_tails_area = tails_area
 
             return
 
     def get_canvas_tails_area(self):
-        cw_full = int(self.image.width * self.zoom)
-        ch_full = int(self.image.height * self.zoom)
+        cw_full = int(self.image.width * data.zoom)
+        ch_full = int(self.image.height * data.zoom)
 
         # Set param canvas with real image size. Not use bbox in this place.
         self.ui.canvas.config(scrollregion=(0, 0, cw_full, ch_full), width=cw_full, height=ch_full)
@@ -543,10 +434,10 @@ class BrushsheLogic:
         cy_frame_1, cy_frame_2 = self.ui.canvas.yview()
 
         # Find the area without subpixel correct.
-        x1 = math.floor(cx_frame_1 * cw_full / self.canvas_tail_size) * self.canvas_tail_size
-        y1 = math.floor(cy_frame_1 * ch_full / self.canvas_tail_size) * self.canvas_tail_size
-        x2 = math.ceil(cx_frame_2 * cw_full / self.canvas_tail_size) * self.canvas_tail_size - 1
-        y2 = math.ceil(cy_frame_2 * ch_full / self.canvas_tail_size) * self.canvas_tail_size - 1
+        x1 = math.floor(cx_frame_1 * cw_full / data.canvas_tail_size) * data.canvas_tail_size
+        y1 = math.floor(cy_frame_1 * ch_full / data.canvas_tail_size) * data.canvas_tail_size
+        x2 = math.ceil(cx_frame_2 * cw_full / data.canvas_tail_size) * data.canvas_tail_size - 1
+        y2 = math.ceil(cy_frame_2 * ch_full / data.canvas_tail_size) * data.canvas_tail_size - 1
         if x2 > cw_full - 1:
             x2 = cw_full - 1
         if y2 > ch_full - 1:
@@ -555,8 +446,8 @@ class BrushsheLogic:
         return (x1, y1, x2, y2)
 
     def force_resize_canvas(self):
-        cw_full = int(self.image.width * self.zoom)
-        ch_full = int(self.image.height * self.zoom)
+        cw_full = int(self.image.width * data.zoom)
+        ch_full = int(self.image.height * data.zoom)
 
         # Scrollregion begin from the left part of first pixel and tail on the end part of last pixel.
         self.ui.canvas.config(
@@ -582,8 +473,8 @@ class BrushsheLogic:
         cy_frame_1, cy_frame_2 = self.ui.canvas.yview()
         dx_2 = (cx_frame_2 + cx_frame_1) / 2
         dy_2 = (cy_frame_2 + cy_frame_1) / 2
-        cw_full = int(self.image.width * self.zoom)
-        ch_full = int(self.image.height * self.zoom)
+        cw_full = int(self.image.width * data.zoom)
+        ch_full = int(self.image.height * data.zoom)
 
         self.ui.canvas.scan_mark(int(dx_1 * cw_full - wd_x_1), int(dy_1 * ch_full - wd_y_1))
         self.ui.canvas.scan_dragto(int(dx_2 * cw_full), int(dy_2 * ch_full), gain=1)
@@ -596,7 +487,7 @@ class BrushsheLogic:
             new_image = Image.new("RGBA", (new_width, new_height), "#00000000")
             new_image.paste(self.image, (-x1, -y1), self.image)
         else:
-            new_image = Image.new("RGB", (new_width, new_height), self.bg_color)
+            new_image = Image.new("RGB", (new_width, new_height), data.bg_color)
             new_image.paste(self.image, (-x1, -y1))
         self.image = new_image
         self.draw = ImageDraw.Draw(self.image)
@@ -615,7 +506,7 @@ class BrushsheLogic:
         color = self.image.getpixel((x, y))
         self.obtained_color = "#{:02x}{:02x}{:02x}".format(*color)
 
-        self.brush_color = self.obtained_color
+        data.brush_color = self.obtained_color
         self.ui.brush_palette.main_color = self.obtained_color
 
     def start_fill(self):
@@ -627,11 +518,11 @@ class BrushsheLogic:
         tmp_image = self.image if self.selected_mask_img is None else self.image.copy()
 
         if self.image.mode == "RGBA":
-            fill_color = self.rgb_tuple_to_rgba_tuple(ImageColor.getrgb(self.brush_color), 255)
+            fill_color = self.rgb_tuple_to_rgba_tuple(ImageColor.getrgb(data.brush_color), 255)
         else:
-            fill_color = ImageColor.getrgb(self.brush_color)
+            fill_color = ImageColor.getrgb(data.brush_color)
 
-        if self.is_gradient_fill.get() == "on":
+        if data.is_gradient_fill.get() == "on":
             self.gradient_fill(x, y)
         else:
             ImageDraw.floodfill(tmp_image, (x, y), fill_color)
@@ -648,8 +539,8 @@ class BrushsheLogic:
         if not (0 <= x < self.image.width and 0 <= y < self.image.height):
             return
 
-        start_color = ImageColor.getrgb(self.brush_color)
-        end_color = ImageColor.getrgb(self.second_brush_color)
+        start_color = ImageColor.getrgb(data.brush_color)
+        end_color = ImageColor.getrgb(data.second_brush_color)
         threshold = 50
         direction = self.gradient_mode_optionmenu.get()
 
@@ -724,9 +615,9 @@ class BrushsheLogic:
                 messagebox.open_file_error(e)
 
     def save_current(self, autosave=False):
-        if self.current_file is not None:
+        if data.current_file is not None:
             try:
-                self.image.save(self.current_file)
+                self.image.save(data.current_file)
                 self.saved_copy = self.image.copy()
                 if not autosave:
                     messagebox.save_current()
@@ -742,8 +633,8 @@ class BrushsheLogic:
                 self.image.save(dialog.path)
                 self.saved_copy = self.image.copy()
                 messagebox.save_as(dialog.extension)
-                self.current_file = dialog.path
-                self.ui.title(os.path.basename(self.current_file) + " - " + _("Brushshe"))
+                data.current_file = dialog.path
+                self.ui.title(os.path.basename(data.current_file) + " - " + _("Brushshe"))
             except Exception as e:
                 messagebox.save_file_error(e)
 
@@ -802,7 +693,7 @@ class BrushsheLogic:
 
         row = 0
         column = 0
-        for sticker_image in self.stickers:
+        for sticker_image in data.stickers:
             sticker_ctkimage = ctk.CTkImage(sticker_image, size=(100, 100))
             ctk.CTkButton(
                 stickers_frame,
@@ -819,8 +710,8 @@ class BrushsheLogic:
         if sticker_image:
             self.last_sticker_image = sticker_image
 
-        if self.is_sticker_use_real_size.get() == "off":
-            self.set_tool("sticker", "Stickers", self.sticker_size, 10, 250, "cross")
+        if data.is_sticker_use_real_size.get() == "off":
+            self.set_tool("sticker", "Stickers", data.sticker_size, 10, 250, "cross")
             self.insert_simple(self.last_sticker_image)
         else:
             self.set_tool("real size sticker", "Stickers", 100, 1, 500, "cross")
@@ -828,7 +719,7 @@ class BrushsheLogic:
 
     def text_tool(self):
         def add_text(event):
-            self.draw.text((self.text_x, self.text_y), self.tx_entry.get(), fill=self.brush_color, font=self.imagefont)
+            self.draw.text((self.text_x, self.text_y), self.tx_entry.get(), fill=data.brush_color, font=self.imagefont)
             self.update_canvas()
             self.record_action()
 
@@ -847,20 +738,20 @@ class BrushsheLogic:
             self.text_y = y - text_height // 2 - bbox[1]
 
             self.ui.canvas.create_rectangle(
-                (x - text_width // 2) * self.zoom,
-                (y - text_height // 2) * self.zoom,
-                (x + text_width // 2) * self.zoom,
-                (y + text_height // 2) * self.zoom,
+                (x - text_width // 2) * data.zoom,
+                (y - text_height // 2) * data.zoom,
+                (x + text_width // 2) * data.zoom,
+                (y + text_height // 2) * data.zoom,
                 outline="white",
                 width=1,
                 tag="tools",
             )
 
             self.ui.canvas.create_rectangle(
-                (x - text_width // 2) * self.zoom,
-                (y - text_height // 2) * self.zoom,
-                (x + text_width // 2) * self.zoom,
-                (y + text_height // 2) * self.zoom,
+                (x - text_width // 2) * data.zoom,
+                (y - text_height // 2) * data.zoom,
+                (x + text_width // 2) * data.zoom,
+                (y + text_height // 2) * data.zoom,
                 outline="black",
                 width=1,
                 tag="tools",
@@ -870,14 +761,14 @@ class BrushsheLogic:
         def leave(event):
             self.ui.canvas.delete("tools")
 
-        self.set_tool("text", "Text", self.font_size, 11, 96, "cross")
+        self.set_tool("text", "Text", data.font_size, 11, 96, "cross")
         self.ui.canvas.bind("<Button-1>", add_text)
         self.ui.canvas.bind("<Motion>", draw_text_halo)
         self.ui.canvas.bind("<Leave>", leave)
 
     def font_optionmenu_callback(self, value):
-        self.current_font = value
-        self.font_path = resource(self.fonts_dict.get(value))
+        data.current_font = value
+        self.font_path = resource(data.fonts_dict.get(value))
         self.imagefont = ImageFont.truetype(self.font_path, self.tool_size)
 
     def show_frame_choice(self):
@@ -982,18 +873,18 @@ class BrushsheLogic:
             color = self.get_tool_main_color()
 
             if shape == "Rectangle":
-                tmp_draw.rectangle([x0, y0, x1, y1], outline=self.brush_color, width=self.tool_size)
+                tmp_draw.rectangle([x0, y0, x1, y1], outline=data.brush_color, width=self.tool_size)
             elif shape == "Oval":
-                tmp_draw.ellipse([x0, y0, x1, y1], outline=self.brush_color, width=self.tool_size)
+                tmp_draw.ellipse([x0, y0, x1, y1], outline=data.brush_color, width=self.tool_size)
             elif shape == "Line":
                 # self.draw_line(x_begin, y_begin, x_end, y_end)
                 bh_draw_line(
-                    tmp_draw, x_begin, y_begin, x_end, y_end, color, self.tool_size, self.brush_shape, self.current_tool
+                    tmp_draw, x_begin, y_begin, x_end, y_end, color, self.tool_size, data.brush_shape, self.current_tool
                 )
             elif shape == "Fill rectangle":
-                tmp_draw.rectangle([x0, y0, x1, y1], fill=self.brush_color)
+                tmp_draw.rectangle([x0, y0, x1, y1], fill=data.brush_color)
             elif shape == "Fill oval":
-                tmp_draw.ellipse([x0, y0, x1, y1], fill=self.brush_color)
+                tmp_draw.ellipse([x0, y0, x1, y1], fill=data.brush_color)
             else:
                 print("Warning: Incorrect shape.")
 
@@ -1014,7 +905,7 @@ class BrushsheLogic:
         if shape == "Fill rectangle" or shape == "Fill oval":
             self.set_tool("shape", shape, None, None, None, "cross")
         else:
-            self.set_tool("shape", shape, self.shape_size, 1, 50, "cross")
+            self.set_tool("shape", shape, data.shape_size, 1, 50, "cross")
 
         self.ui.canvas.bind("<ButtonPress-1>", start_shape)
         self.ui.canvas.bind("<B1-Motion>", draw_shape)
@@ -1137,7 +1028,7 @@ class BrushsheLogic:
                             int(points[it + 1][1]),
                             color,
                             self.tool_size,
-                            self.brush_shape,
+                            data.brush_shape,
                             self.current_tool,
                         )
 
@@ -1156,7 +1047,7 @@ class BrushsheLogic:
                 image_points = []
                 bezier_id = None
 
-        self.set_tool("shape", "Bezier", self.shape_size, 1, 50, "cross")
+        self.set_tool("shape", "Bezier", data.shape_size, 1, 50, "cross")
 
         self.ui.canvas.bind("<ButtonPress-1>", start)
         self.ui.canvas.bind("<B1-Motion>", drawing)
@@ -1164,7 +1055,7 @@ class BrushsheLogic:
         self.ui.canvas.bind("<Motion>", drawing)
 
     def recoloring_brush(self):
-        self.set_tool("r-brush", "R. Brush", self.brush_size, 1, 50, "pencil")
+        self.set_tool("r-brush", "R. Brush", data.brush_size, 1, 50, "pencil")
 
         prev_x = None
         prev_y = None
@@ -1173,16 +1064,16 @@ class BrushsheLogic:
         def drawing(event):
             nonlocal prev_x, prev_y, point_history
 
-            if self.is_brush_smoothing is False:
+            if data.is_brush_smoothing is False:
                 x, y = self.canvas_to_pict_xy(event.x, event.y)
             else:
                 if point_history is None:
-                    point_history = BhHistory(limit_length=self.brush_smoothing_factor)
+                    point_history = BhHistory(limit_length=data.brush_smoothing_factor)
                 xf, yf = self.canvas_to_pict_xy_f(event.x, event.y)
                 point_history.add_point(BhPoint(x=xf, y=yf, pressure=1.0))
                 s_point = point_history.get_smoothing_point(
-                    self.brush_smoothing_factor,
-                    self.brush_smoothing_quality,
+                    data.brush_smoothing_factor,
+                    data.brush_smoothing_quality,
                 )
                 if s_point is not None:
                     x = int(s_point.x)
@@ -1218,8 +1109,8 @@ class BrushsheLogic:
             draw_brush_halo(x, y)
 
         def draw_recoloring_brush(x1, y1, x2, y2):
-            color_to = ImageColor.getrgb(self.brush_color)
-            color_from = ImageColor.getrgb(self.second_brush_color)
+            color_to = ImageColor.getrgb(data.brush_color)
+            color_from = ImageColor.getrgb(data.second_brush_color)
 
             # FIXME: In current time it works only for 100% opacity color.
             if self.image.mode == "RGBA":
@@ -1241,19 +1132,19 @@ class BrushsheLogic:
             d2 = self.tool_size // 2
 
             self.ui.canvas.create_rectangle(
-                int((x - d1) * self.zoom - 1),
-                int((y - d1) * self.zoom - 1),
-                int((x + d2 + 1) * self.zoom),
-                int((y + d2 + 1) * self.zoom),
+                int((x - d1) * data.zoom - 1),
+                int((y - d1) * data.zoom - 1),
+                int((x + d2 + 1) * data.zoom),
+                int((y + d2 + 1) * data.zoom),
                 outline="white",
                 width=1,
                 tag="tools",
             )
             self.ui.canvas.create_rectangle(
-                int((x - d1) * self.zoom),
-                int((y - d1) * self.zoom),
-                int((x + d2 + 1) * self.zoom - 1),
-                int((y + d2 + 1) * self.zoom - 1),
+                int((x - d1) * data.zoom),
+                int((y - d1) * data.zoom),
+                int((x + d2 + 1) * data.zoom - 1),
+                int((y + d2 + 1) * data.zoom - 1),
                 outline="black",
                 width=1,
                 tag="tools",
@@ -1297,7 +1188,7 @@ class BrushsheLogic:
         del tmp_img
 
         if deleted:
-            bg_color = self.bg_color
+            bg_color = data.bg_color
             if self.image.mode == "RGBA":
                 bg_color = (0, 0, 0, 0)
             tmp_img = Image.new(self.image.mode, (self.image.width, self.image.height), bg_color)
@@ -1383,8 +1274,8 @@ class BrushsheLogic:
                 if self.image.mode != "RGBA":
                     ImageDraw.Draw(self.image).rectangle(
                         (x1, y1, x2, y2),
-                        fill=self.bg_color,
-                        outline=self.bg_color,
+                        fill=data.bg_color,
+                        outline=data.bg_color,
                     )
                 else:
                     ImageDraw.Draw(self.image).rectangle(
@@ -1400,19 +1291,19 @@ class BrushsheLogic:
             self.ui.canvas.delete("tools")
 
             self.ui.canvas.create_rectangle(
-                int(x1 * self.zoom),
-                int(y1 * self.zoom),
-                int((x2 + 1) * self.zoom - 1),
-                int((y2 + 1) * self.zoom - 1),
+                int(x1 * data.zoom),
+                int(y1 * data.zoom),
+                int((x2 + 1) * data.zoom - 1),
+                int((y2 + 1) * data.zoom - 1),
                 outline="white",
                 width=1,
                 tag="tools",
             )
             self.ui.canvas.create_rectangle(
-                int(x1 * self.zoom),
-                int(y1 * self.zoom),
-                int((x2 + 1) * self.zoom - 1),
-                int((y2 + 1) * self.zoom - 1),
+                int(x1 * data.zoom),
+                int(y1 * data.zoom),
+                int((x2 + 1) * data.zoom - 1),
+                int((y2 + 1) * data.zoom - 1),
                 outline="black",
                 width=1,
                 tag="tools",
@@ -1427,7 +1318,7 @@ class BrushsheLogic:
         if self.selected_mask_img is None:
             return
 
-        bg_color = self.bg_color
+        bg_color = data.bg_color
         if self.image.mode == "RGBA":
             bg_color = (0, 0, 0, 0)
         tmp_img = Image.new(self.image.mode, (self.image.width, self.image.height), bg_color)
@@ -1461,7 +1352,7 @@ class BrushsheLogic:
                 it_height = int(insert_image.height / 100 * self.tool_size)
                 if it_width <= 1 or it_height <= 1:
                     it_width, it_height = (1, 1)
-                if self.is_insert_smoothing.get() == "off":
+                if data.is_insert_smoothing.get() == "off":
                     resampling = Image.NEAREST
                 else:
                     resampling = Image.BICUBIC
@@ -1474,9 +1365,9 @@ class BrushsheLogic:
             x2 = int(x1 + it_width - 1)
             y2 = int(y1 + it_height - 1)
 
-            image_tmp_view = image_tmp.resize((int(it_width * self.zoom), int(it_height * self.zoom)), Image.BOX)
+            image_tmp_view = image_tmp.resize((int(it_width * data.zoom), int(it_height * data.zoom)), Image.BOX)
             image_tk = ImageTk.PhotoImage(image_tmp_view)
-            current_zoom = self.zoom
+            current_zoom = data.zoom
 
             draw_tool(x1, y1, x2, y2)
 
@@ -1503,27 +1394,27 @@ class BrushsheLogic:
             self.ui.canvas.delete("tools")
 
             self.ui.canvas.create_image(
-                int(x1 * self.zoom),
-                int(y1 * self.zoom),
+                int(x1 * data.zoom),
+                int(y1 * data.zoom),
                 image=image_tk,
                 tag="tools",
                 anchor="nw",
             )
 
             self.ui.canvas.create_rectangle(
-                int(x1 * self.zoom),
-                int(y1 * self.zoom),
-                int((x2 + 1) * self.zoom - 1),
-                int((y2 + 1) * self.zoom - 1),
+                int(x1 * data.zoom),
+                int(y1 * data.zoom),
+                int((x2 + 1) * data.zoom - 1),
+                int((y2 + 1) * data.zoom - 1),
                 outline="white",
                 width=1,
                 tag="tools",
             )
             self.ui.canvas.create_rectangle(
-                int(x1 * self.zoom),
-                int(y1 * self.zoom),
-                int((x2 + 1) * self.zoom - 1),
-                int((y2 + 1) * self.zoom - 1),
+                int(x1 * data.zoom),
+                int(y1 * data.zoom),
+                int((x2 + 1) * data.zoom - 1),
+                int((y2 + 1) * data.zoom - 1),
                 outline="black",
                 width=1,
                 tag="tools",
@@ -1610,19 +1501,19 @@ class BrushsheLogic:
             self.ui.canvas.delete("tools")
 
             self.ui.canvas.create_rectangle(
-                int(x1 * self.zoom),
-                int(y1 * self.zoom),
-                int((x2 + 1) * self.zoom - 1),
-                int((y2 + 1) * self.zoom - 1),
+                int(x1 * data.zoom),
+                int(y1 * data.zoom),
+                int((x2 + 1) * data.zoom - 1),
+                int((y2 + 1) * data.zoom - 1),
                 outline="white",
                 width=1,
                 tag="tools",
             )
             self.ui.canvas.create_rectangle(
-                int(x1 * self.zoom),
-                int(y1 * self.zoom),
-                int((x2 + 1) * self.zoom - 1),
-                int((y2 + 1) * self.zoom - 1),
+                int(x1 * data.zoom),
+                int(y1 * data.zoom),
+                int((x2 + 1) * data.zoom - 1),
+                int((y2 + 1) * data.zoom - 1),
                 outline="black",
                 width=1,
                 tag="tools",
@@ -1670,7 +1561,7 @@ class BrushsheLogic:
 
     def new_picture(self, color="#FFFFFF", mode="RGB", first_time=False):
         self.ui.canvas.delete("tools")
-        self.bg_color = color
+        data.bg_color = color
 
         self.image = Image.new(mode, (640, 480), color)
         self.saved_copy = self.image.copy()
@@ -1691,22 +1582,22 @@ class BrushsheLogic:
 
         self.record_action()
         self.ui.title(_("Unnamed") + " - " + _("Brushshe"))
-        self.current_file = None
+        data.current_file = None
 
     def change_tool_size(self, value):
         self.tool_size = int(value)
         if self.current_tool == "brush" or self.current_tool == "r-brush":
-            self.brush_size = int(value)
+            data.brush_size = int(value)
         elif self.current_tool == "eraser":
-            self.eraser_size = int(value)
+            data.eraser_size = int(value)
         elif self.current_tool == "spray":
-            self.spray_size = int(value)
+            data.spray_size = int(value)
         elif self.current_tool == "shape":
-            self.shape_size = int(value)
+            data.shape_size = int(value)
         elif self.current_tool == "sticker":
-            self.sticker_size = int(value)
+            data.sticker_size = int(value)
         elif self.current_tool == "text":
-            self.font_size = int(value)
+            data.font_size = int(value)
         if self.current_tool in ["insert", "real size sticker"]:
             self.ui.tool_size_label.configure(text=f"{self.tool_size} %")
         else:
@@ -1716,17 +1607,17 @@ class BrushsheLogic:
     def get_tool_size(self):
         res = self.tool_size
         if self.current_tool == "brush" or self.current_tool == "r-brush":
-            res = self.brush_size
+            res = data.brush_size
         elif self.current_tool == "eraser":
-            res = self.eraser_size
+            res = data.eraser_size
         elif self.current_tool == "spray":
-            res = self.spray_size
+            res = data.spray_size
         elif self.current_tool == "shape":
-            res = self.shape_size
+            res = data.shape_size
         elif self.current_tool == "sticker":
-            res = self.sticker_size
+            res = data.sticker_size
         elif self.current_tool == "text":
-            res = self.font_size
+            res = data.font_size
         return res
 
     def brush(self, type="brush"):
@@ -1735,26 +1626,26 @@ class BrushsheLogic:
         point_history = None
 
         if type == "brush":
-            self.set_tool("brush", "Brush", self.brush_size, 1, 50, "pencil")
+            self.set_tool("brush", "Brush", data.brush_size, 1, 50, "pencil")
         elif type == "eraser":
-            self.set_tool("eraser", "Eraser", self.eraser_size, 1, 50, "target")
+            self.set_tool("eraser", "Eraser", data.eraser_size, 1, 50, "target")
         else:
             print("Warning: Incorrect brush type. Set default as.")
-            self.set_tool("brush", "Brush", self.brush_size, 1, 50, "pencil")
+            self.set_tool("brush", "Brush", data.brush_size, 1, 50, "pencil")
 
         def paint(event):
             nonlocal prev_x, prev_y, point_history
 
-            if self.is_brush_smoothing is False:
+            if data.is_brush_smoothing is False:
                 x, y = self.canvas_to_pict_xy(event.x, event.y)
             else:
                 if point_history is None:
-                    point_history = BhHistory(limit_length=self.brush_smoothing_factor)
+                    point_history = BhHistory(limit_length=data.brush_smoothing_factor)
                 xf, yf = self.canvas_to_pict_xy_f(event.x, event.y)
                 point_history.add_point(BhPoint(x=xf, y=yf, pressure=1.0))
                 s_point = point_history.get_smoothing_point(
-                    self.brush_smoothing_factor,
-                    self.brush_smoothing_quality,
+                    data.brush_smoothing_factor,
+                    data.brush_smoothing_quality,
                 )
                 if s_point is not None:
                     x = int(s_point.x)
@@ -1798,25 +1689,25 @@ class BrushsheLogic:
 
             # TODO: Need use the pixel perfect halo for zoom >= 2 if it doesn't too slow.
 
-            if self.brush_shape == "circle":
+            if data.brush_shape == "circle":
                 canvas_create_shape = self.ui.canvas.create_oval
-            elif self.brush_shape == "square":
+            elif data.brush_shape == "square":
                 canvas_create_shape = self.ui.canvas.create_rectangle
 
             canvas_create_shape(
-                int((x - d1) * self.zoom - 1),
-                int((y - d1) * self.zoom - 1),
-                int((x + d2 + 1) * self.zoom),
-                int((y + d2 + 1) * self.zoom),
+                int((x - d1) * data.zoom - 1),
+                int((y - d1) * data.zoom - 1),
+                int((x + d2 + 1) * data.zoom),
+                int((y + d2 + 1) * data.zoom),
                 outline="white",
                 width=1,
                 tag="tools",
             )
             canvas_create_shape(
-                int((x - d1) * self.zoom),
-                int((y - d1) * self.zoom),
-                int((x + d2 + 1) * self.zoom - 1),
-                int((y + d2 + 1) * self.zoom - 1),
+                int((x - d1) * data.zoom),
+                int((y - d1) * data.zoom),
+                int((x + d2 + 1) * data.zoom - 1),
+                int((y + d2 + 1) * data.zoom - 1),
                 outline="black",
                 width=1,
                 tag="tools",
@@ -1836,12 +1727,12 @@ class BrushsheLogic:
 
     def spray(self):
         def start_spray(event):
-            self.prev_x, self.prev_y = self.canvas_to_pict_xy(event.x, event.y)
+            data.prev_x, data.prev_y = self.canvas_to_pict_xy(event.x, event.y)
             self.spraying = True
             do_spray()
 
         def do_spray():
-            if not self.spraying or self.prev_x is None or self.prev_y is None:
+            if not self.spraying or data.prev_x is None or data.prev_y is None:
                 return
 
             if self.selected_mask_img is None:
@@ -1855,7 +1746,7 @@ class BrushsheLogic:
                 offset_x = random.randint(-self.tool_size, self.tool_size)
                 offset_y = random.randint(-self.tool_size, self.tool_size)
                 if offset_x**2 + offset_y**2 <= self.tool_size**2:
-                    tmp_draw.point((self.prev_x + offset_x, self.prev_y + offset_y), fill=self.brush_color)
+                    tmp_draw.point((data.prev_x + offset_x, data.prev_y + offset_y), fill=data.brush_color)
 
             if self.selected_mask_img is None:
                 pass
@@ -1868,17 +1759,17 @@ class BrushsheLogic:
             self.spray_job = self.ui.after(50, do_spray)
 
         def move_spray(event):
-            self.prev_x, self.prev_y = self.canvas_to_pict_xy(event.x, event.y)
+            data.prev_x, data.prev_y = self.canvas_to_pict_xy(event.x, event.y)
 
         def stop_spray(event):
             self.spraying = False
             if self.spray_job:
                 self.ui.after_cancel(self.spray_job)
                 self.spray_job = None
-            self.prev_x, self.prev_y = (None, None)
+            data.prev_x, data.prev_y = (None, None)
             self.record_action()
 
-        self.set_tool("spray", "Spray", self.spray_size, 5, 30, "spraycan")
+        self.set_tool("spray", "Spray", data.spray_size, 5, 30, "spraycan")
 
         self.spraying = False
         self.spray_job = None
@@ -1889,13 +1780,13 @@ class BrushsheLogic:
     # TODO: Add selected_mask_img on history with type `mask`.
     # FIXME: Need add length synchronization undo_stack and redo_stack (actually it must be one stack).
     def undo(self):
-        if len(self.undo_stack) > 1:
-            tmp_image = self.undo_stack.pop()
+        if len(data.undo_stack) > 1:
+            tmp_image = data.undo_stack.pop()
             is_resize = False
             if self.image.width != tmp_image.width or self.image.height != tmp_image.height:
                 is_resize = True
-            self.redo_stack.append(tmp_image)
-            self.image = self.undo_stack[-1].copy()
+            data.redo_stack.append(tmp_image)
+            self.image = data.undo_stack[-1].copy()
             self.draw = ImageDraw.Draw(self.image)
             if is_resize:
                 self.selected_mask_img = None
@@ -1903,8 +1794,8 @@ class BrushsheLogic:
             self.update_canvas()
 
     def redo(self):
-        if len(self.redo_stack) > 0:
-            tmp_image = self.redo_stack.pop().copy()
+        if len(data.redo_stack) > 0:
+            tmp_image = data.redo_stack.pop().copy()
             is_resize = False
             if self.image.width != tmp_image.width or self.image.height != tmp_image.height:
                 is_resize = True
@@ -1923,27 +1814,27 @@ class BrushsheLogic:
         self.image.save(file_path)
         self.saved_copy = self.image.copy()
 
-        self.current_file = str(file_path)
-        self.ui.title(os.path.basename(self.current_file) + " - " + _("Brushshe"))
+        data.current_file = str(file_path)
+        self.ui.title(os.path.basename(data.current_file) + " - " + _("Brushshe"))
 
         messagebox.save_to_gallery()
 
     def change_color(self, new_color):
-        self.brush_color = new_color
-        self.ui.brush_palette.main_color = self.brush_color
+        data.brush_color = new_color
+        self.ui.brush_palette.main_color = data.brush_color
 
     def main_color_choice(self):
-        askcolor = AskColor(title=_("Color select"), initial_color=self.brush_color)
+        askcolor = AskColor(title=_("Color select"), initial_color=data.brush_color)
         self.obtained_color = askcolor.get()
         if self.obtained_color:
-            self.brush_color = self.obtained_color
+            data.brush_color = self.obtained_color
             self.ui.brush_palette.main_color = self.obtained_color
 
     def second_color_choice(self):
-        askcolor = AskColor(title=_("Color select"), initial_color=self.second_brush_color)
+        askcolor = AskColor(title=_("Color select"), initial_color=data.second_brush_color)
         self.obtained_color = askcolor.get()
         if self.obtained_color:
-            self.second_brush_color = self.obtained_color
+            data.second_brush_color = self.obtained_color
             self.ui.brush_palette.second_color = self.obtained_color
 
     def color_choice_bth(self, event, btn):
@@ -1955,19 +1846,19 @@ class BrushsheLogic:
                 hover_color=self.obtained_color,
                 command=lambda c=self.obtained_color: self.change_color(c),
             )
-            self.brush_color = self.obtained_color
+            data.brush_color = self.obtained_color
             self.ui.brush_palette.main_color = self.obtained_color
 
     def flip_brush_colors(self):
-        self.brush_color = self.ui.brush_palette.second_color
-        self.second_brush_color = self.ui.brush_palette.main_color
+        data.brush_color = self.ui.brush_palette.second_color
+        data.second_brush_color = self.ui.brush_palette.main_color
 
-        self.ui.brush_palette.main_color = self.brush_color
-        self.ui.brush_palette.second_color = self.second_brush_color
+        self.ui.brush_palette.main_color = data.brush_color
+        self.ui.brush_palette.second_color = data.second_brush_color
 
     def open_image(self, openimage):
         try:
-            self.bg_color = "white"
+            data.bg_color = "white"
             self.image = Image.open(openimage)
             self.saved_copy = self.image.copy()
             self.picture_postconfigure()
@@ -1975,11 +1866,11 @@ class BrushsheLogic:
             self.selected_mask_img = None
 
             if not isinstance(openimage, BytesIO):
-                self.current_file = openimage
-                self.ui.title(os.path.basename(self.current_file) + " - " + _("Brushshe"))
+                data.current_file = openimage
+                self.ui.title(os.path.basename(data.current_file) + " - " + _("Brushshe"))
             else:
                 self.ui.title(_("Unnamed") + " - " + _("Brushshe"))
-                self.current_file = None
+                data.current_file = None
         except Exception as e:
             messagebox.open_file_error(e)
 
@@ -2056,7 +1947,7 @@ class BrushsheLogic:
             new_width = x2 - x1
             new_height = y2 - y1
 
-            self.finished_screenshot = Image.new("RGB", (new_width, new_height), self.bg_color)
+            self.finished_screenshot = Image.new("RGB", (new_width, new_height), data.bg_color)
             self.finished_screenshot.paste(screenshot, (-x1, -y1))
 
         def draw_tool(x1, y1, x2, y2):
@@ -2198,16 +2089,16 @@ class BrushsheLogic:
             brush_shape_btn = ctk.CTkSegmentedButton(
                 self.ui.tool_config_docker, values=["●", "■"], command=self.brush_shape_btn_callback
             )
-            if self.brush_shape == "circle":
+            if data.brush_shape == "circle":
                 brush_shape_btn.set("●")
-            elif self.brush_shape == "square":
+            elif data.brush_shape == "square":
                 brush_shape_btn.set("■")
             brush_shape_btn.pack(side=ctk.LEFT, padx=5)
         elif self.current_tool == "fill":
             ctk.CTkCheckBox(
                 self.ui.tool_config_docker,
                 text=_("Gradient"),
-                variable=self.is_gradient_fill,
+                variable=data.is_gradient_fill,
                 onvalue="on",
                 offvalue="off",
             ).pack(side=ctk.LEFT, padx=5)
@@ -2223,24 +2114,24 @@ class BrushsheLogic:
 
             font_optionmenu = ctk.CTkOptionMenu(
                 self.ui.tool_config_docker,
-                values=self.fonts,
+                values=data.fonts,
                 dynamic_resizing=False,
                 command=self.font_optionmenu_callback,
             )
-            font_optionmenu.set(self.current_font)
+            font_optionmenu.set(data.current_font)
             font_optionmenu.pack(side=ctk.LEFT, padx=1)
         elif self.current_tool == "sticker" or self.current_tool == "real size sticker":
             ctk.CTkCheckBox(
                 self.ui.tool_config_docker,
                 text=_("Use real size"),
-                variable=self.is_sticker_use_real_size,
+                variable=data.is_sticker_use_real_size,
                 onvalue="on",
                 offvalue="off",
                 command=self.set_current_sticker,
             ).pack(side=ctk.LEFT, padx=5)
         elif self.current_tool == "effects":
             self.effects_optionmenu = ctk.CTkOptionMenu(
-                self.ui.tool_config_docker, values=[_(value) for value in self.effect_values]
+                self.ui.tool_config_docker, values=[_(value) for value in data.effect_values]
             )
             self.effects_optionmenu.pack(side=ctk.LEFT, padx=5)
             ctk.CTkButton(self.ui.tool_config_docker, text="OK", width=35, command=self.apply_effect).pack(
@@ -2250,7 +2141,7 @@ class BrushsheLogic:
             ctk.CTkCheckBox(
                 self.ui.tool_config_docker,
                 text=_("Smoothing"),
-                variable=self.is_insert_smoothing,
+                variable=data.is_insert_smoothing,
                 onvalue="on",
                 offvalue="off",
             ).pack(side=ctk.LEFT, padx=5)
@@ -2301,18 +2192,18 @@ class BrushsheLogic:
         self.make_color_palette(colors)
 
     def reset_settings_after_exiting(self):
-        self.is_reset_settings_after_exiting = True
+        data.is_reset_settings_after_exiting = True
 
     def brush_shape_btn_callback(self, value):
         if value == "●":
-            self.brush_shape = "circle"
+            data.brush_shape = "circle"
         elif value == "■":
-            self.brush_shape = "square"
+            data.brush_shape = "square"
 
     def paste_image_from_clipboard(self):
         try:
             pasted_img = ImageGrab.grabclipboard()
-            self.bg_color = "white"
+            data.bg_color = "white"
             self.image = pasted_img
             self.picture_postconfigure()
         except Exception as e:
@@ -2337,7 +2228,7 @@ class BrushsheLogic:
         return res
 
     def select_init_mask(self):
-        if self.composer is None:
+        if data.composer is None:
             return
 
         if self.selected_mask_img is None:
@@ -2347,9 +2238,9 @@ class BrushsheLogic:
 
     def remove_mask(self):
         self.selected_mask_img = None
-        self.composer.mask_img = None
+        data.composer.mask_img = None
 
-        self.composer.set_force_update_mask()
+        data.composer.set_force_update_mask()
         self.update_canvas()
 
     def invert_mask(self):
@@ -2359,7 +2250,7 @@ class BrushsheLogic:
         self.selected_mask_img = tmp_mask_img
         del tmp_mask_img
 
-        self.composer.set_force_update_mask()
+        data.composer.set_force_update_mask()
         self.update_canvas()
 
     def select_all_mask(self):
@@ -2370,7 +2261,7 @@ class BrushsheLogic:
         draw = ImageDraw.Draw(self.selected_mask_img)
         draw.rectangle([0, 0, x_max, y_max], fill=255)
 
-        self.composer.set_force_update_mask()
+        data.composer.set_force_update_mask()
         self.update_canvas()
 
     def select_by_shape(self, shape="rectangle"):
@@ -2456,26 +2347,26 @@ class BrushsheLogic:
             else:  # add or replace
                 draw.rectangle([x1, y1, x2, y2], fill="white")
 
-            self.composer.set_force_update_mask()
+            data.composer.set_force_update_mask()
             self.update_canvas()
 
         def draw_tool(x1, y1, x2, y2):
             self.ui.canvas.delete("tools")
 
             self.ui.canvas.create_rectangle(
-                int(x1 * self.zoom),
-                int(y1 * self.zoom),
-                int((x2 + 1) * self.zoom - 1),
-                int((y2 + 1) * self.zoom - 1),
+                int(x1 * data.zoom),
+                int(y1 * data.zoom),
+                int((x2 + 1) * data.zoom - 1),
+                int((y2 + 1) * data.zoom - 1),
                 outline="white",
                 width=1,
                 tag="tools",
             )
             self.ui.canvas.create_rectangle(
-                int(x1 * self.zoom),
-                int(y1 * self.zoom),
-                int((x2 + 1) * self.zoom - 1),
-                int((y2 + 1) * self.zoom - 1),
+                int(x1 * data.zoom),
+                int(y1 * data.zoom),
+                int((x2 + 1) * data.zoom - 1),
+                int((y2 + 1) * data.zoom - 1),
                 outline="black",
                 width=1,
                 tag="tools",
@@ -2564,7 +2455,7 @@ class BrushsheLogic:
 
             xy_list = None
 
-            self.composer.set_force_update_mask()
+            data.composer.set_force_update_mask()
             self.update_canvas()
 
         def key_backspace(event):
@@ -2603,34 +2494,34 @@ class BrushsheLogic:
                 x_begin = xy_list[0]
                 y_begin = xy_list[1]
                 self.ui.canvas.create_line(
-                    int(xy_list[xy_len - 2] * self.zoom),
-                    int(xy_list[xy_len - 1] * self.zoom),
-                    int(x * self.zoom),
-                    int(y * self.zoom),
+                    int(xy_list[xy_len - 2] * data.zoom),
+                    int(xy_list[xy_len - 1] * data.zoom),
+                    int(x * data.zoom),
+                    int(y * data.zoom),
                     fill="black",
                     width=1,
                     tag="tools",
                 )
                 self.ui.canvas.create_line(
-                    int(xy_list[xy_len - 2] * self.zoom),
-                    int(xy_list[xy_len - 1] * self.zoom),
-                    int(x * self.zoom),
-                    int(y * self.zoom),
+                    int(xy_list[xy_len - 2] * data.zoom),
+                    int(xy_list[xy_len - 1] * data.zoom),
+                    int(x * data.zoom),
+                    int(y * data.zoom),
                     fill="white",
                     width=1,
                     tag="tools",
                     dash=(5, 5),
                 )
                 if xy_len >= 4:
-                    tmp_xy_list = [int(x * self.zoom) for x in xy_list]
+                    tmp_xy_list = [int(x * data.zoom) for x in xy_list]
                     self.ui.canvas.create_line(tmp_xy_list, fill="black", width=1, tag="tools")
                     self.ui.canvas.create_line(tmp_xy_list, fill="white", width=1, tag="tools", dash=(5, 5))
 
             self.ui.canvas.create_rectangle(
-                int(x_begin * self.zoom + delta),
-                int(y_begin * self.zoom + delta),
-                int(x_begin * self.zoom - delta),
-                int(y_begin * self.zoom - delta),
+                int(x_begin * data.zoom + delta),
+                int(y_begin * data.zoom + delta),
+                int(x_begin * data.zoom - delta),
+                int(y_begin * data.zoom - delta),
                 outline="black",
                 fill="white",
                 width=1,
@@ -2710,7 +2601,7 @@ class BrushsheLogic:
             else:
                 self._floodfill_mask(self.image, self.selected_mask_img, (x, y), fill_color)
 
-            self.composer.set_force_update_mask()
+            data.composer.set_force_update_mask()
             self.update_canvas()
 
         self.ui.canvas.bind("<Button-1>", lambda e: selecting(e, "replace"))
@@ -2777,13 +2668,13 @@ class BrushsheLogic:
         mm_time = int(time.time() * 1000)
 
         if (
-            self.composer.mask_type != 0
+            data.composer.mask_type != 0
             and self.selected_mask_img is not None
             and self.timer_mask_last_update + 500 < mm_time
         ):
             # self.timer_mask_last_update = mm_time
 
-            self.composer.inc_ants_position()
+            data.composer.inc_ants_position()
             self.update_canvas()
             # print("DEBUG: ants update: {}".format(mm_time))
 
@@ -2791,8 +2682,8 @@ class BrushsheLogic:
         self.timer_mask_update = self.ui.after(self.timer_mask_time_for_update, self.mask_update)
 
     def set_mask_type(self, type: int = 0):
-        self.composer.mask_type = type
+        data.composer.mask_type = type
         # self.timer_mask_last_update = int(time.time() * 1000)
 
-        self.composer.set_force_update_mask()
+        data.composer.set_force_update_mask()
         self.update_canvas()

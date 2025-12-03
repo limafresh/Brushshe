@@ -1,6 +1,8 @@
 # Any copyright is dedicated to the Public Domain.
 # https://creativecommons.org/publicdomain/zero/1.0/
 
+"""This file contains Brushshe GUI"""
+
 import os
 import sys
 import webbrowser
@@ -10,6 +12,7 @@ from tkinter import PhotoImage
 import customtkinter as ctk
 import gallery
 import messagebox
+from core import data
 from core.brush_palette import BrushPalette
 from core.config_loader import config, write_config
 from core.scroll import scroll
@@ -144,11 +147,7 @@ class BrushsheUi(ctk.CTk):
         )
         # Icon taken from CTkMessagebox by Akascape
         info_icon = ctk.CTkImage(Image.open(resource("icons/info.png")), size=tools_icon_size)
-        other_dropdown.add_option(
-            option=_("About program"),
-            image=info_icon,
-            command=lambda: messagebox.about_brushshe(self.logic.version_full),
-        )
+        other_dropdown.add_option(option=_("About program"), image=info_icon, command=messagebox.about_brushshe)
 
         """Top bar"""
         tools_frame = ctk.CTkFrame(self, corner_radius=0)
@@ -428,7 +427,7 @@ class BrushsheUi(ctk.CTk):
 
         """Initialization"""
         self.logic.set_tools_docker(tools_list, 2)
-        self.logic.new_picture(self.logic.bg_color, first_time=True)
+        self.logic.new_picture(data.bg_color, first_time=True)
         self.logic.brush()
         self.update()  # Update interface before recalculate canvas.
         self.logic.force_resize_canvas()
@@ -569,24 +568,24 @@ class BrushsheUi(ctk.CTk):
             write_config()
 
         def change_undo_levels():
-            self.logic.undo_stack = deque(self.logic.undo_stack, maxlen=undo_levels_spinbox.get())
-            self.logic.redo_stack = deque(self.logic.redo_stack, maxlen=undo_levels_spinbox.get())
+            data.undo_stack = deque(data.undo_stack, maxlen=undo_levels_spinbox.get())
+            data.redo_stack = deque(data.redo_stack, maxlen=undo_levels_spinbox.get())
             config.set("Brushshe", "undo_levels", str(undo_levels_spinbox.get()))
             write_config()
 
         def smooth_switch_event():
-            self.logic.is_brush_smoothing = smooth_var.get()
-            config.set("Brushshe", "smoothing", str(self.logic.is_brush_smoothing))
+            data.is_brush_smoothing = smooth_var.get()
+            config.set("Brushshe", "smoothing", str(data.is_brush_smoothing))
             write_config()
 
         def bsq_event(value):
-            self.logic.brush_smoothing_quality = int(value)
-            config.set("Brushshe", "brush_smoothing_quality", str(self.logic.brush_smoothing_quality))
+            data.brush_smoothing_quality = int(value)
+            config.set("Brushshe", "brush_smoothing_quality", str(data.brush_smoothing_quality))
             write_config()
 
         def bsf_event(value):
-            self.logic.brush_smoothing_factor = int(value)
-            config.set("Brushshe", "brush_smoothing_factor", str(self.logic.brush_smoothing_factor))
+            data.brush_smoothing_factor = int(value)
+            config.set("Brushshe", "brush_smoothing_factor", str(data.brush_smoothing_factor))
             write_config()
 
         def palette_radiobutton_callback():
@@ -595,7 +594,7 @@ class BrushsheUi(ctk.CTk):
             write_config()
 
         def autosave_switch_event():
-            config.set("Brushshe", "autosave", str(self.logic.autosave_var.get()))
+            config.set("Brushshe", "autosave", str(data.autosave_var.get()))
             write_config()
 
         settings_tl = ctk.CTkToplevel(self)
@@ -627,14 +626,14 @@ class BrushsheUi(ctk.CTk):
 
         undo_levels_spinbox = IntSpinbox(undo_levels_frame, width=150)
         undo_levels_spinbox.pack(padx=10, pady=10)
-        undo_levels_spinbox.set(self.logic.undo_stack.maxlen)
+        undo_levels_spinbox.set(data.undo_stack.maxlen)
 
         ctk.CTkButton(undo_levels_frame, text=_("Apply"), command=change_undo_levels).pack(padx=10, pady=10)
 
         smooth_frame = ctk.CTkFrame(settings_frame)
         smooth_frame.pack(padx=10, pady=10, fill="x")
 
-        smooth_var = ctk.BooleanVar(value=self.logic.is_brush_smoothing)
+        smooth_var = ctk.BooleanVar(value=data.is_brush_smoothing)
         ctk.CTkSwitch(
             smooth_frame,
             text=_("Smoothing for brush/eraser"),
@@ -647,13 +646,13 @@ class BrushsheUi(ctk.CTk):
         ctk.CTkLabel(smooth_frame, text=_("Brush smoothing quality")).pack(padx=10, pady=10)
 
         bsq_slider = ctk.CTkSlider(smooth_frame, from_=1, to=64, command=bsq_event)
-        bsq_slider.set(self.logic.brush_smoothing_quality)
+        bsq_slider.set(data.brush_smoothing_quality)
         bsq_slider.pack(padx=10, pady=10)
 
         ctk.CTkLabel(smooth_frame, text=_("Brush smoothing factor (weight)")).pack(padx=10, pady=1)
 
         bsf_slider = ctk.CTkSlider(smooth_frame, from_=3, to=64, command=bsf_event)
-        bsf_slider.set(self.logic.brush_smoothing_factor)
+        bsf_slider.set(data.brush_smoothing_factor)
         bsf_slider.pack(padx=10, pady=10)
 
         palette_frame = ctk.CTkFrame(settings_frame)
@@ -677,7 +676,7 @@ class BrushsheUi(ctk.CTk):
         ctk.CTkSwitch(
             autosave_frame,
             text=_("Autosave"),
-            variable=self.logic.autosave_var,
+            variable=data.autosave_var,
             onvalue=True,
             offvalue=False,
             command=autosave_switch_event,
@@ -688,7 +687,7 @@ class BrushsheUi(ctk.CTk):
 
         ctk.CTkButton(
             check_new_version_frame,
-            text=f"{_('Check new versions (yours is')} {self.logic.version_full})",
+            text=f"{_('Check new versions (yours is')} {data.version_full})",
             command=lambda: webbrowser.open(r"https://github.com/limafresh/Brushshe/releases"),
         ).pack(padx=10, pady=10)
 

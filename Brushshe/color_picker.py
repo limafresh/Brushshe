@@ -1,6 +1,6 @@
 # Original Author: Akash Bora (Akascape)
-# Contributers: Victor Vimbert-Guerlais (helloHackYnow)
-# Modifed by Brushshe developers for Brushshe app
+# Contributors: Victor Vimbert-Guerlais (helloHackYnow)
+# Modified by Brushshe developers for Brushshe app
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this

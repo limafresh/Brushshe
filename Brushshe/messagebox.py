@@ -14,6 +14,7 @@ import webbrowser
 from typing import Literal
 
 import customtkinter as ctk
+from core import data
 from core.translator import _
 from PIL import Image, ImageTk
 
@@ -608,14 +609,14 @@ def paste_error(error):
     return paste_error_msg
 
 
-def about_brushshe(version):
+def about_brushshe():
     about_text = _(
         "Brushshe is a painting program where you can create whatever you like.\n\n"
         "An eagle named Brucklin is its mascot.\n\n"
     )
     about_msg = Messagebox(
         title=_("About program"),
-        message=about_text + version,
+        message=about_text + data.version_full,
         icon=resource("icons/brucklin.png"),
         icon_size=(150, 191),
         option_1="OK",
