@@ -21,9 +21,9 @@ else
 fi
 release_name="${distro,,}"
 if [ "$distro" != 'OpenMandriva' ]; then
-	licenses='MPL-2.0 AND CC0-1.0 AND (MPL-2.0 OR CC-BY-4.0) AND OFL-1.1-no-RFN AND OFL-1.1-RFN AND MIT AND Apache-2.0 AND BSD-3-Clause AND (Apache-2.0 OR BSD-2-Clause)'
+	licenses='MPL-2.0 AND CC0-1.0 AND OFL-1.1-no-RFN AND OFL-1.1-RFN AND MIT AND Apache-2.0 AND BSD-3-Clause AND (Apache-2.0 OR BSD-2-Clause)'
 else
-	licenses='MPL-2.0 AND CC0-1.0 AND (MPL-2.0 OR CC-BY-4.0) AND OFL-1.1-no-RFN AND OFL-1.1-RFN'
+	licenses='MPL-2.0 AND CC0-1.0 AND OFL-1.1-no-RFN AND OFL-1.1-RFN'
 fi
 
 echo 'Creating a .desktop file...'
@@ -39,7 +39,7 @@ Comment[uk]=Програма для малювання
 Comment[ru]=Программа для рисования
 Comment[de]=Mal-App
 Comment[hi]=पेंटिंग ऐप
-Exec=python3 /opt/Brushshe/brushshe.py %f
+Exec=python3 /opt/Brushshe/main.py %f
 Icon=brushshe
 Terminal=false
 Categories=Graphics;
@@ -91,14 +91,14 @@ cp LICENSE LICENSE_CC0 README.md %{buildroot}/usr/share/doc/brushshe
 /usr/share/icons/hicolor/256x256/apps/brushshe.png
 /usr/share/applications/brushshe.desktop
 /usr/share/doc/brushshe/LICENSE
-/usr/share/doc/brushshe/LICENSE_CC0
+/usr/share/doc/brushshe/LICENSE-CC0
 /usr/share/doc/brushshe/README.md
 EOF
 
 echo 'Creating a folder for packaging into a tarball...'
 mkdir brushshe
 cp -r ../Brushshe brushshe/Brushshe
-cp ../README.md ../LICENSE ../LICENSE_CC0 brushshe
+cp ../README.md ../LICENSE ../LICENSE-CC0 brushshe
 cp ../Brushshe/icons/icon.png brushshe/brushshe.png
 mv brushshe.desktop brushshe.spec brushshe
 

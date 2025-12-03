@@ -46,7 +46,7 @@ Comment[uk]=Програма для малювання
 Comment[ru]=Программа для рисования
 Comment[de]=Mal-App
 Comment[hi]=पेंटिंग ऐप
-Exec=python3 /opt/Brushshe/brushshe.py %f
+Exec=python3 /opt/Brushshe/main.py %f
 Icon=brushshe
 Terminal=false
 Categories=Graphics;
@@ -57,7 +57,7 @@ EOF
 echo 'Copying licenses and README...'
 mkdir -p brushshe/usr/share/doc/brushshe
 cp -a ../LICENSE brushshe/usr/share/doc/brushshe
-cp -a ../LICENSE_CC0 brushshe/usr/share/doc/brushshe
+cp -a ../LICENSE-CC0 brushshe/usr/share/doc/brushshe
 cp -a ../README.md brushshe/usr/share/doc/brushshe
 
 echo 'Installing customtkinter...'
