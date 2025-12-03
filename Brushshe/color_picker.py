@@ -126,7 +126,7 @@ class AskColor(ctk.CTkToplevel):
             self.entry.configure(fg_color=self.entry.get())
             self._color = self.entry.get()
             self.winfo_rgb(self._color)
-        except Exception:  # noqa: E722
+        except Exception:
             self.entry.configure(fg_color="red")
             return
         self.grab_release()
