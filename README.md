@@ -36,7 +36,7 @@
 ```bash
 pip install customtkinter Pillow
 ```
-4. Run file `Brushshe/brushshe.py`.
+4. Run file `Brushshe/main.py`.
 
 ## 🚀 Features
 + **Open**: You can open a picture from a file or URL.
@@ -103,15 +103,17 @@ All contributions are welcome!
 ## Translations
 The internationalization of this program has a simple principle - it determines what the computer's localization is (for example, *en*, *ru*, etc.), and then applies the `Brushshe/locales/{localization}.json` file, where *localization* is the computer's localization.
 
-## License
+## Licenses
 + Project license - *MPL 2.0* (old code before the license change - under MPL 2.0 or GNU GPLv3)
-+ CTkMessagebox and CTkMenuBar license - *CC0 1.0*
-+ License for program translations (`Brushshe/locales/*.json`) - *CC0 1.0*
-+ Stickers and frames license - *CC0 1.0*
++ Some Brushshe components or third-party components are in the *public domain* (see below for which ones)
 + Fonts - *OFL 1.1*
-+ The mascot images in the `icons` folder are *also* available under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) in all commits; supplied info: `by limafresh`
 + [Picture on screenshot](https://github.com/limafresh/Brushshe/pull/15) - [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), by Chip Viled, drawn in Brushshe
 + Builds (for example .exe, .deb) may contain other components
+### Public domain components (paths are relative)
++ Contents of the `assets/` folder (stickers, frames, etc., except `fonts/`) - *CC0 1.0*
++ Contents of the `locales/` and `icons/` folders - *CC0 1.0*
++ CTkMenuBar and CTkMessagebox - *CC0 1.0*
++ `README.md` (this file) and `main.py` - *CC0 1.0*
 
 ## For developers
 ### Linter
