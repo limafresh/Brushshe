@@ -1959,13 +1959,13 @@ class BrushsheLogic:
             self.picture_postconfigure()
             screenshot_window.destroy()
 
-        self.withdraw()
-        self.iconify()
-        self.after(200)
+        self.ui.withdraw()
+        self.ui.iconify()
+        self.ui.after(200)
         screenshot = ImageGrab.grab()
-        self.deiconify()
+        self.ui.deiconify()
 
-        screenshot_window = ctk.CTkToplevel()
+        screenshot_window = ctk.CTkToplevel(self.ui)
         screenshot_window.attributes("-fullscreen", True)
 
         screenshot_canvas = ctk.CTkCanvas(screenshot_window)
@@ -2128,7 +2128,7 @@ class BrushsheLogic:
     def import_palette(self, value=None):
         if value is None:
             dialog = FileDialog(
-                self,
+                self.ui,
                 title=_("Import palette from .hex file"),
             )
 
@@ -2187,7 +2187,7 @@ class BrushsheLogic:
 
     def rgb_color_to_tuple(self, color):
         try:
-            rgb = self.winfo_rgb(color)
+            rgb = self.ui.winfo_rgb(color)
             r = math.floor(rgb[0] / 256)
             g = math.floor(rgb[1] / 256)
             b = math.floor(rgb[2] / 256)

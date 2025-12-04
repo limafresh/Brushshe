@@ -23,8 +23,8 @@ class FileDialog(ctk.CTkToplevel):
         self.extension = ".png"
 
         # Images by Vijay Verma from Wikimedia Commons, licensed under CC0 1.0
-        self.folder_image = tk.PhotoImage(file=resource("icons/folder.png"))
-        self.file_image = tk.PhotoImage(file=resource("icons/file.png"))
+        self.folder_image = tk.PhotoImage(file=resource("assets/icons/folder.png"))
+        self.file_image = tk.PhotoImage(file=resource("assets/icons/file.png"))
 
         self.frame = ctk.CTkFrame(self)
         self.frame.pack(fill=ctk.BOTH, expand=True)
