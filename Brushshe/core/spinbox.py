@@ -1,9 +1,13 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 from typing import Callable, Union
 
-import customtkinter
+import customtkinter as ctk
 
 
-class IntSpinbox(customtkinter.CTkFrame):
+class IntSpinbox(ctk.CTkFrame):
     def __init__(
         self, *args, width: int = 100, height: int = 32, step_size: int = 1, command: Callable = None, **kwargs
     ):
@@ -15,15 +19,15 @@ class IntSpinbox(customtkinter.CTkFrame):
         self.grid_columnconfigure((0, 2), weight=0)  # buttons don't expand
         self.grid_columnconfigure(1, weight=1)  # entry expands
 
-        self.subtract_button = customtkinter.CTkButton(
+        self.subtract_button = ctk.CTkButton(
             self, text="-", width=height - 6, height=height - 6, command=self.subtract_button_callback
         )
         self.subtract_button.grid(row=0, column=0, padx=(3, 0), pady=3)
 
-        self.entry = customtkinter.CTkEntry(self, width=width - (2 * height), height=height - 6, border_width=0)
+        self.entry = ctk.CTkEntry(self, width=width - (2 * height), height=height - 6, border_width=0)
         self.entry.grid(row=0, column=1, columnspan=1, padx=3, pady=3, sticky="ew")
 
-        self.add_button = customtkinter.CTkButton(
+        self.add_button = ctk.CTkButton(
             self, text="+", width=height - 6, height=height - 6, command=self.add_button_callback
         )
         self.add_button.grid(row=0, column=2, padx=(0, 3), pady=3)

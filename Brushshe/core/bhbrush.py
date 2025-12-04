@@ -1,3 +1,8 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+
 def bh_draw_line(image_draw, x1, y1, x2, y2, color, size, brush_shape, tool):
     dx = abs(x2 - x1)
     dy = abs(y2 - y1)

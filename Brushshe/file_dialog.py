@@ -1,16 +1,14 @@
+# Any copyright is dedicated to the Public Domain.
+# https://creativecommons.org/publicdomain/zero/1.0/
+
 import os
-import sys
 import tkinter as tk
 from tkinter import ttk
 
 import customtkinter as ctk
 import messagebox
-from core.translator import _
-
-
-def resource(relative_path):
-    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_path, relative_path)
+from data import resource
+from translator import _
 
 
 class FileDialog(ctk.CTkToplevel):

@@ -10,23 +10,19 @@ from collections import deque
 from tkinter import PhotoImage
 
 import customtkinter as ctk
+import data
 import gallery
 import messagebox
-from core import data
+from config_loader import config, write_config
 from core.brush_palette import BrushPalette
-from core.config_loader import config, write_config
 from core.scroll import scroll
 from core.spinbox import IntSpinbox
 from core.tooltip import Tooltip
-from core.translator import _
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
+from data import resource
 from logic import BrushsheLogic
 from PIL import Image
-
-
-def resource(relative_path):
-    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_path, relative_path)
+from translator import _
 
 
 class BrushsheUi(ctk.CTk):

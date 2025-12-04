@@ -3,14 +3,9 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import json
-import os
-import sys
 from locale import getlocale
 
-
-def resource(relative_path):
-    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_path, relative_path)
+from data import resource
 
 
 def load_language(language_code):
@@ -20,7 +15,7 @@ def load_language(language_code):
     else:
         try:
             with open(
-                resource(f"../assets/locales/{language_code}.json"),
+                resource(f"assets/locales/{language_code}.json"),
                 "r",
                 encoding="utf-8",
             ) as f:

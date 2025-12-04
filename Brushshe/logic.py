@@ -5,24 +5,23 @@
 import math
 import os
 import random
-import sys
 import time
 from io import BytesIO
 from urllib.request import urlopen
 from uuid import uuid4
 
 import customtkinter as ctk
+import data
 import gallery
 import messagebox
 from color_picker import AskColor
-from core import data
+from config_loader import config, config_file_path, write_config
 from core.bezier import make_bezier
 from core.bhbrush import bh_draw_line, bh_draw_recoloring_line
 from core.bhhistory import BhHistory, BhPoint
-from core.config_loader import config, config_file_path, write_config
 from core.scroll import scroll
 from core.tooltip import Tooltip
-from core.translator import _
+from data import resource
 from file_dialog import FileDialog
 from PIL import (
     Image,
@@ -37,11 +36,7 @@ from PIL import (
     ImageStat,
     ImageTk,
 )
-
-
-def resource(relative_path):
-    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_path, relative_path)
+from translator import _
 
 
 class BrushsheLogic:

@@ -14,14 +14,9 @@ import webbrowser
 from typing import Literal
 
 import customtkinter as ctk
-from core import data
-from core.translator import _
+import data
 from PIL import Image, ImageTk
-
-
-def resource(relative_path):
-    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_path, relative_path)
+from translator import _
 
 
 class Messagebox(ctk.CTkToplevel):

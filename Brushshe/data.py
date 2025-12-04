@@ -7,8 +7,8 @@ import sys
 from collections import deque
 
 import customtkinter as ctk
+from config_loader import config
 from core.bhcomposer import BhComposer
-from core.config_loader import config
 from PIL import Image
 
 
@@ -70,7 +70,7 @@ composer.mask_type = 0  # Type: 0 - fill, 1 - ants
 current_file = None
 prev_x, prev_y = None, None
 current_font = "Open Sans"
-font_path = resource("../assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
+font_path = resource("assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
 is_reset_settings_after_exiting = False
 
 """Stickers"""
@@ -94,7 +94,7 @@ stickers_names = [
     "butterfly",
     "flower2",
 ]
-stickers = [Image.open(resource(f"../assets/stickers/{name}.png")) for name in stickers_names]
+stickers = [Image.open(resource(f"assets/stickers/{name}.png")) for name in stickers_names]
 
 """Fonts"""
 fonts_dict = {
@@ -119,13 +119,13 @@ frames_names = [
 ]
 frames_thumbnails = [
     ctk.CTkImage(
-        Image.open(resource(f"../assets/frames_preview/{name}.png")),
+        Image.open(resource(f"assets/frames_preview/{name}.png")),
         size=(100, 100),
     )
     for name in frames_names
 ]
 
-frames = [Image.open(resource(f"../assets/frames/{name}.png")) for name in frames_names]
+frames = [Image.open(resource(f"assets/frames/{name}.png")) for name in frames_names]
 
 """Effects"""
 effect_values = [
