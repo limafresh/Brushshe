@@ -593,6 +593,10 @@ class BrushsheUi(ctk.CTk):
             config.set("Brushshe", "autosave", str(data.autosave_var.get()))
             write_config()
 
+        def ct_optionmenu_callback(choice):
+            config.set("Brushshe", "color_theme", choice)
+            write_config()
+
         settings_tl = ctk.CTkToplevel(self)
         settings_tl.geometry("400x650")
         settings_tl.title(_("Settings"))
@@ -678,6 +682,20 @@ class BrushsheUi(ctk.CTk):
             command=autosave_switch_event,
         ).pack(padx=10, pady=10)
 
+        color_theme_frame = ctk.CTkFrame(settings_frame)
+        color_theme_frame.pack(padx=10, pady=10, fill="x")
+
+        ctk.CTkLabel(color_theme_frame, text=_("Color theme")).pack(padx=10, pady=10)
+
+        color_theme_optionmenu = ctk.CTkOptionMenu(
+            color_theme_frame, values=data.color_themes, command=ct_optionmenu_callback
+        )
+        color_theme_optionmenu.pack(padx=10, pady=10)
+
+        ctk.CTkButton(color_theme_frame, text=_("Restart to apply"), command=self.logic.restart_app).pack(
+            padx=10, pady=10
+        )
+
         check_new_version_frame = ctk.CTkFrame(settings_frame)
         check_new_version_frame.pack(padx=10, pady=10, fill="x")
 
@@ -689,7 +707,7 @@ class BrushsheUi(ctk.CTk):
 
 
 ctk.set_appearance_mode(config.get("Brushshe", "theme"))
-ctk.set_default_color_theme(resource("assets/brushshe_theme.json"))
+ctk.set_default_color_theme(resource(f"assets/themes/{config.get('Brushshe', 'color_theme')}.json"))
 
 app = BrushsheUi()
 app.mainloop()

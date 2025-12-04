@@ -23,6 +23,7 @@ def load_config():
         "brush_smoothing_quality": "20",
         "palette": "default",
         "autosave": "False",
+        "color_theme": "brushshe_theme",
     }
 
     if not config.has_section("Brushshe"):

@@ -34,6 +34,13 @@ version_suffix = ' "Windhoek"'
 
 version_full = "{0}{1}.{2}.{3}{4}".format(version_prefix, version_major, version_minor, version_patch, version_suffix)
 
+"""From the config"""
+undo_stack = deque(maxlen=config.getint("Brushshe", "undo_levels"))
+redo_stack = deque(maxlen=config.getint("Brushshe", "undo_levels"))
+is_brush_smoothing = config.getboolean("Brushshe", "smoothing")
+brush_smoothing_factor = config.getint("Brushshe", "brush_smoothing_factor")  # Between: 3..64
+brush_smoothing_quality = config.getint("Brushshe", "brush_smoothing_quality")  # Between: 1..64
+
 """Other variables"""
 autosave_var, is_gradient_fill, is_sticker_use_real_size, is_insert_smoothing = None, None, None, None
 
@@ -48,11 +55,6 @@ second_brush_color = "white"
 bg_color = "white"
 brush_shape = "circle"
 
-undo_stack = deque(maxlen=config.getint("Brushshe", "undo_levels"))
-redo_stack = deque(maxlen=config.getint("Brushshe", "undo_levels"))
-zoom = 1
-selected_mask_img = None  # Can be gray_image or None
-
 brush_size = 2
 eraser_size = 4
 spray_size = 10
@@ -60,13 +62,11 @@ shape_size = 2
 sticker_size = 100
 font_size = 24
 
-is_brush_smoothing = config.getboolean("Brushshe", "smoothing")
-brush_smoothing_factor = config.getint("Brushshe", "brush_smoothing_factor")  # Between: 3..64
-brush_smoothing_quality = config.getint("Brushshe", "brush_smoothing_quality")  # Between: 1..64
-
 composer = BhComposer(0, 0)  # Empty init.
 composer.mask_type = 0  # Type: 0 - fill, 1 - ants
 
+zoom = 1
+selected_mask_img = None  # Can be gray_image or None
 current_file = None
 prev_x, prev_y = None, None
 current_font = "Open Sans"
@@ -139,3 +139,14 @@ effect_values = [
     "Brightness",
     "Contrast",
 ]
+
+"""Color themes"""
+themes_folder = resource("assets/themes")
+color_themes = []
+
+for root, dirs, files in os.walk(themes_folder):
+    for file in files:
+        if file.endswith(".json"):
+            rel_path = os.path.relpath(os.path.join(root, file), themes_folder)
+            rel_path_no_ext = os.path.splitext(rel_path)[0]
+            color_themes.append(rel_path_no_ext)

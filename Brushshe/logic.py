@@ -5,6 +5,7 @@
 import math
 import os
 import random
+import sys
 import time
 from io import BytesIO
 from urllib.request import urlopen
@@ -95,18 +96,29 @@ class BrushsheLogic:
             tool_icon_name = tool["icon_name"]
 
             try:
-                tool_icon = ctk.CTkImage(
-                    light_image=Image.open(resource(f"assets/icons/toolbar/{tool_icon_name}_light.png")),
-                    dark_image=Image.open(resource(f"assets/icons/toolbar/{tool_icon_name}_dark.png")),
-                    size=(22, 22),
-                )
+                if config.get("Brushshe", "color_theme").startswith("CTkThemesPack"):
+                    tool_icon = ctk.CTkImage(
+                        light_image=Image.open(resource(f"assets/icons/toolbar/{tool_icon_name}_dark.png")),
+                        size=(22, 22),
+                    )
+                else:
+                    tool_icon = ctk.CTkImage(
+                        light_image=Image.open(resource(f"assets/icons/toolbar/{tool_icon_name}_light.png")),
+                        dark_image=Image.open(resource(f"assets/icons/toolbar/{tool_icon_name}_dark.png")),
+                        size=(22, 22),
+                    )
             except Exception:
-                # tool_icon = None
-                tool_icon = ctk.CTkImage(
-                    light_image=Image.open(resource("assets/icons/toolbar/not_found_light.png")),
-                    dark_image=Image.open(resource("assets/icons/toolbar/not_found_dark.png")),
-                    size=(22, 22),
-                )
+                if config.get("Brushshe", "color_theme").startswith("CTkThemesPack"):
+                    tool_icon = ctk.CTkImage(
+                        dark_image=Image.open(resource("assets/icons/toolbar/not_found_dark.png")),
+                        size=(22, 22),
+                    )
+                else:
+                    tool_icon = ctk.CTkImage(
+                        light_image=Image.open(resource("assets/icons/toolbar/not_found_light.png")),
+                        dark_image=Image.open(resource("assets/icons/toolbar/not_found_dark.png")),
+                        size=(22, 22),
+                    )
 
             tool_button = ctk.CTkButton(
                 self.ui.tools_frame, text=None, width=30, height=30, image=tool_icon, command=tool_command
@@ -2663,3 +2675,6 @@ class BrushsheLogic:
 
         data.composer.set_force_update_mask()
         self.update_canvas()
+
+    def restart_app(self):
+        os.execv(sys.executable, [sys.executable] + sys.argv)

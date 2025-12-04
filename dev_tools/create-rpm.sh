@@ -99,7 +99,7 @@ echo 'Creating a folder for packaging into a tarball...'
 mkdir brushshe
 cp -r ../Brushshe brushshe/Brushshe
 cp ../README.md ../LICENSE ../LICENSE-CC0 brushshe
-cp ../Brushshe/icons/icon.png brushshe/brushshe.png
+cp ../Brushshe/assets/icons/icon.png brushshe/brushshe.png
 mv brushshe.desktop brushshe.spec brushshe
 
 if [ "$distro" != 'OpenMandriva' ]; then

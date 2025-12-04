@@ -97,6 +97,7 @@ All contributions are welcome!
 
 ## Credits
 + Thanks [Akascape](https://github.com/Akascape) for CTkColorPicker, CTkMenuBar, CTkMessagebox and CTkToolTip.
++ Thanks to [a13xe](https://github.com/a13xe/) for the wonderful [CTkThemesPack](https://github.com/a13xe/CTkThemesPack).
 + Thanks [Chip Viled](https://github.com/chipviled) for contributing.
 + Thanks to our translators: [sagar12](https://github.com/Sagar1205b) (Hindi); [Sagar Sirbi](https://github.com/sagarsirbi), [iLollek](https://github.com/iLollek) (German).
 
@@ -110,7 +111,7 @@ The internationalization of this program has a simple principle - it determines 
 + [Picture on screenshot](https://github.com/limafresh/Brushshe/pull/15) - [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), by Chip Viled, drawn in Brushshe
 + Builds (for example .exe, .deb) may contain other components
 ### Public domain components (paths are relative)
-+ Contents of the `assets/` folder (stickers, frames, etc., except `fonts/`) - *CC0 1.0*
++ The contents of the `assets/` folder (stickers, frames, etc., except for `fonts/` and some subfolders of `themes/` which contain the license text) - *CC0 1.0*
 + CTkMenuBar - *CC0 1.0*
 + `README.md` (this file), `main.py`, other files with the CC0 header - *CC0 1.0*
 

@@ -24,7 +24,7 @@ Invoke-WebRequest -Uri 'https://docs.python.org/3/license.html' -OutFile 'python
 $licensePath = python -c "import os, sys; print(os.path.abspath(os.path.join(sys.base_prefix, 'LICENSE.txt')))"
 
 Write-Host 'PyInstaller packaging...' -ForegroundColor Blue
-pyinstaller --noconfirm --onefile --windowed --icon "..\Brushshe\icons\icon.ico" --name "Brushshe_64bit_portable.exe" --add-data "brenv\Lib\site-packages\customtkinter;customtkinter/" --add-data "..\Brushshe\icons;icons/" --add-data "..\Brushshe\locales;locales/" --add-data "..\README.md;." --add-data "..\LICENSE;." --add-data "..\LICENSE-CC0;." --add-data "dependencies-licenses.txt;." --add-data "$licensePath;." --add-data "python-licenses.html;." --add-data "..\Brushshe\assets;assets/"  "..\Brushshe\main.py"
+pyinstaller --noconfirm --onefile --windowed --icon "..\Brushshe\assets\icons\icon.ico" --name "Brushshe_64bit_portable.exe" --add-data "brenv\Lib\site-packages\customtkinter;customtkinter/" --add-data "..\README.md;." --add-data "..\LICENSE;." --add-data "..\LICENSE-CC0;." --add-data "dependencies-licenses.txt;." --add-data "$licensePath;." --add-data "python-licenses.html;." --add-data "..\Brushshe\assets;assets/"  "..\Brushshe\main.py"
 
 Write-Host 'Cleaning...' -ForegroundColor Blue
 Move-Item -Path "dist\Brushshe_64bit_portable.exe" -Destination "..\.."
