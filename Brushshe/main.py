@@ -691,6 +691,7 @@ class BrushsheUi(ctk.CTk):
             color_theme_frame, values=data.color_themes, command=ct_optionmenu_callback
         )
         color_theme_optionmenu.pack(padx=10, pady=10)
+        color_theme_optionmenu.set(config.get("Brushshe", "color_theme"))
 
         ctk.CTkButton(color_theme_frame, text=_("Restart to apply"), command=self.logic.restart_app).pack(
             padx=10, pady=10
