@@ -15,10 +15,10 @@ import data
 import gallery
 import messagebox
 from color_picker import AskColor
-from config_loader import config, config_file_path, write_config
 from core.bezier import make_bezier
 from core.bhbrush import bh_draw_line, bh_draw_recoloring_line
 from core.bhhistory import BhHistory, BhPoint
+from core.config_loader import config, config_file_path, write_config
 from core.scroll import scroll
 from core.tooltip import Tooltip
 from data import resource
@@ -96,15 +96,15 @@ class BrushsheLogic:
 
             try:
                 tool_icon = ctk.CTkImage(
-                    light_image=Image.open(resource(f"assets/icons/{tool_icon_name}_light.png")),
-                    dark_image=Image.open(resource(f"assets/icons/{tool_icon_name}_dark.png")),
+                    light_image=Image.open(resource(f"assets/icons/toolbar/{tool_icon_name}_light.png")),
+                    dark_image=Image.open(resource(f"assets/icons/toolbar/{tool_icon_name}_dark.png")),
                     size=(22, 22),
                 )
             except Exception:
                 # tool_icon = None
                 tool_icon = ctk.CTkImage(
-                    light_image=Image.open(resource("assets/icons/not_found_light.png")),
-                    dark_image=Image.open(resource("assets/icons/not_found_dark.png")),
+                    light_image=Image.open(resource("assets/icons/toolbar/not_found_light.png")),
+                    dark_image=Image.open(resource("assets/icons/toolbar/not_found_dark.png")),
                     size=(22, 22),
                 )
 

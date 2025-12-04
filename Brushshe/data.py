@@ -7,8 +7,8 @@ import sys
 from collections import deque
 
 import customtkinter as ctk
-from config_loader import config
 from core.bhcomposer import BhComposer
+from core.config_loader import config
 from PIL import Image
 
 
