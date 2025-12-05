@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<!-- Any copyright is dedicated to the Public Domain.
+   - https://creativecommons.org/publicdomain/zero/1.0/ -->
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+		<title>Brushshe - painting app</title>
+		<link rel="stylesheet" href="brushshe_theme.css">
+	</head>
+	<body>
+		<header>
+			<nav>
+				<div>Brushshe</div>
+				<div>
+					<a href="index.html">Home</a>
+					<a href="changelog.html">Changelog</a>
+					<a href="https://github.com/limafresh/Brushshe/discussions/2">Screenshots</a>
+					<a href="https://github.com/limafresh/Brushshe">GitHub</a>
+				</div>
+			</nav>
+		</header>
+
+		<main id="content"></main>
+
+		<footer>
+			<p>The information on this site is in the <a href="https://creativecommons.org/publicdomain/zero/1.0">public domain</a>.</p>
+		</footer>
+
+		<script>
+			async function loadReadme() {
+				const url = 'https://raw.githubusercontent.com/limafresh/Brushshe/develop/README.md';
+				const response = await fetch(url);
+				const text = await response.text();
+				document.getElementById("content").innerHTML = marked.parse(text);
+			}
+			loadReadme();
+		</script>
+		<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+	</body>
+</html>

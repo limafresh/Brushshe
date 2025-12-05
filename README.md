@@ -49,7 +49,7 @@ pip install customtkinter Pillow
 + **Eyedropper**: Right click on the desired place on the canvas to get its color and paint with it.
 + **Spray**: Spray paint.
 + **Background**: You can choose the background color.
-+ **Stickers**: You can add stickers from Brushshe sticker set (all sticker images are drawn by me or created by AI) and resize them. You can also add a sticker from a file or URL.
++ **Stickers**: You can add stickers from Brushshe sticker set (all sticker images are drawn by [limafresh, founder of Brushshe](https://github.com/limafresh/), or created by AI) and resize them. You can also add a sticker from a file or URL.
 + **Text**: You can place text and change its size.
 + **Frames**: You can decorate the picture with frames.
 + **Shapes**: Rectangle and oval (with or without fill), line, bezier curve.
@@ -111,7 +111,8 @@ The internationalization of this program has a simple principle - it determines 
 + [Picture on screenshot](https://github.com/limafresh/Brushshe/pull/15) - [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), by Chip Viled, drawn in Brushshe
 + Builds (for example .exe, .deb) may contain other components
 ### Public domain components (paths are relative)
-+ The contents of the `assets/` folder (stickers, frames, etc., except for `fonts/` and some subfolders of `themes/` which contain the license text) - *CC0 1.0*
++ `assets/` (stickers, frames, etc., except for some subfolders with other licenses) - *CC0 1.0*
++ `docs/` - *CC0 1.0*
 + CTkMenuBar - *CC0 1.0*
 + `README.md` (this file), `main.py`, other files with the CC0 header - *CC0 1.0*
 
