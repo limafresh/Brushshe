@@ -150,3 +150,6 @@ for root, dirs, files in os.walk(themes_folder):
             rel_path = os.path.relpath(os.path.join(root, file), themes_folder)
             rel_path_no_ext = os.path.splitext(rel_path)[0]
             color_themes.append(rel_path_no_ext)
+
+"""Languages"""
+languages = {"Українська": "uk", "English": "en", "Русский": "ru", "Deutsch": "de", "हिन्दी": "hi"}

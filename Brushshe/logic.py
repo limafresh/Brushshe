@@ -2677,4 +2677,11 @@ class BrushsheLogic:
         self.update_canvas()
 
     def restart_app(self):
-        os.execv(sys.executable, [sys.executable] + sys.argv)
+        if ImageChops.difference(self.saved_copy, self.image).getbbox() or self.saved_copy.size != self.image.size:
+            msg = messagebox.restart_brushshe()
+            if msg.get() == _("Save"):
+                self.save_current()
+            elif msg.get() == _("Yes"):
+                os.execv(sys.executable, [sys.executable] + sys.argv)
+        else:
+            os.execv(sys.executable, [sys.executable] + sys.argv)

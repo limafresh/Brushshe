@@ -24,6 +24,7 @@ def load_config():
         "palette": "default",
         "autosave": "False",
         "color_theme": "brushshe_theme",
+        "language": "None",
     }
 
     if not config.has_section("Brushshe"):

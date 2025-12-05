@@ -5,6 +5,7 @@
 import json
 from locale import getlocale
 
+from core.config_loader import config, write_config
 from data import resource
 
 
@@ -30,15 +31,21 @@ def _(key):
     return translations.get(key, key)
 
 
-# Get system locale
-locale = getlocale()
+if config.get("Brushshe", "language") == "None":
+    # Get system locale
+    locale = getlocale()
 
-if isinstance(locale, tuple) and all(isinstance(item, str) for item in locale):
-    language_code = locale[0][:2].lower()
-elif isinstance(locale, str):
-    language_code = locale[:2].lower()
+    if isinstance(locale, tuple) and all(isinstance(item, str) for item in locale):
+        language_code = locale[0][:2].lower()
+    elif isinstance(locale, str):
+        language_code = locale[:2].lower()
+    else:
+        language_code = None
+
+    config.set("Brushshe", "language", language_code)
+    write_config()
 else:
-    language_code = None
+    language_code = config.get("Brushshe", "language")
 
 translations = {}
 load_language(language_code)
