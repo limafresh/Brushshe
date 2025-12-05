@@ -726,7 +726,12 @@ class BrushsheUi(ctk.CTk):
 
 
 ctk.set_appearance_mode(config.get("Brushshe", "theme"))
-ctk.set_default_color_theme(resource(f"assets/themes/{config.get('Brushshe', 'color_theme')}.json"))
+
+color_theme = config.get("Brushshe", "color_theme")
+if color_theme in ("blue", "green", "dark-blue"):
+    ctk.set_default_color_theme(color_theme)
+else:
+    ctk.set_default_color_theme(resource(f"assets/themes/{config.get('Brushshe', 'color_theme')}.json"))
 
 app = BrushsheUi()
 app.mainloop()

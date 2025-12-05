@@ -96,7 +96,7 @@ class BrushsheLogic:
             tool_icon_name = tool["icon_name"]
 
             try:
-                if config.get("Brushshe", "color_theme").startswith("CTkThemesPack"):
+                if config.get("Brushshe", "color_theme") != "brushshe_theme":
                     tool_icon = ctk.CTkImage(
                         light_image=Image.open(resource(f"assets/icons/toolbar/{tool_icon_name}_dark.png")),
                         size=(22, 22),
@@ -108,7 +108,7 @@ class BrushsheLogic:
                         size=(22, 22),
                     )
             except Exception:
-                if config.get("Brushshe", "color_theme").startswith("CTkThemesPack"):
+                if config.get("Brushshe", "color_theme") != "brushshe_theme":
                     tool_icon = ctk.CTkImage(
                         dark_image=Image.open(resource("assets/icons/toolbar/not_found_dark.png")),
                         size=(22, 22),
