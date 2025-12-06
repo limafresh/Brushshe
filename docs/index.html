@@ -7,6 +7,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 		<title>Brushshe - painting app</title>
 		<link rel="stylesheet" href="brushshe_theme.css">
+		<link rel="icon" href="https://raw.githubusercontent.com/limafresh/Brushshe/develop/Brushshe/assets/icons/logo.svg" type="image/svg+xml">
 	</head>
 	<body>
 		<header>
@@ -32,7 +33,7 @@
 				const url = 'https://raw.githubusercontent.com/limafresh/Brushshe/develop/README.md';
 				const response = await fetch(url);
 				const text = await response.text();
-				document.getElementById("content").innerHTML = marked.parse(text);
+				document.getElementById('content').innerHTML = marked.parse(text);
 			}
 			loadReadme();
 		</script>
