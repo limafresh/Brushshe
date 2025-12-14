@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 set -e
 
 # Script for creating .rpm package Brushshe
@@ -84,7 +88,7 @@ mkdir -p %{buildroot}/usr/share/applications
 cp brushshe.desktop %{buildroot}/usr/share/applications
 
 mkdir -p %{buildroot}/usr/share/doc/brushshe
-cp LICENSE LICENSE_CC0 README.md %{buildroot}/usr/share/doc/brushshe
+cp LICENSE LICENSE-CC0 README.md %{buildroot}/usr/share/doc/brushshe
 
 %files
 /opt/Brushshe
