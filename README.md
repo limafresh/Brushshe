@@ -9,7 +9,7 @@
 ## Description
 **Brushshe** is a simple and user-friendly raster graphics editor. Available for Windows and Linux.
 
-![Screenshot](https://raw.githubusercontent.com/limafresh/Brushshe/main/screenshot.png)
+![Screenshot](https://raw.githubusercontent.com/limafresh/Brushshe/main/docs/screenshot.png)
 
 [View more screenshots](https://github.com/limafresh/Brushshe/discussions/2)
 
