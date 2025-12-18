@@ -88,6 +88,8 @@ stickers_names = [
     "like",
     "unicorn",
     "pineapple",
+    'brushshe',
+    'brucklin',
     "grass",
     "rain",
     "strawberry",
