@@ -20,7 +20,6 @@ from core.bezier import make_bezier
 from core.bhbrush import bh_draw_line, bh_draw_recoloring_line
 from core.bhhistory import BhHistory, BhPoint
 from core.config_loader import config, config_file_path, write_config
-from core.scroll import scroll
 from core.tooltip import Tooltip
 from data import resource
 from file_dialog import FileDialog
@@ -651,67 +650,26 @@ class BrushsheLogic:
         if obtained_bg_color:
             self.new_picture(obtained_bg_color)
 
-    def show_stickers_choice(self):
-        def sticker_from_file():
-            dialog = FileDialog(sticker_choose, title=_("Sticker from file"))
-            if dialog.path:
-                try:
-                    sticker_image = Image.open(dialog.path)
+    def sticker_from_file(self, parent):
+        dialog = FileDialog(parent, title=_("Sticker from file"))
+        if dialog.path:
+            try:
+                sticker_image = Image.open(dialog.path)
+                self.set_current_sticker(sticker_image)
+            except Exception as e:
+                messagebox.open_file_error(e)
+
+    def sticker_from_url(self):
+        dialog = ctk.CTkInputDialog(text=_("Enter URL:"), title=_("Open from URL"))
+        image_url = dialog.get_input()
+        if image_url is not None:
+            try:
+                with urlopen(image_url) as response:
+                    image_data = BytesIO(response.read())
+                    sticker_image = Image.open(image_data)
                     self.set_current_sticker(sticker_image)
-                except Exception as e:
-                    messagebox.open_file_error(e)
-
-        def sticker_from_url():
-            dialog = ctk.CTkInputDialog(text=_("Enter URL:"), title=_("Open from URL"))
-            image_url = dialog.get_input()
-            if image_url is not None:
-                try:
-                    with urlopen(image_url) as response:
-                        image_data = BytesIO(response.read())
-                        sticker_image = Image.open(image_data)
-                        self.set_current_sticker(sticker_image)
-                except Exception as e:
-                    messagebox.open_file_error(e)
-
-        def tabview_callback():
-            if tabview.get() == _("From file"):
-                sticker_from_file()
-            elif tabview.get() == _("From URL"):
-                sticker_from_url()
-            tabview.set(_("From set"))
-
-        sticker_choose = ctk.CTkToplevel(self.ui)
-        sticker_choose.geometry("370x500")
-        sticker_choose.title(_("Choose a sticker"))
-
-        tabview = ctk.CTkTabview(sticker_choose, command=tabview_callback)
-        tabview.add(_("From set"))
-        tabview.add(_("From file"))
-        tabview.add(_("From URL"))
-        tabview.set(_("From set"))
-        tabview.pack(fill=ctk.BOTH, expand=True, padx=10, pady=10)
-
-        stickers_scrollable_frame = ctk.CTkScrollableFrame(tabview.tab(_("From set")))
-        stickers_scrollable_frame.pack(fill=ctk.BOTH, expand=True)
-        scroll(stickers_scrollable_frame)
-
-        stickers_frame = ctk.CTkFrame(stickers_scrollable_frame)
-        stickers_frame.pack()
-
-        row = 0
-        column = 0
-        for sticker_image in data.stickers:
-            sticker_ctkimage = ctk.CTkImage(sticker_image, size=(100, 100))
-            ctk.CTkButton(
-                stickers_frame,
-                text=None,
-                image=sticker_ctkimage,
-                command=lambda img=sticker_image: self.set_current_sticker(img),
-            ).grid(row=row, column=column, padx=10, pady=10)
-            column += 1
-            if column == 2:
-                column = 0
-                row += 1
+            except Exception as e:
+                messagebox.open_file_error(e)
 
     def set_current_sticker(self, sticker_image=None):  # Choose a sticker
         if sticker_image:
@@ -778,30 +736,14 @@ class BrushsheLogic:
         data.font_path = resource(data.fonts_dict.get(value))
         self.imagefont = ImageFont.truetype(data.font_path, data.tool_size)
 
-    def show_frame_choice(self):
-        def on_frames_click(index):
-            selected_frame = data.frames[index]
-            resized_frame = selected_frame.resize((self.image.width, self.image.height))
+    def on_frames_click(self, index):
+        selected_frame = data.frames[index]
+        resized_frame = selected_frame.resize((self.image.width, self.image.height))
 
-            self.image.paste(resized_frame, (0, 0), resized_frame)
+        self.image.paste(resized_frame, (0, 0), resized_frame)
 
-            self.update_canvas()
-            self.record_action()
-
-        frames_win = ctk.CTkToplevel(self.ui)
-        frames_win.title(_("Frames"))
-
-        row = 0
-        column = 0
-
-        for i, image in enumerate(data.frames_thumbnails):
-            ctk.CTkButton(frames_win, text=None, image=image, command=lambda i=i: on_frames_click(i)).grid(
-                column=column, row=row, padx=10, pady=10
-            )
-            column += 1
-            if column == 2:
-                column = 0
-                row += 1
+        self.update_canvas()
+        self.record_action()
 
     # Shape creation functions
     def create_shape(self, shape):

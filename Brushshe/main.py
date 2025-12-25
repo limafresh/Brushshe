@@ -127,9 +127,9 @@ class BrushsheUi(ctk.CTk):
         tools_icon_size = (20, 20)
         tools_dropdown.add_separator()
         smile_icon = ctk.CTkImage(Image.open(resource("assets/icons/smile.png")), size=tools_icon_size)
-        tools_dropdown.add_option(option=_("Stickers"), image=smile_icon, command=self.logic.show_stickers_choice)
+        tools_dropdown.add_option(option=_("Stickers"), image=smile_icon, command=self.show_stickers_choice)
         frame_icon = ctk.CTkImage(Image.open(resource("assets/icons/frame.png")), size=tools_icon_size)
-        tools_dropdown.add_option(option=_("Frames"), image=frame_icon, command=self.logic.show_frame_choice)
+        tools_dropdown.add_option(option=_("Frames"), image=frame_icon, command=self.show_frame_choice)
         tools_dropdown.add_separator()
         tools_dropdown.add_option(option=_("Remove white background"), command=self.logic.remove_white_background)
 
@@ -723,6 +723,67 @@ class BrushsheUi(ctk.CTk):
             text=f"{_('Check new versions (yours is')} {data.version_full})",
             command=lambda: webbrowser.open(r"https://github.com/limafresh/Brushshe/releases"),
         ).pack(padx=10, pady=10)
+
+    """Stickers window"""
+
+    def show_stickers_choice(self):
+        def tabview_callback():
+            if tabview.get() == _("From file"):
+                self.logic.sticker_from_file(sticker_choose)
+            elif tabview.get() == _("From URL"):
+                self.logic.sticker_from_url()
+            tabview.set(_("From set"))
+
+        sticker_choose = ctk.CTkToplevel(self)
+        sticker_choose.geometry("370x500")
+        sticker_choose.title(_("Choose a sticker"))
+
+        tabview = ctk.CTkTabview(sticker_choose, command=tabview_callback)
+        tabview.add(_("From set"))
+        tabview.add(_("From file"))
+        tabview.add(_("From URL"))
+        tabview.set(_("From set"))
+        tabview.pack(fill=ctk.BOTH, expand=True, padx=10, pady=10)
+
+        stickers_scrollable_frame = ctk.CTkScrollableFrame(tabview.tab(_("From set")))
+        stickers_scrollable_frame.pack(fill=ctk.BOTH, expand=True)
+        scroll(stickers_scrollable_frame)
+
+        stickers_frame = ctk.CTkFrame(stickers_scrollable_frame)
+        stickers_frame.pack()
+
+        row = 0
+        column = 0
+        for sticker_image in data.stickers:
+            sticker_ctkimage = ctk.CTkImage(sticker_image, size=(100, 100))
+            ctk.CTkButton(
+                stickers_frame,
+                text=None,
+                image=sticker_ctkimage,
+                command=lambda img=sticker_image: self.logic.set_current_sticker(img),
+            ).grid(row=row, column=column, padx=10, pady=10)
+            column += 1
+            if column == 2:
+                column = 0
+                row += 1
+
+    """Frames window"""
+
+    def show_frame_choice(self):
+        frames_win = ctk.CTkToplevel(self)
+        frames_win.title(_("Frames"))
+
+        row = 0
+        column = 0
+
+        for i, image in enumerate(data.frames_thumbnails):
+            ctk.CTkButton(frames_win, text=None, image=image, command=lambda i=i: self.logic.on_frames_click(i)).grid(
+                column=column, row=row, padx=10, pady=10
+            )
+            column += 1
+            if column == 2:
+                column = 0
+                row += 1
 
 
 ctk.set_appearance_mode(config.get("Brushshe", "theme"))
