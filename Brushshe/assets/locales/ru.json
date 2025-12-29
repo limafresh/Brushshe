@@ -156,5 +156,8 @@
 	"Exit": "Выход",
 	"Autosave": "Автосохранение",
 	"Capture the entire screen": "Захватить весь экран",
-	"Random color": "Случайный цвет"
+	"Random color": "Случайный цвет",
+	"Color theme": "Цветовая тема",
+	"Language": "Язык",
+	"A restart is required": "Требуется перезапуск"
 }

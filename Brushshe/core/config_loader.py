@@ -1,3 +1,7 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 import platform
 from configparser import ConfigParser
 from pathlib import Path
@@ -19,6 +23,8 @@ def load_config():
         "brush_smoothing_quality": "20",
         "palette": "default",
         "autosave": "False",
+        "color_theme": "brushshe_theme",
+        "language": "None",
     }
 
     if not config.has_section("Brushshe"):

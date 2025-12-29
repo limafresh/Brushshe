@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 set -e
 
 # Script for creating .rpm package Brushshe
@@ -21,9 +25,9 @@ else
 fi
 release_name="${distro,,}"
 if [ "$distro" != 'OpenMandriva' ]; then
-	licenses='MPL-2.0 AND CC0-1.0 AND (MPL-2.0 OR CC-BY-4.0) AND OFL-1.1-no-RFN AND OFL-1.1-RFN AND MIT AND Apache-2.0 AND BSD-3-Clause AND (Apache-2.0 OR BSD-2-Clause)'
+	licenses='MPL-2.0 AND CC0-1.0 AND OFL-1.1-no-RFN AND OFL-1.1-RFN AND MIT AND Apache-2.0 AND BSD-3-Clause AND (Apache-2.0 OR BSD-2-Clause)'
 else
-	licenses='MPL-2.0 AND CC0-1.0 AND (MPL-2.0 OR CC-BY-4.0) AND OFL-1.1-no-RFN AND OFL-1.1-RFN'
+	licenses='MPL-2.0 AND CC0-1.0 AND OFL-1.1-no-RFN AND OFL-1.1-RFN'
 fi
 
 echo 'Creating a .desktop file...'
@@ -39,7 +43,7 @@ Comment[uk]=Програма для малювання
 Comment[ru]=Программа для рисования
 Comment[de]=Mal-App
 Comment[hi]=पेंटिंग ऐप
-Exec=python3 /opt/Brushshe/brushshe.py %f
+Exec=python3 /opt/Brushshe/main.py %f
 Icon=brushshe
 Terminal=false
 Categories=Graphics;
@@ -50,7 +54,7 @@ EOF
 echo 'Creating spec file...'
 cat <<EOF > brushshe.spec
 Name:           brushshe
-Version:        2.3.0
+Version:        2.4.0
 Release:        1.$release_name
 Summary:        Raster graphical editor
 Summary(uk):    Растровий графічний редактор
@@ -84,22 +88,22 @@ mkdir -p %{buildroot}/usr/share/applications
 cp brushshe.desktop %{buildroot}/usr/share/applications
 
 mkdir -p %{buildroot}/usr/share/doc/brushshe
-cp LICENSE LICENSE_CC0 README.md %{buildroot}/usr/share/doc/brushshe
+cp LICENSE LICENSE-CC0 README.md %{buildroot}/usr/share/doc/brushshe
 
 %files
 /opt/Brushshe
 /usr/share/icons/hicolor/256x256/apps/brushshe.png
 /usr/share/applications/brushshe.desktop
 /usr/share/doc/brushshe/LICENSE
-/usr/share/doc/brushshe/LICENSE_CC0
+/usr/share/doc/brushshe/LICENSE-CC0
 /usr/share/doc/brushshe/README.md
 EOF
 
 echo 'Creating a folder for packaging into a tarball...'
 mkdir brushshe
 cp -r ../Brushshe brushshe/Brushshe
-cp ../README.md ../LICENSE ../LICENSE_CC0 brushshe
-cp ../Brushshe/icons/icon.png brushshe/brushshe.png
+cp ../README.md ../LICENSE ../LICENSE-CC0 brushshe
+cp ../Brushshe/assets/icons/icon.png brushshe/brushshe.png
 mv brushshe.desktop brushshe.spec brushshe
 
 if [ "$distro" != 'OpenMandriva' ]; then

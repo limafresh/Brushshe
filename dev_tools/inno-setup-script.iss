@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Brushshe"
-#define MyAppVersion "2.3.0"
+#define MyAppVersion "2.4.0"
 #define MyAppPublisher "Brushshe developers"
 #define MyAppURL "https://github.com/limafresh/Brushshe"
 #define MyAppExeName "brushshe.exe"
@@ -13,7 +13,7 @@
 AppId={{EF032D4B-48F7-44D3-B5B7-DD749EDA3A1D}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-AppVerName=Brushshe 2.3.0 "Vientiane"
+AppVerName=Brushshe 2.4.0 "Windhoek"
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
@@ -32,7 +32,7 @@ DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only).
 ;PrivilegesRequired=lowest
 OutputBaseFilename=Brushshe_64bit
-SetupIconFile=..\Brushshe\icons\icon.ico
+SetupIconFile=..\Brushshe\assets\icons\icon.ico
 SolidCompression=yes
 WizardStyle=modern
 

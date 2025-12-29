@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 set -e
 
 # A simple script to create a .deb package of the Brushshe application
@@ -13,7 +17,7 @@ echo 'Creating control file...'
 mkdir -p brushshe/DEBIAN
 cat <<EOF > brushshe/DEBIAN/control
 Package: brushshe
-Version: 2.3.0
+Version: 2.4.0
 Section: graphics
 Priority: optional
 Depends: python3, python3-tk, python3-pil, python3-pil.imagetk
@@ -30,7 +34,7 @@ cp -r ../Brushshe brushshe/opt
 
 echo 'Copying the icon...'
 mkdir -p brushshe/usr/share/icons/hicolor/512x512/apps
-cp ../Brushshe/icons/icon.png brushshe/usr/share/icons/hicolor/512x512/apps/brushshe.png
+cp ../Brushshe/assets/icons/icon.png brushshe/usr/share/icons/hicolor/512x512/apps/brushshe.png
 
 echo 'Creating a .desktop file...'
 mkdir -p brushshe/usr/share/applications
@@ -46,7 +50,7 @@ Comment[uk]=Програма для малювання
 Comment[ru]=Программа для рисования
 Comment[de]=Mal-App
 Comment[hi]=पेंटिंग ऐप
-Exec=python3 /opt/Brushshe/brushshe.py %f
+Exec=python3 /opt/Brushshe/main.py %f
 Icon=brushshe
 Terminal=false
 Categories=Graphics;
@@ -57,7 +61,7 @@ EOF
 echo 'Copying licenses and README...'
 mkdir -p brushshe/usr/share/doc/brushshe
 cp -a ../LICENSE brushshe/usr/share/doc/brushshe
-cp -a ../LICENSE_CC0 brushshe/usr/share/doc/brushshe
+cp -a ../LICENSE-CC0 brushshe/usr/share/doc/brushshe
 cp -a ../README.md brushshe/usr/share/doc/brushshe
 
 echo 'Installing customtkinter...'

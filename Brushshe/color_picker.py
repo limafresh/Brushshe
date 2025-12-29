@@ -1,24 +1,18 @@
 # Original Author: Akash Bora (Akascape)
-# Contributers: Victor Vimbert-Guerlais (helloHackYnow)
-# Modifed by Brushshe developers for Brushshe app
+# Contributors: Victor Vimbert-Guerlais (helloHackYnow)
+# Modified by Brushshe developers for Brushshe app
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import math
-import os
 import random
-import sys
 
 import customtkinter as ctk
+from data import resource
 from PIL import Image, ImageTk
 from translator import _
-
-
-def resource(relative_path):
-    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_path, relative_path)
 
 
 class AskColor(ctk.CTkToplevel):
@@ -58,10 +52,10 @@ class AskColor(ctk.CTkToplevel):
         self.canvas.bind("<Button-1>", self.on_mouse_drag)
         self.canvas.bind("<B1-Motion>", self.on_mouse_drag)
 
-        self.img1 = Image.open(resource("icons/color_wheel.png")).resize(
+        self.img1 = Image.open(resource("assets/icons/color_wheel.png")).resize(
             (self.image_dimension, self.image_dimension), Image.Resampling.LANCZOS
         )
-        self.img2 = Image.open(resource("icons/target.png")).resize(
+        self.img2 = Image.open(resource("assets/icons/target.png")).resize(
             (self.target_dimension, self.target_dimension), Image.Resampling.LANCZOS
         )
 
@@ -126,7 +120,7 @@ class AskColor(ctk.CTkToplevel):
             self.entry.configure(fg_color=self.entry.get())
             self._color = self.entry.get()
             self.winfo_rgb(self._color)
-        except Exception:  # noqa: E722
+        except Exception:
             self.entry.configure(fg_color="red")
             return
         self.grab_release()

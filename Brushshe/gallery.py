@@ -1,3 +1,7 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 import hashlib
 import os
 import sys
@@ -5,17 +9,12 @@ from pathlib import Path
 
 # from threading import Thread
 import customtkinter as ctk
+import messagebox
+from core.scroll import scroll
+from core.tooltip import Tooltip
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
-from CTkMessagebox import CTkMessagebox
 from PIL import Image
-from scroll import scroll
-from tooltip import Tooltip
 from translator import _
-
-
-def resource(relative_path):
-    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_path, relative_path)
 
 
 def show(open_image):
@@ -155,16 +154,8 @@ def load_buttons():
 
 def delete_image(img_path):
     global my_gallery, open_image_func
-    confirm_delete = CTkMessagebox(
-        title=_("Confirm delete"),
-        message=_("Are you sure you want to delete the picture?"),
-        icon=resource("icons/question.png"),
-        icon_size=(100, 100),
-        option_1=_("Yes"),
-        option_2=_("No"),
-        sound=True,
-    )
-    if confirm_delete.get() == _("Yes") and os.path.exists(str(img_path)):
+    msg = messagebox.confirm_delete()
+    if msg.get() == _("Yes") and os.path.exists(str(img_path)):
         os.remove(str(img_path))
         # my_gallery.destroy()
         # show(open_image_func)

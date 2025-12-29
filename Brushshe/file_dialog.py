@@ -1,16 +1,14 @@
+# Any copyright is dedicated to the Public Domain.
+# https://creativecommons.org/publicdomain/zero/1.0/
+
 import os
-import sys
 import tkinter as tk
 from tkinter import ttk
 
 import customtkinter as ctk
-from CTkMessagebox import CTkMessagebox
+import messagebox
+from data import resource
 from translator import _
-
-
-def resource(relative_path):
-    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_path, relative_path)
 
 
 class FileDialog(ctk.CTkToplevel):
@@ -25,8 +23,8 @@ class FileDialog(ctk.CTkToplevel):
         self.extension = ".png"
 
         # Images by Vijay Verma from Wikimedia Commons, licensed under CC0 1.0
-        self.folder_image = tk.PhotoImage(file=resource("icons/folder.png"))
-        self.file_image = tk.PhotoImage(file=resource("icons/file.png"))
+        self.folder_image = tk.PhotoImage(file=resource("assets/icons/folder.png"))
+        self.file_image = tk.PhotoImage(file=resource("assets/icons/file.png"))
 
         self.frame = ctk.CTkFrame(self)
         self.frame.pack(fill=ctk.BOTH, expand=True)
@@ -145,16 +143,8 @@ class FileDialog(ctk.CTkToplevel):
             self.extension = self._extension_combobox.get()
         entered_path = selected_path + self.extension
         if os.path.exists(entered_path):
-            overwrite_msg = CTkMessagebox(
-                title=_("A file with this name already exists"),
-                message=_("Overwrite this file?"),
-                option_1=_("Yes"),
-                option_2=_("No"),
-                icon=resource("icons/question.png"),
-                icon_size=(100, 100),
-                sound=True,
-            )
-            if overwrite_msg.get() == _("Yes"):
+            msg = messagebox.overwrite_file()
+            if msg.get() == _("Yes"):
                 self.path = entered_path
                 self.destroy()
         else:
