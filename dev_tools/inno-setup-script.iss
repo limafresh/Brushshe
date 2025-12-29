@@ -32,7 +32,7 @@ DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only).
 ;PrivilegesRequired=lowest
 OutputBaseFilename=Brushshe_64bit
-SetupIconFile=..\Brushshe\icons\icon.ico
+SetupIconFile=..\Brushshe\assets\icons\icon.ico
 SolidCompression=yes
 WizardStyle=modern
 
