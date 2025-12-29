@@ -546,18 +546,6 @@ def leave_brushshe():
     return leave_brushshe_msg
 
 
-def restart_brushshe():
-    restart_brushshe_msg = Messagebox(
-        title=_("You are restarting Brushshe"),
-        message=_("There are unsaved changes. Exit?"),
-        option_1=_("Save"),
-        option_2=_("No"),
-        option_3=_("Yes"),
-        icon="question",
-    )
-    return restart_brushshe_msg
-
-
 def save_current():
     save_current_msg = Messagebox(
         title=_("Saved"),

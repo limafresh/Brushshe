@@ -5,7 +5,6 @@
 import math
 import os
 import random
-import sys
 import time
 from io import BytesIO
 from urllib.request import urlopen
@@ -2617,13 +2616,3 @@ class BrushsheLogic:
 
         data.composer.set_force_update_mask()
         self.update_canvas()
-
-    def restart_app(self):
-        if ImageChops.difference(self.saved_copy, self.image).getbbox() or self.saved_copy.size != self.image.size:
-            msg = messagebox.restart_brushshe()
-            if msg.get() == _("Save"):
-                self.save_current()
-            elif msg.get() == _("Yes"):
-                os.execv(sys.executable, [sys.executable] + sys.argv)
-        else:
-            os.execv(sys.executable, [sys.executable] + sys.argv)

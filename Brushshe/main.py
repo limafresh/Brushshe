@@ -697,9 +697,7 @@ class BrushsheUi(ctk.CTk):
         color_theme_optionmenu.pack(padx=10, pady=10)
         color_theme_optionmenu.set(config.get("Brushshe", "color_theme"))
 
-        ctk.CTkButton(color_theme_frame, text=_("Restart to apply"), command=self.logic.restart_app).pack(
-            padx=10, pady=10
-        )
+        ctk.CTkLabel(color_theme_frame, text=_("A restart is required")).pack(padx=10, pady=10)
 
         language_frame = ctk.CTkFrame(settings_frame)
         language_frame.pack(padx=10, pady=10, fill="x")
@@ -713,7 +711,7 @@ class BrushsheUi(ctk.CTk):
         language_key = next((k for k, v in data.languages.items() if v == config.get("Brushshe", "language")), None)
         language_optionmenu.set(language_key)
 
-        ctk.CTkButton(language_frame, text=_("Restart to apply"), command=self.logic.restart_app).pack(padx=10, pady=10)
+        ctk.CTkLabel(language_frame, text=_("A restart is required")).pack(padx=10, pady=10)
 
         check_new_version_frame = ctk.CTkFrame(settings_frame)
         check_new_version_frame.pack(padx=10, pady=10, fill="x")
