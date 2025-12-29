@@ -34,7 +34,7 @@ class BrushsheUi(ctk.CTk):
         self.geometry("790x680")
         self.title(_("Unnamed") + " - " + _("Brushshe"))
         if os.name == "nt":
-            self.iconbitmap(resource("icons/icon.ico"))
+            self.iconbitmap(resource("assets/icons/icon.ico"))
         else:
             self.iconphoto(True, PhotoImage(file=resource("assets/icons/icon.png")))
         self.protocol("WM_DELETE_WINDOW", self.logic.when_closing)
