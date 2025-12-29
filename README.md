@@ -3,7 +3,7 @@
 ![Static Badge](https://img.shields.io/badge/Tested_on-Windows%2C_Linux-orange)
 
 <p align="center">
-	<img src="https://raw.githubusercontent.com/limafresh/Brushshe/refs/heads/main/Brushshe/icons/logo.svg" alt="logo" width="100" height="100">
+	<img src="https://raw.githubusercontent.com/limafresh/Brushshe/refs/heads/main/Brushshe/assets/icons/logo.svg" alt="logo" width="100" height="100">
 </p>
 
 ## Description
