@@ -17,7 +17,7 @@ echo 'Creating control file...'
 mkdir -p brushshe/DEBIAN
 cat <<EOF > brushshe/DEBIAN/control
 Package: brushshe
-Version: 2.4.0
+Version: 2.5.0
 Section: graphics
 Priority: optional
 Depends: python3, python3-tk, python3-pil, python3-pil.imagetk
@@ -49,6 +49,7 @@ Comment=Painting app
 Comment[uk]=Програма для малювання
 Comment[ru]=Программа для рисования
 Comment[de]=Mal-App
+Comment[it]=Programma di disegno
 Comment[hi]=पेंटिंग ऐप
 Exec=python3 /opt/Brushshe/main.py %f
 Icon=brushshe

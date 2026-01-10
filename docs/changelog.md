@@ -1,4 +1,6 @@
-## 2.4.0 codename "Windhoek" (current version)
+## 2.5.0 codename "Xalapa" (current version)
+
+## 2.4.0 codename "Windhoek"
 - Added hotkeys for copying, inserting, cutting, and deleting
 - Added support for switching color themes and languages
 - CTkMessagebox was forked for Brushshe's needs

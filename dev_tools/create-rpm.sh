@@ -42,6 +42,7 @@ Comment=Painting app
 Comment[uk]=Програма для малювання
 Comment[ru]=Программа для рисования
 Comment[de]=Mal-App
+Comment[it]=Programma di disegno
 Comment[hi]=पेंटिंग ऐप
 Exec=python3 /opt/Brushshe/main.py %f
 Icon=brushshe
@@ -54,7 +55,7 @@ EOF
 echo 'Creating spec file...'
 cat <<EOF > brushshe.spec
 Name:           brushshe
-Version:        2.4.0
+Version:        2.5.0
 Release:        1.$release_name
 Summary:        Raster graphical editor
 Summary(uk):    Растровий графічний редактор
@@ -121,4 +122,4 @@ rpmbuild -tb brushshe.tar --define "_topdir $PWD"
 echo 'Deleting files and folders created during the build process and moving the .rpm package from the project folder...'
 mv RPMS/noarch/* ../../
 rm -rf BUILD BUILDROOT SPECS RPMS SRPMS brushshe
-rm brushshe.tar 
+rm brushshe.tar
