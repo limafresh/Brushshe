@@ -1,4 +1,6 @@
 ## 2.5.0 codename "Xalapa" (current version)
+- Added Italian language
+- Support for displaying image names and renaming images has been added to the gallery
 
 ## 2.4.0 codename "Windhoek"
 - Added hotkeys for copying, inserting, cutting, and deleting
