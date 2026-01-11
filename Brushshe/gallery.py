@@ -66,23 +66,28 @@ def on_filename_label_click(event, parent, text, img_path, extension):
         new_text = filename_entry.get()
         new_path = os.path.join(os.path.dirname(img_path), new_text + extension)
 
-        if os.path.exists(new_path):
-            return
-
-        try:
+        if not os.path.exists(new_path):
             os.rename(img_path, new_path)
-        except Exception as e:
-            print(e)
-            return
+            label_text = new_text
+        else:
+            msg = messagebox.overwrite_file()
+            if msg.get() == _("Yes"):
+                os.rename(img_path, new_path)
+                label_text = new_text
+                load_buttons()
+                return
+            else:
+                label_text = text
+
+        label_content = shorten_filename(label_text)
 
         filename_entry.destroy()
 
-        label_content = shorten_filename(new_text)
         new_filename_label = ctk.CTkLabel(parent, text=label_content)
         new_filename_label.grid(row=1, column=0)
 
         new_filename_label.bind(
-            "<Button-1>", lambda e: on_filename_label_click(e, parent, new_text, new_path, extension)
+            "<Button-1>", lambda e: on_filename_label_click(e, parent, label_text, new_path, extension)
         )
 
     filename_entry.bind("<Return>", on_return)
