@@ -36,34 +36,15 @@ echo 'Copying the icon...'
 mkdir -p brushshe/usr/share/icons/hicolor/512x512/apps
 cp ../Brushshe/assets/icons/icon.png brushshe/usr/share/icons/hicolor/512x512/apps/brushshe.png
 
-echo 'Creating a .desktop file...'
+echo 'Copying the .desktop file...'
 mkdir -p brushshe/usr/share/applications
-cat <<EOF > brushshe/usr/share/applications/brushshe.desktop
-[Desktop Entry]
-Type=Application
-Version=1.0
-Name=Brushshe
-Name[uk]=Брашше
-Name[ru]=Брашше
-Comment=Painting app
-Comment[uk]=Програма для малювання
-Comment[ru]=Программа для рисования
-Comment[de]=Mal-App
-Comment[it]=Programma di disegno
-Comment[hi]=पेंटिंग ऐप
-Exec=python3 /opt/Brushshe/main.py %f
-Icon=brushshe
-Terminal=false
-Categories=Graphics;
-StartupWMClass=Brushshe
-MimeType=image/png;image/jpeg;image/gif;image/bmp;image/vnd.ms-dds;image/x-bmp;image/x-eps;image/x-icns;image/x-icon;image/im;image/mpo;image/x-pcx;image/x-portable-pixmap;image/x-sgi;image/x-tga;image/tiff;image/webp;
-EOF
+cp brushshe.desktop brushshe/usr/share/applications/brushshe.desktop
 
 echo 'Copying licenses and README...'
 mkdir -p brushshe/usr/share/doc/brushshe
-cp -a ../LICENSE brushshe/usr/share/doc/brushshe
-cp -a ../LICENSE-CC0 brushshe/usr/share/doc/brushshe
-cp -a ../README.md brushshe/usr/share/doc/brushshe
+cp ../LICENSE brushshe/usr/share/doc/brushshe
+cp ../LICENSE-CC0 brushshe/usr/share/doc/brushshe
+cp ../README.md brushshe/usr/share/doc/brushshe
 
 echo 'Installing customtkinter...'
 pip install customtkinter --target=brushshe/opt/Brushshe

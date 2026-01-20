@@ -23,34 +23,13 @@ else
 	echo 'Unsupported distribution or typo'
 	exit 1
 fi
+
 release_name="${distro,,}"
 if [ "$distro" != 'OpenMandriva' ]; then
 	licenses='MPL-2.0 AND CC0-1.0 AND OFL-1.1-no-RFN AND OFL-1.1-RFN AND MIT AND Apache-2.0 AND BSD-3-Clause AND (Apache-2.0 OR BSD-2-Clause)'
 else
 	licenses='MPL-2.0 AND CC0-1.0 AND OFL-1.1-no-RFN AND OFL-1.1-RFN'
 fi
-
-echo 'Creating a .desktop file...'
-cat <<EOF > brushshe.desktop
-[Desktop Entry]
-Type=Application
-Version=1.0
-Name=Brushshe
-Name[uk]=Брашше
-Name[ru]=Брашше
-Comment=Painting app
-Comment[uk]=Програма для малювання
-Comment[ru]=Программа для рисования
-Comment[de]=Mal-App
-Comment[it]=Programma di disegno
-Comment[hi]=पेंटिंग ऐप
-Exec=python3 /opt/Brushshe/main.py %f
-Icon=brushshe
-Terminal=false
-Categories=Graphics;
-StartupWMClass=Brushshe
-MimeType=image/png;image/jpeg;image/gif;image/bmp;image/vnd.ms-dds;image/x-bmp;image/x-eps;image/x-icns;image/x-icon;image/im;image/mpo;image/x-pcx;image/x-portable-pixmap;image/x-sgi;image/x-tga;image/tiff;image/webp;
-EOF
 
 echo 'Creating spec file...'
 cat <<EOF > brushshe.spec
@@ -82,8 +61,8 @@ Brushshe is a simple and user-friendly raster graphics editor.
 mkdir -p %{buildroot}/opt
 cp -r Brushshe %{buildroot}/opt
 
-mkdir -p %{buildroot}/usr/share/icons/hicolor/256x256/apps
-cp brushshe.png %{buildroot}/usr/share/icons/hicolor/256x256/apps
+mkdir -p %{buildroot}/usr/share/icons/hicolor/512x512/apps
+cp brushshe.png %{buildroot}/usr/share/icons/hicolor/512x512/apps
 
 mkdir -p %{buildroot}/usr/share/applications
 cp brushshe.desktop %{buildroot}/usr/share/applications
@@ -93,7 +72,7 @@ cp LICENSE LICENSE-CC0 README.md %{buildroot}/usr/share/doc/brushshe
 
 %files
 /opt/Brushshe
-/usr/share/icons/hicolor/256x256/apps/brushshe.png
+/usr/share/icons/hicolor/512x512/apps/brushshe.png
 /usr/share/applications/brushshe.desktop
 /usr/share/doc/brushshe/LICENSE
 /usr/share/doc/brushshe/LICENSE-CC0
@@ -103,9 +82,9 @@ EOF
 echo 'Creating a folder for packaging into a tarball...'
 mkdir brushshe
 cp -r ../Brushshe brushshe/Brushshe
-cp ../README.md ../LICENSE ../LICENSE-CC0 brushshe
+cp ../README.md ../LICENSE ../LICENSE-CC0 brushshe.desktop brushshe
 cp ../Brushshe/assets/icons/icon.png brushshe/brushshe.png
-mv brushshe.desktop brushshe.spec brushshe
+mv brushshe.spec brushshe
 
 if [ "$distro" != 'OpenMandriva' ]; then
 	echo 'Installing customtkinter...'
