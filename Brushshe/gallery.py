@@ -83,7 +83,7 @@ def on_filename_label_click(event, parent, text, img_path, extension):
 
         filename_entry.destroy()
 
-        new_filename_label = ctk.CTkLabel(parent, text=label_content)
+        new_filename_label = ctk.CTkLabel(parent, text=label_content, cursor="xterm")
         new_filename_label.grid(row=1, column=0)
 
         new_filename_label.bind(
@@ -189,7 +189,7 @@ def load_buttons():
                 Tooltip(delete_image_button, message=_("Delete"))
 
                 label_content = shorten_filename(name_without_ext)
-                filename_label = ctk.CTkLabel(image_frame, text=label_content)
+                filename_label = ctk.CTkLabel(image_frame, text=label_content, cursor="xterm")
                 filename_label.grid(row=1, column=0)
 
                 filename_label.bind(
