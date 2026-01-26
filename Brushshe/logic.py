@@ -2075,6 +2075,7 @@ class BrushsheLogic:
                 offvalue="off",
             ).pack(side=ctk.LEFT, padx=5)
 
+        self.ui.focus_set() # Set Focus back to root window to prevent a gray outline
         self.ui.canvas.configure(cursor=cursor)
         self.ui.canvas.delete("tools")
 
