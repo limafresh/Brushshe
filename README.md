@@ -2,11 +2,14 @@
 
 ![Static Badge](https://img.shields.io/badge/Tested_on-Windows%2C_Linux-orange)
 
+[View changelog](https://limafresh.github.io/Brushshe/docs/changelog)
+
 <p align="center">
 	<img src="https://raw.githubusercontent.com/limafresh/Brushshe/refs/heads/main/Brushshe/assets/icons/logo.svg" alt="logo" width="100" height="100">
 </p>
 
 ## Description
+
 **Brushshe** is a simple and user-friendly raster graphics editor. Available for Windows and Linux.
 
 ![Screenshot](https://raw.githubusercontent.com/limafresh/Brushshe/main/docs/screenshot.png)
@@ -14,19 +17,25 @@
 [View more screenshots](https://github.com/limafresh/Brushshe/discussions/2)
 
 ## ⬇️ Installation
+
 ### Download Brushshe for Windows 64bit
+
 [![Static Badge](https://img.shields.io/badge/%F0%9F%AA%9F_Download-.exe_file-blue?style=for-the-badge)](https://github.com/limafresh/Brushshe/releases) or
 [![Static Badge](https://img.shields.io/badge/%F0%9F%AA%9F_Download-portable_.exe_file-blue?style=for-the-badge)](https://github.com/limafresh/Brushshe/releases)
 
 **or**
+
 ### Download Brushshe for Linux
+
 [![Static Badge](https://img.shields.io/badge/Download-.deb_file-red?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/limafresh/Brushshe/releases) or
 [![Static Badge](https://img.shields.io/badge/Download-for_Fedora-blue?style=for-the-badge&logo=fedora&logoColor=white)](https://github.com/limafresh/Brushshe/releases) or
 [![Static Badge](https://img.shields.io/badge/Download-for_Mageia-blue?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/limafresh/Brushshe/releases) or
 [![Static Badge](https://img.shields.io/badge/Download-for_OpenMandriva-blue?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/limafresh/Brushshe/releases)
 
 **or**
+
 ### Run via Python
+
 1. Install [Python 3](https://www.python.org/downloads/), if not installed;
 2. Download the code and unpack downloaded archive:
 
@@ -39,6 +48,7 @@ pip install customtkinter Pillow
 4. Run file `Brushshe/main.py`.
 
 ## 🚀 Features
+
 + **Open**: You can open a picture from a file or URL.
 + **Painting**: You can choose a color, change the brush thickness and shape, and paint. You can change canvas size.
 + **Recoloring brush**: Draws through contours.
@@ -69,6 +79,7 @@ pip install customtkinter Pillow
 + **Select**: rectangle and polygon select, invert selected, deselect all, fuzzy select, select by color.
 
 ## Hotkeys
+
 + *Ctrl+Z*: undo
 + *Ctrl+Y*: redo
 + *Ctrl+S*: save to gallery
@@ -89,35 +100,44 @@ pip install customtkinter Pillow
 + *Middle mouse button*: move canvas
 
 ## Goal of project
+
 The goal of the project is to provide a open-source, convenient, beautiful and multifunctional painting app using the CustomTkinter toolkit.
 
 ## Contributions
+
 All contributions are welcome!
 + Do not use third-party libraries. Only standard Python libraries, CustomTkinter and Pillow/PIL.
 
 ## Credits
+
 + Thanks [Akascape](https://github.com/Akascape) for CTkColorPicker, CTkMenuBar, CTkMessagebox and CTkToolTip.
 + Thanks to [a13xe](https://github.com/a13xe/) for the wonderful [CTkThemesPack](https://github.com/a13xe/CTkThemesPack).
 + Thanks [Chip Viled](https://github.com/chipviled) for contributing.
 + Thanks to our translators: [sagar12](https://github.com/Sagar1205b) (Hindi); [Sagar Sirbi](https://github.com/sagarsirbi), [iLollek](https://github.com/iLollek) (German); [albanobattistella](https://github.com/albanobattistella) (Italian).
 
 ## Translations
+
 The internationalization of this program has a simple principle - it determines what the computer's localization is (for example, *en*, *ru*, etc.), and then applies the `Brushshe/assets/locales/{localization}.json` file, where *localization* is the computer's localization.
 
 ## Licenses
+
 + Project license - *MPL 2.0* (old code before the license change - under MPL 2.0 or GNU GPLv3)
 + Some Brushshe components or third-party components are in the *public domain* (see below for which ones)
 + Fonts - *OFL 1.1*
 + [Picture on screenshot](https://github.com/limafresh/Brushshe/pull/15) - [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), by Chip Viled, drawn in Brushshe
 + Builds (for example .exe, .deb) may contain other components
+
 ### Public domain components (paths are relative)
+
 + `assets/` (stickers, frames, etc., except for some subfolders with other licenses) - *CC0 1.0*
 + `docs/` - *CC0 1.0*
 + CTkMenuBar - *CC0 1.0*
 + `README.md` (this file), `main.py`, other files with the CC0 header - *CC0 1.0*
 
 ## For developers
+
 ### Linter
+
 [Ruff](https://github.com/astral-sh/ruff) is used to maintain code cleanliness.
 
 Starting with version 2.0.0, each version will be given a code name based on the names of cities in alphabetical order. 2.0.0 starts with "S" because it is the 19th letter of the alphabet, and since 1.0.0 there have been 18 versions. Example:
