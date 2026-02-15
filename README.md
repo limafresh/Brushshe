@@ -5,7 +5,7 @@
 [View changelog](https://limafresh.github.io/Brushshe/docs/changelog)
 
 <p align="center">
-	<img src="https://raw.githubusercontent.com/limafresh/Brushshe/refs/heads/main/Brushshe/assets/icons/logo.svg" alt="logo" width="100" height="100">
+	<img src="https://raw.githubusercontent.com/limafresh/Brushshe/main/Brushshe/assets/icons/logo.svg" width="100" height="100">
 </p>
 
 ## Description
