@@ -9,7 +9,7 @@ import shutil
 import subprocess
 import sys
 import tarfile
-import urllib
+import urllib.request
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 if os.path.basename(script_dir) != "dev_tools" or script_dir != os.getcwd():
@@ -18,6 +18,7 @@ if os.path.basename(script_dir) != "dev_tools" or script_dir != os.getcwd():
 
 version = "2.5.0"
 windows_python_license_path = None
+venv_python = None
 
 linux_desktop_file = """[Desktop Entry]
 Type=Application
@@ -59,21 +60,22 @@ def install_customtkinter_to_dir(target_dir):
 
 
 def windows_prepare():
-    global windows_python_license_path
+    global venv_python, windows_python_license_path
 
     print("Creating a virtual environment...")
     subprocess.run(["python", "-m", "venv", "brenv"])
-
-    print("Switching to the virtual environment...")
-    subprocess.run("& .\brenv\\Scripts\\Activate.ps1", shell=True)
+    venv_dir = "brenv"
+    venv_python = os.path.join(venv_dir, "Scripts", "python.exe")
 
     print("Installing dependencies...")
-    subprocess.run(["pip", "install", "pyinstaller", "pip-licenses", "pillow", "customtkinter"])
+    subprocess.run([venv_python, "-m", "pip", "install", "pyinstaller", "pip-licenses", "pillow", "customtkinter"])
 
     print("Creating a file with licenses...")
     subprocess.run(
         [
-            "pip-licenses",
+            venv_python,
+            "-m",
+            "piplicenses",
             "--format=plain-vertical",
             "--with-license-file",
             "--no-license-path",
@@ -84,7 +86,7 @@ def windows_prepare():
         ]
     )
     with open("dependencies-licenses.txt", "a", encoding="utf8") as f:
-        f.append(
+        f.write(
             "\n\nThis exe file (Brushshe) uses dependencies that are dual-licensed under GPL/LGPL "
             "or permissive licenses (e.g., Apache, BSD). "
             "In all such cases, the permissive license has been selected."
@@ -256,12 +258,14 @@ elif args.exe:
     print("PyInstaller packaging...")
     subprocess.run(
         [
-            "pyinstaller",
+            venv_python,
+            "-m",
+            "PyInstaller",
             "--noconfirm",
             "--onedir",
             "--windowed",
             "--icon",
-            "..\\Brushshe\assets\\icons\\icon.ico",
+            r"..\Brushshe\assets\icons\icon.ico",
             "--name",
             "brushshe",
             "--add-data",
@@ -279,7 +283,7 @@ elif args.exe:
             "--add-data",
             "python-licenses.html;.",
             "--add-data",
-            "..\\Brushshe\assets;assets/",
+            r"..\Brushshe\assets;assets/",
             r"..\Brushshe\main.py",
         ]
     )
@@ -298,12 +302,14 @@ elif args.portable_exe:
     print("PyInstaller packaging...")
     subprocess.run(
         [
-            "pyinstaller",
+            venv_python,
+            "-m",
+            "PyInstaller",
             "--noconfirm",
             "--onefile",
             "--windowed",
             "--icon",
-            "..\\Brushshe\assets\\icons\\icon.ico",
+            r"..\Brushshe\assets\icons\icon.ico",
             "--name",
             "Brushshe_64bit_portable.exe",
             "--add-data",
@@ -321,15 +327,15 @@ elif args.portable_exe:
             "--add-data",
             "python-licenses.html;.",
             "--add-data",
-            "..\\Brushshe\assets;assets/",
+            r"..\Brushshe\assets;assets/",
             r"..\Brushshe\main.py",
         ]
     )
 
     print("Cleaning...")
+    shutil.move(r"dist\Brushshe_64bit_portable.exe", r"..\..")
     windows_common_cleaning()
     os.remove("Brushshe_64bit_portable.exe.spec")
-    shutil.move(r"dist\Brushshe_64bit_portable.exe", r"..\..")
 else:
     parser.print_help()
     sys.exit(1)
