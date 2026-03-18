@@ -3,18 +3,13 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import os
-import sys
 from collections import deque
 
 import customtkinter as ctk
 from core.bhcomposer import BhComposer
-from core.config_loader import config
 from PIL import Image
-
-
-def resource(relative_path):
-    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_path, relative_path)
+from utils.config_loader import config
+from utils.resource import resource
 
 
 def init():

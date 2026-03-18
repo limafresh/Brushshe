@@ -9,12 +9,12 @@ from pathlib import Path
 
 # from threading import Thread
 import customtkinter as ctk
-import messagebox
-from core.scroll import scroll
-from core.tooltip import Tooltip
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from PIL import Image
-from translator import _
+from ui import messagebox
+from ui.scroll import scroll
+from ui.tooltip import Tooltip
+from utils.translator import _
 
 
 def show(open_image):
@@ -194,11 +194,9 @@ def load_buttons():
 
                 filename_label.bind(
                     "<Button-1>",
-                    lambda e,
-                    parent=image_frame,
-                    text=name_without_ext,
-                    img_path=img_path,
-                    extension=ext: on_filename_label_click(e, parent, text, img_path, extension),
+                    lambda e, parent=image_frame, text=name_without_ext, img_path=img_path, extension=ext: (
+                        on_filename_label_click(e, parent, text, img_path, extension)
+                    ),
                 )
 
                 column += 1

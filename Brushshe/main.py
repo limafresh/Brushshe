@@ -12,17 +12,17 @@ from tkinter import PhotoImage
 import customtkinter as ctk
 import data
 import gallery
-import messagebox
-from core.brush_palette import BrushPalette
-from core.config_loader import config, write_config
-from core.scroll import scroll
-from core.spinbox import IntSpinbox
-from core.tooltip import Tooltip
 from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
-from data import resource
 from logic import BrushsheLogic
 from PIL import Image
-from translator import _
+from ui import messagebox
+from ui.brush_palette import BrushPalette
+from ui.scroll import scroll
+from ui.spinbox import IntSpinbox
+from ui.tooltip import Tooltip
+from utils.config_loader import config, write_config
+from utils.resource import resource
+from utils.translator import _
 
 
 class BrushsheUi(ctk.CTk):

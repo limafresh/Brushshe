@@ -13,15 +13,9 @@ from uuid import uuid4
 import customtkinter as ctk
 import data
 import gallery
-import messagebox
-from color_picker import AskColor
 from core.bezier import make_bezier
 from core.bhbrush import bh_draw_line, bh_draw_recoloring_line
 from core.bhhistory import BhHistory, BhPoint
-from core.config_loader import config, config_file_path, write_config
-from core.tooltip import Tooltip
-from data import resource
-from file_dialog import FileDialog
 from PIL import (
     Image,
     ImageChops,
@@ -35,7 +29,13 @@ from PIL import (
     ImageStat,
     ImageTk,
 )
-from translator import _
+from ui import messagebox
+from ui.color_picker import AskColor
+from ui.file_dialog import FileDialog
+from ui.tooltip import Tooltip
+from utils.config_loader import config, config_file_path, write_config
+from utils.resource import resource
+from utils.translator import _
 
 
 class BrushsheLogic:
@@ -201,7 +201,7 @@ class BrushsheLogic:
     def h_scrollbar_command(self, a, b, c=None):
         self.ui.canvas.xview(a, b, c)
         if data.canvas_tails_area is not None and self.get_canvas_tails_area() != data.canvas_tails_area:
-            self.logic.update_canvas()
+            self.update_canvas()
 
     def on_window_resize(self, event):
         # Update canvas after any resize window.

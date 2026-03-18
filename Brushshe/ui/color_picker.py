@@ -10,9 +10,9 @@ import math
 import random
 
 import customtkinter as ctk
-from data import resource
 from PIL import Image, ImageTk
-from translator import _
+from utils.resource import resource
+from utils.translator import _
 
 
 class AskColor(ctk.CTkToplevel):
