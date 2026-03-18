@@ -1,7 +1,5 @@
 # Brushshe - painting app
 
-![Static Badge](https://img.shields.io/badge/Tested_on-Windows%2C_Linux-orange)
-
 [View changelog](https://limafresh.github.io/Brushshe/docs/changelog)
 
 <p align="center">
