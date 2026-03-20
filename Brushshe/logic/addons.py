@@ -7,7 +7,7 @@ from utils.translator import _
 
 class Addons:
     def open_addon(self):
-        dialog = FileDialog(self.ui, title=_("Open addon"))
+        dialog = FileDialog(self.ui, title=_("Open add-on"))
         if dialog.path:
             self.run_addon(dialog.path)
 
