@@ -1,7 +1,5 @@
 # Brushshe - painting app
 
-[View changelog](https://limafresh.github.io/Brushshe/docs/changelog)
-
 <p align="center">
 	<img src="https://raw.githubusercontent.com/limafresh/Brushshe/main/Brushshe/assets/icons/logo.svg" width="100" height="100">
 </p>
@@ -39,7 +37,7 @@
 
 [![Static Badge](https://img.shields.io/badge/Download-.zip-orange?style=for-the-badge&logo=python&logoColor=white)](https://github.com/limafresh/Brushshe/tags)
 
-3. Install *CustomTkinter* and *Pillow* - open terminal or command line and enter:
+3. Install *CustomTkinter*, *Pillow* and *CTkMenuBar* - open terminal or command line and enter:
 ```bash
 pip install customtkinter Pillow CTkMenuBar
 ```
