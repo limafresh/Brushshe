@@ -3,6 +3,7 @@
 - Support for displaying image names and renaming images has been added to the gallery
 - Fixed bug after exiting the selection feature and scroll bug
 - Refactored project structure
+- Added experimental for add-ons, written in Python
 
 ## 2.4.0 codename "Windhoek"
 - Added hotkeys for copying, inserting, cutting, and deleting
