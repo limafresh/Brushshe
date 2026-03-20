@@ -1,4 +1,5 @@
 line-length = 120
+exclude = ["Brushshe/ui/CTkMenuBar/*.py"]
 
 [lint]
 extend-select = ["F", "E", "W", "I", "N"]

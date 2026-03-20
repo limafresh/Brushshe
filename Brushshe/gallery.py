@@ -9,9 +9,9 @@ from pathlib import Path
 
 # from threading import Thread
 import customtkinter as ctk
-from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from PIL import Image
 from ui import messagebox
+from ui.CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from ui.scroll import scroll
 from ui.tooltip import Tooltip
 from utils.translator import _

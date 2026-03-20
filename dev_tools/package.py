@@ -56,7 +56,6 @@ Description: Raster graphical editor
 def install_customtkinter_to_dir(target_dir):
     print("Installing customtkinter...")
     subprocess.run(["pip", "install", "customtkinter", f"--target={target_dir}"])
-    subprocess.run(["pip", "install", "CTkMenuBar", f"--target={target_dir}"])
     subprocess.run(r'find . | grep -E "(__pycache__|\.pyc$)" | xargs rm -rf', shell=True)
 
 
@@ -69,9 +68,7 @@ def windows_prepare():
     venv_python = os.path.join(venv_dir, "Scripts", "python.exe")
 
     print("Installing dependencies...")
-    subprocess.run(
-        [venv_python, "-m", "pip", "install", "pyinstaller", "pip-licenses", "pillow", "customtkinter", "CTkMenuBar"]
-    )
+    subprocess.run([venv_python, "-m", "pip", "install", "pyinstaller", "pip-licenses", "pillow", "customtkinter"])
 
     print("Creating a file with licenses...")
     subprocess.run(

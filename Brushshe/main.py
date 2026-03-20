@@ -12,11 +12,11 @@ from tkinter import PhotoImage
 import customtkinter as ctk
 import data
 import gallery
-from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from logic import BrushsheLogic
 from PIL import Image
 from ui import messagebox
 from ui.brush_palette import BrushPalette
+from ui.CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from ui.scroll import scroll
 from ui.spinbox import IntSpinbox
 from ui.tooltip import Tooltip

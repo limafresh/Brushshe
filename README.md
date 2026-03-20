@@ -37,9 +37,9 @@
 
 [![Static Badge](https://img.shields.io/badge/Download-.zip-orange?style=for-the-badge&logo=python&logoColor=white)](https://github.com/limafresh/Brushshe/tags)
 
-3. Install *CustomTkinter*, *Pillow* and *CTkMenuBar* - open terminal or command line and enter:
+3. Install *CustomTkinter* and *Pillow* - open terminal or command line and enter:
 ```bash
-pip install customtkinter Pillow CTkMenuBar
+pip install customtkinter Pillow
 ```
 4. Run file `Brushshe/main.py`.
 
@@ -102,7 +102,7 @@ The goal of the project is to provide a open-source, convenient, beautiful and m
 ## Contributions
 
 All contributions are welcome!
-+ Do not use third-party libraries. Only standard Python libraries, CustomTkinter, Pillow/PIL and CTkMenuBar.
++ Do not use third-party libraries. Only standard Python libraries, CustomTkinter and Pillow/PIL.
 
 ## Credits
 
@@ -127,6 +127,7 @@ The internationalization of this program has a simple principle - it determines 
 
 + `assets/` (stickers, frames, etc., except for some subfolders with other licenses) - *CC0 1.0*
 + `docs/` - *CC0 1.0*
++ `CTkMenuBar` - *CC0 1.0*
 + `README.md` (this file), `main.py`, other files with the CC0 header - *CC0 1.0*
 
 ## For developers
