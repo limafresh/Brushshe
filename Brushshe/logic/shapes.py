@@ -6,7 +6,6 @@ import data
 from core.bezier import make_bezier
 from core.bhbrush import bh_draw_line
 from PIL import ImageDraw
-from utils import colors
 
 
 class Shapes:
@@ -18,7 +17,7 @@ class Shapes:
 
             self.shape_x, self.shape_y = self.ui.canvas.canvasx(event.x), self.ui.canvas.canvasy(event.y)
             x_begin, y_begin = self.canvas_to_pict_xy(event.x, event.y)
-            colors.get_contrast_color()
+            self.get_contrast_color()
 
             shape_methods = {
                 "Rectangle": self.ui.canvas.create_rectangle,
@@ -119,7 +118,7 @@ class Shapes:
             nonlocal canvas_points, image_points, bezier_id
 
             if len(canvas_points) == 0:
-                colors.get_contrast_color()
+                self.get_contrast_color()
 
                 cx, cy = self.ui.canvas.canvasx(event.x), self.ui.canvas.canvasy(event.y)
 
