@@ -137,6 +137,7 @@ class BrushsheUi(ctk.CTk):
 
         other_menu = menu.add_cascade(_("More"))
         other_dropdown = CustomDropdownMenu(widget=other_menu)
+        other_dropdown.add_option(option=_("Run addon"), command=self.logic.open_addon)
         other_dropdown.add_option(option=_("Settings"), command=self.settings)
         other_dropdown.add_option(
             option=_("Reset settings after exiting"), command=self.logic.reset_settings_after_exiting

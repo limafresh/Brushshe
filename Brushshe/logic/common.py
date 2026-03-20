@@ -23,15 +23,6 @@ from utils.translator import _
 
 
 class Common:
-    def __init__(self, ui):
-        self.ui = ui
-
-        self.timer_mask_time_for_update = 200  # ms
-        self.timer_mask_last_update = 0
-        self.timer_mask_update = self.ui.after(self.timer_mask_time_for_update, self.mask_update)
-
-        data.init()
-
     # Keybinding without locale.
     def key_handler(self, event):
         if self.current_tool != "text":

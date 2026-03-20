@@ -159,5 +159,7 @@
 	"Random color": "Случайный цвет",
 	"Color theme": "Цветовая тема",
 	"Language": "Язык",
-	"A restart is required": "Требуется перезапуск"
+	"A restart is required": "Требуется перезапуск",
+	"Run addon": "Запустить дополнение",
+	"Open addon": "Открыть дополнение"
 }

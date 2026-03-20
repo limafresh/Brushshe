@@ -159,5 +159,7 @@
 	"Random color": "Випадковий колір",
 	"Color theme": "Колірна тема",
 	"Language": "Мова",
-	"A restart is required": "Потрібен перезапуск"
+	"A restart is required": "Потрібен перезапуск",
+	"Run addon": "Запустити доповнення",
+	"Open addon": "Відкрити доповнення"
 }
