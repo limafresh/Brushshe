@@ -247,8 +247,7 @@ class Common:
         askcolor = AskColor(title=_("Color select"), initial_color=data.brush_color)
         self.obtained_color = askcolor.get()
         if self.obtained_color:
-            data.brush_color = self.obtained_color
-            self.ui.brush_palette.main_color = self.obtained_color
+            self.change_color(self.obtained_color)
 
     def second_color_choice(self):
         askcolor = AskColor(title=_("Color select"), initial_color=data.second_brush_color)
@@ -266,8 +265,7 @@ class Common:
                 hover_color=self.obtained_color,
                 command=lambda c=self.obtained_color: self.change_color(c),
             )
-            data.brush_color = self.obtained_color
-            self.ui.brush_palette.main_color = self.obtained_color
+            self.change_color(self.obtained_color)
 
     def flip_brush_colors(self):
         data.brush_color = self.ui.brush_palette.second_color
