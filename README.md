@@ -8,7 +8,7 @@
 
 **Brushshe** is a simple and user-friendly raster graphics editor. Available for Windows and Linux.
 
-![Screenshot](https://raw.githubusercontent.com/limafresh/Brushshe/main/docs/screenshot.png)
+![Screenshot](https://raw.githubusercontent.com/limafresh/Brushshe/main/screenshot.png)
 
 [View more screenshots](https://github.com/limafresh/Brushshe/wiki/Screenshots)
 
@@ -126,9 +126,8 @@ The internationalization of this program has a simple principle - it determines 
 ### Public domain components (paths are relative)
 
 + `assets/` (stickers, frames, etc., except for some subfolders with other licenses) - *CC0 1.0*
-+ `docs/` - *CC0 1.0*
 + `CTkMenuBar` - *CC0 1.0*
-+ `README.md` (this file), `main.py`, other files with the CC0 header - *CC0 1.0*
++ `main.py`, other files with the CC0 header - *CC0 1.0*
 
 ## For developers
 
