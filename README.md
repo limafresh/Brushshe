@@ -10,7 +10,7 @@
 
 ![Screenshot](https://raw.githubusercontent.com/limafresh/Brushshe/main/docs/screenshot.png)
 
-[View more screenshots](https://github.com/limafresh/Brushshe/discussions/2)
+[View more screenshots](https://github.com/limafresh/Brushshe/wiki/Screenshots)
 
 ## ⬇️ Installation
 
@@ -72,7 +72,7 @@ pip install customtkinter Pillow
 + **Cut, copy and insert**: Cut, copy or insert fragments. Works on Windows, but on Linux you need to install `xclip` (X11) or `wl-paste` (Wayland). If they are not installed, everything else will work, but when you try to paste from the buffer, you will get a message that this is impossible.
 + **Remove white background**: Replace white or really light gray background to transparent.
 + **Select**: rectangle and polygon select, invert selected, deselect all, fuzzy select, select by color.
-+ **Add-ons**: [write your own add-ons in Python](https://github.com/limafresh/Brushshe/wiki/Brushshe-add%E2%80%90ons)
++ **Add-ons**: [write your own add-ons in Python](https://github.com/limafresh/Brushshe/wiki/Brushshe-add%E2%80%90ons).
 
 ## Hotkeys
 
