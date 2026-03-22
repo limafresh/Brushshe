@@ -1,10 +1,7 @@
-# Brushshe - painting app
-
-<p align="center">
-	<img src="https://raw.githubusercontent.com/limafresh/Brushshe/main/Brushshe/assets/icons/logo.svg" width="100" height="100">
-</p>
-
-## Description
+<div align="center">
+	<h1>Brushshe - painting app</h1>
+	<img src="https://raw.githubusercontent.com/limafresh/Brushshe/main/Brushshe/assets/icons/logo.svg" width="100px">
+</div>
 
 **Brushshe** is a simple and user-friendly raster graphics editor. Available for Windows and Linux.
 
@@ -76,33 +73,30 @@ pip install customtkinter Pillow
 
 ## Hotkeys
 
-+ *Ctrl+Z*: undo
-+ *Ctrl+Y*: redo
-+ *Ctrl+S*: save to gallery
-+ *Ctrl+X*: cut
-+ *Ctrl+C*: copy
-+ *Ctrl+V*: insert
-+ *Delete*: delete
-+ *Ctrl+F* or *X*: flip colors
-+ *Ctrl+B* or *B*: brush
-+ *Ctrl+E* or *E*: eraser
-+ *=*: zoom in
-+ *-*: zoom out
-+ *[*: down by 1 the brush or other tools size
-+ *]*: up by 1 the brush or other tools size
-+ *{*: down by 10 the brush or other tools size
-+ *}*: up by 10 the brush or other tools size
-+ *Shift + mouse scroll*: scrolling the canvas horizontally
-+ *Middle mouse button*: move canvas
+| Hotkey                 | Action                                   |
+|------------------------|------------------------------------------|
+| *Ctrl+Z*               | undo                                     |
+| *Ctrl+Y*               | redo                                     |
+| *Ctrl+S*               | save to gallery                          |
+| *Ctrl+X*               | cut                                      |
+| *Ctrl+C*               | copy                                     |
+| *Ctrl+V*               | insert                                   |
+| *Delete*               | delete                                   |
+| *Ctrl+F* or *X*        | flip colors                              |
+| *Ctrl+B* or *B*        | brush                                    |
+| *Ctrl+E* or *E*        | eraser                                   |
+| *=*                    | zoom in                                  |
+| *-*                    | zoom out                                 |
+| *[*                    | down by 1 the brush or other tools size  |
+| *]*                    | up by 1 the brush or other tools size    |
+| *{*                    | down by 10 the brush or other tools size |
+| *}*                    | up by 10 the brush or other tools size   |
+| *Shift + mouse scroll* | scrolling the canvas horizontally        |
+| *Middle mouse button*  | move canvas                              |
 
 ## Goal of project
 
 The goal of the project is to provide a open-source, convenient, beautiful and multifunctional painting app using the CustomTkinter toolkit.
-
-## Contributions
-
-All contributions are welcome!
-+ Do not use third-party libraries. Only standard Python libraries, CustomTkinter and Pillow/PIL.
 
 ## Credits
 
@@ -110,10 +104,6 @@ All contributions are welcome!
 + Thanks to [a13xe](https://github.com/a13xe/) for the wonderful [CTkThemesPack](https://github.com/a13xe/CTkThemesPack).
 + Thanks [Chip Viled](https://github.com/chipviled) for contributing.
 + Thanks to our translators: [sagar12](https://github.com/Sagar1205b) (Hindi); [Sagar Sirbi](https://github.com/sagarsirbi), [iLollek](https://github.com/iLollek) (German); [albanobattistella](https://github.com/albanobattistella) (Italian).
-
-## Translations
-
-The internationalization of this program has a simple principle - it determines what the computer's localization is (for example, *en*, *ru*, etc.), and then applies the `Brushshe/assets/locales/{localization}.json` file, where *localization* is the computer's localization.
 
 ## Licenses
 
@@ -131,9 +121,28 @@ The internationalization of this program has a simple principle - it determines 
 
 ## For developers
 
+### Translations
+
+The internationalization of this program has a simple principle - it determines what the computer's localization is (for example, *en*, *ru*, etc.), and then applies the `Brushshe/assets/locales/{localization}.json` file, where *localization* is the computer's localization.
+
+### Contributions
+
+All contributions are welcome!
++ Do not use third-party libraries. Only standard Python libraries, CustomTkinter and Pillow/PIL.
+
 ### Linter
 
 [Ruff](https://github.com/astral-sh/ruff) is used to maintain code cleanliness.
+
+### Packaging for OS
+
+There is a file `package.py` in the `dev_tools/` folder.
+
+```
+python package.py --help
+```
+
+## Codenames
 
 Starting with version 2.0.0, each version will be given a code name based on the names of cities in alphabetical order. 2.0.0 starts with "S" because it is the 19th letter of the alphabet, and since 1.0.0 there have been 18 versions. Example:
 
