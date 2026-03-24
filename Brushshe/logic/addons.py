@@ -6,6 +6,7 @@ import importlib.util
 from types import SimpleNamespace
 
 import data
+from ui import messagebox
 from ui.file_dialog import FileDialog
 from utils.translator import _
 
@@ -39,7 +40,13 @@ class Addons:
         spec.loader.exec_module(module)
 
         if hasattr(module, "register"):
-            module.register(api)
+            try:
+                module.register(api)
+            except Exception as e:
+                messagebox.addon_error(e)
+            self.record_action()
+        else:
+            messagebox.addon_not_have_register_function()
 
     def set_addon_tool_size(self, size):
         data.tool_size = size

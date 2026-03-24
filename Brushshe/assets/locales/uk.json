@@ -162,5 +162,7 @@
 	"A restart is required": "Потрібен перезапуск",
 	"Run add-on": "Запустити доповнення",
 	"Open add-on": "Відкрити доповнення",
-	"Add-on": "Доповнення"
+	"Add-on": "Доповнення",
+	"Add-on error:": "Помилка доповнення:",
+	"The add-on does not have the function": "Доповнення не має функції"
 }

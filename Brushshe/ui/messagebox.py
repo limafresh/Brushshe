@@ -651,3 +651,22 @@ def continue_big_size():
         option_2=_("Yes"),
     )
     return continue_big_size_msg
+
+
+def addon_not_have_register_function():
+    addon_not_have_register_function_msg = Messagebox(
+        title=_("Oh, unfortunately, it happened"),
+        message=_("The add-on does not have the function") + ' "def register(brushshe):"',
+        icon="error",
+    )
+
+    return addon_not_have_register_function_msg
+
+
+def addon_error(error):
+    addon_error_msg = Messagebox(
+        title=_("Oh, unfortunately, it happened"),
+        message=f"{_('Add-on error:')} {error}",
+        icon="error",
+    )
+    return addon_error_msg
