@@ -107,15 +107,16 @@ class Screenshot:
             self.image = screenshot_img.copy()
             self.picture_postconfigure()
             screenshot_window.destroy()
+            self.ui.deiconify()
 
         self.ui.withdraw()
         self.ui.iconify()
         self.ui.after(200)
         screenshot = ImageGrab.grab()
-        self.ui.deiconify()
 
         screenshot_window = ctk.CTkToplevel(self.ui)
         screenshot_window.attributes("-fullscreen", True)
+        screenshot_window.state("zoomed")
 
         screenshot_canvas = ctk.CTkCanvas(screenshot_window)
         screenshot_canvas.pack(fill="both", expand=True)
@@ -127,9 +128,11 @@ class Screenshot:
         screenshot_button_frame = ctk.CTkFrame(screenshot_window)
         screenshot_button_frame.place(x=10, y=10)
 
-        ctk.CTkButton(screenshot_button_frame, text=_("Cancel"), command=lambda: screenshot_window.destroy()).pack(
-            side="left", padx=10, pady=10
-        )
+        ctk.CTkButton(
+            screenshot_button_frame,
+            text=_("Cancel"),
+            command=lambda: (screenshot_window.destroy(), self.ui.deiconify()),
+        ).pack(side="left", padx=10, pady=10)
         ctk.CTkButton(
             screenshot_button_frame, text="OK", command=lambda: ready_screenshot(self.finished_screenshot)
         ).pack(side="left", padx=10, pady=10)
