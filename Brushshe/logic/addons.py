@@ -22,6 +22,7 @@ class Addons:
         self.set_tool("addon", "Add-on", None, None, None, "arrow")
 
         api = SimpleNamespace(
+            # Functions
             draw_line=self.draw_line,
             undo=self.undo,
             redo=self.redo,
@@ -34,6 +35,9 @@ class Addons:
             flip_brush_colors=self.flip_brush_colors,
             remove_white_background=self.remove_white_background,
             set_addon_tool_size=self.set_addon_tool_size,
+            # Variables
+            tool_config_docker=self.ui.tool_config_docker,
+            canvas=self.ui.canvas,
         )
         spec = importlib.util.spec_from_file_location("addon", path)
         module = importlib.util.module_from_spec(spec)
