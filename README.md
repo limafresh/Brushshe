@@ -3,7 +3,7 @@
 	<img src="https://raw.githubusercontent.com/limafresh/Brushshe/main/Brushshe/assets/icons/logo.svg" width="100px">
 </div>
 
-**Brushshe** is a simple and user-friendly raster graphics editor. Available for Windows and Linux.
+**Brushshe** is a simple and user-friendly raster graphics editor, the features of which can be extended with add-ons. Available for Windows and Linux.
 
 ![Screenshot](https://raw.githubusercontent.com/limafresh/Brushshe/main/screenshot.png)
 
