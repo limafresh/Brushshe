@@ -159,5 +159,10 @@
 	"Random color": "Случайный цвет",
 	"Color theme": "Цветовая тема",
 	"Language": "Язык",
-	"A restart is required": "Требуется перезапуск"
+	"A restart is required": "Требуется перезапуск",
+	"Run add-on": "Запустить дополнение",
+	"Open add-on": "Открыть дополнение",
+	"Add-on": "Дополнение",
+	"Add-on error:": "Ошибка дополнения:",
+	"The add-on does not have the function": "Дополнение не имеет функции"
 }

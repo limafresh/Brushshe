@@ -5,8 +5,8 @@
 import json
 from locale import getlocale
 
-from core.config_loader import config, write_config
-from data import resource
+from utils.config_loader import config, write_config
+from utils.resource import resource
 
 
 def load_language(language_code):

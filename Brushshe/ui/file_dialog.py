@@ -6,9 +6,9 @@ import tkinter as tk
 from tkinter import ttk
 
 import customtkinter as ctk
-import messagebox
-from data import resource
-from translator import _
+from ui import messagebox
+from utils.resource import resource
+from utils.translator import _
 
 
 class FileDialog(ctk.CTkToplevel):

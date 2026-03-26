@@ -3,18 +3,13 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import os
-import sys
 from collections import deque
 
 import customtkinter as ctk
 from core.bhcomposer import BhComposer
-from core.config_loader import config
 from PIL import Image
-
-
-def resource(relative_path):
-    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_path, relative_path)
+from utils.config_loader import config
+from utils.resource import resource
 
 
 def init():
@@ -28,9 +23,9 @@ def init():
 """Version"""
 version_prefix = ""
 version_major = "2"
-version_minor = "4"
+version_minor = "5"
 version_patch = "0"
-version_suffix = ' "Windhoek"'
+version_suffix = ' "Xalapa"'
 
 version_full = "{0}{1}.{2}.{3}{4}".format(version_prefix, version_major, version_minor, version_patch, version_suffix)
 
@@ -156,4 +151,4 @@ for root, dirs, files in os.walk(themes_folder):
 color_themes.extend(["blue", "green", "dark-blue"])
 
 """Languages"""
-languages = {"Українська": "uk", "English": "en", "Русский": "ru", "Deutsch": "de", "हिन्दी": "hi"}
+languages = {"Українська": "uk", "English": "en", "Русский": "ru", "Deutsch": "de", "हिन्दी": "hi", "Italiano": "it"}

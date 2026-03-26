@@ -9,12 +9,12 @@ from pathlib import Path
 
 # from threading import Thread
 import customtkinter as ctk
-import messagebox
-from core.scroll import scroll
-from core.tooltip import Tooltip
-from CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from PIL import Image
-from translator import _
+from ui import messagebox
+from ui.CTkMenuBar import CTkMenuBar, CustomDropdownMenu
+from ui.scroll import scroll
+from ui.tooltip import Tooltip
+from utils.translator import _
 
 
 def show(open_image):
@@ -48,6 +48,52 @@ def show(open_image):
     load_buttons()
 
 
+def shorten_filename(filename: str, max_length: int = 20) -> str:
+    if len(filename) > max_length:
+        return filename[: max_length - 3] + "..."
+    else:
+        return filename
+
+
+def on_filename_label_click(event, parent, text, img_path, extension):
+    event.widget.destroy()
+
+    filename_entry = ctk.CTkEntry(parent)
+    filename_entry.grid(row=1, column=0)
+    filename_entry.insert(0, text)
+
+    def on_return(event):
+        new_text = filename_entry.get()
+        new_path = os.path.join(os.path.dirname(img_path), new_text + extension)
+
+        if not os.path.exists(new_path):
+            os.rename(img_path, new_path)
+            label_text = new_text
+        else:
+            msg = messagebox.overwrite_file()
+            if msg.get() == _("Yes"):
+                os.rename(img_path, new_path)
+                label_text = new_text
+                load_buttons()
+                return
+            else:
+                label_text = text
+
+        label_content = shorten_filename(label_text)
+
+        filename_entry.destroy()
+
+        new_filename_label = ctk.CTkLabel(parent, text=label_content, cursor="xterm")
+        new_filename_label.grid(row=1, column=0)
+
+        new_filename_label.bind(
+            "<Button-1>", lambda e: on_filename_label_click(e, parent, label_text, new_path, extension)
+        )
+
+    filename_entry.bind("<Return>", on_return)
+    filename_entry.focus()
+
+
 def load_buttons():
     global my_gallery, open_image_func, progressbar, gallery_frame, gallery_scrollable_frame
 
@@ -76,6 +122,8 @@ def load_buttons():
             if filename.suffix == ".png":
                 is_image_found = True
                 img_path = str(filename)
+                img_file_name = os.path.basename(img_path)
+                name_without_ext, ext = os.path.splitext(img_file_name)
 
                 image_tmp_2 = get_image_from_cache(
                     cache_folder,
@@ -112,8 +160,11 @@ def load_buttons():
                     w = image_tmp_2.width
                     h = image_tmp_2.height
 
+                image_frame = ctk.CTkFrame(gallery_frame)
+                image_frame.grid(row=row, column=column, padx=10, pady=10)
+
                 image_button = ctk.CTkButton(
-                    gallery_frame,
+                    image_frame,
                     image=ctk.CTkImage(image_tmp_2, size=(w, h)),
                     width=preview_size + 10,
                     height=preview_size + 10,
@@ -123,10 +174,10 @@ def load_buttons():
                     command=lambda img_path=img_path: open_image_func(img_path),
                     cursor="hand1",
                 )
-                image_button.grid(row=row, column=column, padx=10, pady=10)
+                image_button.grid(row=0, column=0)
 
                 delete_image_button = ctk.CTkButton(
-                    image_button,
+                    image_frame,
                     text="X",
                     fg_color="red",
                     hover_color="#cc0000",
@@ -136,6 +187,17 @@ def load_buttons():
                 )
                 delete_image_button.place(x=5, y=5)
                 Tooltip(delete_image_button, message=_("Delete"))
+
+                label_content = shorten_filename(name_without_ext)
+                filename_label = ctk.CTkLabel(image_frame, text=label_content, cursor="xterm")
+                filename_label.grid(row=1, column=0)
+
+                filename_label.bind(
+                    "<Button-1>",
+                    lambda e, parent=image_frame, text=name_without_ext, img_path=img_path, extension=ext: (
+                        on_filename_label_click(e, parent, text, img_path, extension)
+                    ),
+                )
 
                 column += 1
                 if column >= 3:
