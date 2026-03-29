@@ -58,6 +58,8 @@ class ChangeSize:
 
         change_size_toplevel = ctk.CTkToplevel(self)
         change_size_toplevel.title(_("Change size..."))
+        change_size_toplevel.wm_iconbitmap()
+        change_size_toplevel.after(300, lambda: change_size_toplevel.iconphoto(False, self.iconpath))
         change_size_toplevel.transient(self)
 
         size_sb = ctk.CTkSegmentedButton(change_size_toplevel, values=[_("Crop"), _("Scale")], command=size_sb_callback)

@@ -13,6 +13,8 @@ class Gallery:
         my_gallery = ctk.CTkToplevel()
         my_gallery.title(_("Brushshe Gallery"))
         my_gallery.geometry("650x580")
+        my_gallery.wm_iconbitmap()
+        my_gallery.after(300, lambda: my_gallery.iconphoto(False, self.iconpath))
 
         menu = CTkMenuBar(my_gallery)
         gallery_menu = menu.add_cascade(_("My Gallery"))

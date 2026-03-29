@@ -21,6 +21,8 @@ class Stickers:
         sticker_choose = ctk.CTkToplevel(self)
         sticker_choose.geometry("370x500")
         sticker_choose.title(_("Choose a sticker"))
+        sticker_choose.wm_iconbitmap()
+        sticker_choose.after(300, lambda: sticker_choose.iconphoto(False, self.iconpath))
 
         tabview = ctk.CTkTabview(sticker_choose, command=tabview_callback)
         tabview.add(_("From set"))

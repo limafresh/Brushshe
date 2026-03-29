@@ -12,6 +12,8 @@ class Frames:
     def show_frame_choice(self):
         frames_win = ctk.CTkToplevel(self)
         frames_win.title(_("Frames"))
+        frames_win.wm_iconbitmap()
+        frames_win.after(300, lambda: frames_win.iconphoto(False, self.iconpath))
 
         row = 0
         column = 0

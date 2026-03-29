@@ -63,6 +63,8 @@ class Settings:
         settings_tl = ctk.CTkToplevel(self)
         settings_tl.geometry("400x650")
         settings_tl.title(_("Settings"))
+        settings_tl.wm_iconbitmap()
+        settings_tl.after(300, lambda: settings_tl.iconphoto(False, self.iconpath))
         settings_tl.transient(self)
 
         settings_frame = ctk.CTkScrollableFrame(settings_tl, fg_color="transparent")

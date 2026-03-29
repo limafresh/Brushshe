@@ -2,14 +2,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-import os
 import sys
-from tkinter import PhotoImage
 
 import customtkinter as ctk
 import data
 from logic import BrushsheLogic
-from PIL import Image
+from PIL import Image, ImageTk
 from ui.brush_palette import BrushPalette
 from ui.tooltip import Tooltip
 from utils.config_loader import config
@@ -32,10 +30,11 @@ class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Stickers, Frames, Gall
         """ Main window """
         self.geometry("790x680")
         self.title(_("Unnamed") + " - " + _("Brushshe"))
-        if os.name == "nt":
-            self.iconbitmap(resource("assets/icons/icon.ico"))
-        else:
-            self.iconphoto(True, PhotoImage(file=resource("assets/icons/icon.png")))
+
+        self.iconpath = ImageTk.PhotoImage(file=resource("assets/icons/icon.png"))
+        self.wm_iconbitmap()
+        self.iconphoto(False, self.iconpath)
+
         self.protocol("WM_DELETE_WINDOW", self.logic.when_closing)
 
         self.create_menubar()
