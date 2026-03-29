@@ -25,9 +25,9 @@ def init():
 """Version"""
 version_prefix = ""
 version_major = "2"
-version_minor = "5"
+version_minor = "6"
 version_patch = "0"
-version_suffix = ' "Xalapa"'
+version_suffix = ' "Yerevan"'
 
 version_full = "{0}{1}.{2}.{3}{4}".format(version_prefix, version_major, version_minor, version_patch, version_suffix)
 
