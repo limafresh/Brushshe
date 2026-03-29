@@ -117,7 +117,7 @@ The goal of the project is to provide a open-source, convenient, beautiful and m
 
 + `assets/` (stickers, frames, etc., except for some subfolders with other licenses) - *CC0 1.0*
 + `CTkMenuBar` - *CC0 1.0*
-+ `main.py`, other files with the CC0 header - *CC0 1.0*
++ `ui/messagebox.py`, other files with the CC0 header - *CC0 1.0*
 
 ## For developers
 

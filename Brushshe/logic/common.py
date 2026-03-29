@@ -10,7 +10,6 @@ from uuid import uuid4
 
 import customtkinter as ctk
 import data
-import gallery
 from core.bhbrush import bh_draw_line
 from PIL import Image, ImageChops, ImageDraw, ImageFont, ImageGrab, ImageStat, ImageTk
 from ui import messagebox
@@ -228,9 +227,9 @@ class Common:
             self.update_canvas()
 
     def save_to_gallery(self):
-        file_path = gallery.gallery_folder / f"{uuid4()}.png"
+        file_path = data.gallery_folder / f"{uuid4()}.png"
         while file_path.exists():
-            file_path = gallery.gallery_folder / f"{uuid4()}.png"
+            file_path = data.gallery_folder / f"{uuid4()}.png"
         self.image.save(file_path)
         self.saved_copy = self.image.copy()
 

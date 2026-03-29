@@ -3,7 +3,9 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import os
+import platform
 from collections import deque
+from pathlib import Path
 
 import customtkinter as ctk
 from core.bhcomposer import BhComposer
@@ -152,3 +154,14 @@ color_themes.extend(["blue", "green", "dark-blue"])
 
 """Languages"""
 languages = {"Українська": "uk", "English": "en", "Русский": "ru", "Deutsch": "de", "हिन्दी": "hi", "Italiano": "it"}
+
+"""Gallery folder"""
+if platform == "windows":
+    images_folder = Path(os.environ["USERPROFILE"]) / "Pictures"
+else:
+    images_folder = Path(os.environ.get("XDG_PICTURES_DIR", str(Path.home())))
+gallery_folder = images_folder / "Brushshe Images"
+
+
+if not gallery_folder.exists():
+    gallery_folder.mkdir(parents=True)
