@@ -14,6 +14,7 @@ from utils.config_loader import config
 from utils.resource import resource
 from utils.translator import _
 
+from .addon_manager import AddonManager
 from .change_size import ChangeSize
 from .frames import Frames
 from .gallery import Gallery
@@ -22,7 +23,7 @@ from .settings import Settings
 from .stickers import Stickers
 
 
-class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Stickers, Frames, Gallery):
+class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Stickers, Frames, Gallery, AddonManager):
     def __init__(self):
         super().__init__(className="Brushshe")
         self.logic = BrushsheLogic(self)

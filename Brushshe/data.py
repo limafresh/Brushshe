@@ -3,7 +3,7 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import os
-import platform
+import sys
 from collections import deque
 from pathlib import Path
 
@@ -158,15 +158,19 @@ color_themes.extend(["blue", "green", "dark-blue"])
 languages = {"Українська": "uk", "English": "en", "Русский": "ru", "Deutsch": "de", "हिन्दी": "hi", "Italiano": "it"}
 
 """Gallery folder"""
-if platform == "windows":
+if sys.platform == "win32":
     images_folder = Path(os.environ["USERPROFILE"]) / "Pictures"
 else:
     images_folder = Path(os.environ.get("XDG_PICTURES_DIR", str(Path.home())))
 gallery_folder = images_folder / "Brushshe Images"
 
-
 if not gallery_folder.exists():
     gallery_folder.mkdir(parents=True)
+
+"""Addons folder"""
+addons_folder = Path.home() / ".brushshe" / "addons"
+if not addons_folder.exists():
+    addons_folder.mkdir(parents=True)
 
 """Masks"""
 mask_views = ["display as fill", "display as ants"]

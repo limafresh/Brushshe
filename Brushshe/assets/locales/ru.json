@@ -163,8 +163,13 @@
 	"A restart is required": "Требуется перезапуск",
 	"Run add-on": "Запустить дополнение",
 	"Open add-on": "Открыть дополнение",
+	"Open and run add-on from file": "Открыть и запустить дополнение из файла",
+	"Add-on Manager": "Управление дополнениями",
 	"Add-on": "Дополнение",
 	"Add-on error:": "Ошибка дополнения:",
 	"The add-on does not have the function": "Дополнение не имеет функции",
-	"Add-ons": "Дополнения"
+	"Add-ons": "Дополнения",
+	"Installed add-ons": "Установленные дополнения",
+	"Add-on Store": "Магазин дополнений",
+	"Install add-on from file": "Установить дополнение из файла"
 }

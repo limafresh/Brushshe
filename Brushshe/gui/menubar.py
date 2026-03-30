@@ -71,7 +71,8 @@ class MenuBar:
         """Add-ons menu"""
         addons_menu = menu.add_cascade(_("Add-ons"))
         addons_dropdown = CustomDropdownMenu(widget=addons_menu)
-        addons_dropdown.add_option(option=_("Run add-on"), command=self.logic.open_addon)
+        addons_dropdown.add_option(option=_("Open and run add-on from file"), command=self.logic.open_addon)
+        addons_dropdown.add_option(option=_("Add-on Manager"), command=self.open_addon_manager)
 
         """More menu"""
         more_menu = menu.add_cascade(_("More"))
