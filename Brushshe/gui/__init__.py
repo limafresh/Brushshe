@@ -306,8 +306,7 @@ class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Stickers, Frames, Gall
         )
         self.palette_widget.pack(side="left", fill="x", padx=2, pady=2)
 
-        self.standard_palettes = ["default", "4bit", "vintage", "seven"]
-        if config.get("Brushshe", "palette") in self.standard_palettes:
+        if config.get("Brushshe", "palette") in data.standard_palettes:
             self.logic.import_palette(resource(f"assets/palettes/{config.get('Brushshe', 'palette')}_palette.hex"))
         else:
             self.logic.import_palette(resource(config.get("Brushshe", "palette")))
@@ -322,6 +321,7 @@ class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Stickers, Frames, Gall
         self.update()  # Update interface before recalculate canvas.
         self.logic.force_resize_canvas()
         self.logic.update_canvas()
+        self.logic.set_mask_type(data.mask_views_dict[config.get("Brushshe", "mask")])
 
         if len(sys.argv) > 1:
             self.logic.open_image(sys.argv[1])

@@ -130,6 +130,7 @@
 	"Rectangle select": "Прямокутне виділення",
 	"Polygon select": "Багатокутне виділення",
 	"Invert selected": "Інвертувати виділене",
+	"Select all": "Виділити все",
 	"Deselect all": "Скасувати все виділене",
 	"Open from URL": "Відкрити з URL",
 	"Enter URL:": "Введіть URL:",
@@ -142,8 +143,9 @@
 	"Save": "Зберегти",
 	"There are unsaved changes. Exit?": "Є незбережені змінення. Вийти?",
 	"Smoothing": "Згладжування",
-	"Display mask as fill": "Відображати маску як заливку",
-	"Display mask as ants (experimental)": "Відображати маску як мурах (експериментально)",
+	"Mask": "Маска",
+	"Display as fill": "Відображати як заливку",
+	"Display as ants": "Відображати як мурах",
 	"Gradient": "Градієнт",
 	"Vertically": "Вертикально",
 	"Horizontally": "Горизонтально",
@@ -164,5 +166,6 @@
 	"Open add-on": "Відкрити доповнення",
 	"Add-on": "Доповнення",
 	"Add-on error:": "Помилка доповнення:",
-	"The add-on does not have the function": "Доповнення не має функції"
+	"The add-on does not have the function": "Доповнення не має функції",
+	"Add-ons": "Доповнення"
 }

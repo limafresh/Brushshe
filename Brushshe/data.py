@@ -70,6 +70,8 @@ current_font = "Open Sans"
 font_path = resource("assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
 is_reset_settings_after_exiting = False
 
+standard_palettes = ["default", "4bit", "vintage", "seven"]
+
 """Stickers"""
 # Width and height of all sticker images - 88 px
 # Width and height of new sticker images - 512 px
@@ -165,3 +167,7 @@ gallery_folder = images_folder / "Brushshe Images"
 
 if not gallery_folder.exists():
     gallery_folder.mkdir(parents=True)
+
+"""Masks"""
+mask_views = ["display as fill", "display as ants"]
+mask_views_dict = {"display as fill": 0, "display as ants": 1}

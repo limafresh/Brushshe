@@ -142,8 +142,9 @@
 	"There are unsaved changes. Exit?": "Есть несохранённые изменения. Выйти?",
 	"Smoothing": "Сглаживание",
 	"Select all": "Выделить всё",
-	"Display mask as fill": "Отображать маску как заливку",
-	"Display mask as ants (experimental)": "Отображать маску как муравьёв (экспериментально)",
+	"Mask": "Маска",
+	"Display as fill": "Отображать как заливку",
+	"Display as ants": "Отображать как муравьёв",
 	"Gradient": "Градиент",
 	"Vertically": "Вертикально",
 	"Horizontally": "Горизонтально",
@@ -164,5 +165,6 @@
 	"Open add-on": "Открыть дополнение",
 	"Add-on": "Дополнение",
 	"Add-on error:": "Ошибка дополнения:",
-	"The add-on does not have the function": "Дополнение не имеет функции"
+	"The add-on does not have the function": "Дополнение не имеет функции",
+	"Add-ons": "Дополнения"
 }

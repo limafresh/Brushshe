@@ -43,6 +43,11 @@ class Settings:
             config.set("Brushshe", "brush_smoothing_factor", str(data.brush_smoothing_factor))
             write_config()
 
+        def mask_radiobutton_callback():
+            self.logic.set_mask_type(data.mask_views_dict[mask_var.get()])
+            config.set("Brushshe", "mask", mask_var.get())
+            write_config()
+
         def palette_radiobutton_callback():
             self.logic.import_palette(resource(f"assets/palettes/{palette_var.get()}_palette.hex"))
             config.set("Brushshe", "palette", palette_var.get())
@@ -120,13 +125,28 @@ class Settings:
         bsf_slider.set(data.brush_smoothing_factor)
         bsf_slider.pack(padx=10, pady=10)
 
+        mask_frame = ctk.CTkFrame(settings_frame)
+        mask_frame.pack(padx=10, pady=10, fill="x")
+
+        ctk.CTkLabel(mask_frame, text=_("Mask")).pack(padx=10, pady=10)
+
+        mask_var = ctk.StringVar(value=config.get("Brushshe", "mask"))
+        for view in data.mask_views:
+            ctk.CTkRadioButton(
+                mask_frame,
+                text=_(view.capitalize()),
+                variable=mask_var,
+                value=view,
+                command=mask_radiobutton_callback,
+            ).pack(padx=10, pady=10)
+
         palette_frame = ctk.CTkFrame(settings_frame)
         palette_frame.pack(padx=10, pady=10, fill="x")
 
         ctk.CTkLabel(palette_frame, text=_("Palette")).pack(padx=10, pady=10)
 
         palette_var = ctk.StringVar(value=config.get("Brushshe", "palette"))
-        for palette_name in self.standard_palettes:
+        for palette_name in data.standard_palettes:
             ctk.CTkRadioButton(
                 palette_frame,
                 text=_(palette_name.capitalize()),
@@ -174,11 +194,15 @@ class Settings:
 
         ctk.CTkLabel(language_frame, text=_("A restart is required")).pack(padx=10, pady=10)
 
-        check_new_version_frame = ctk.CTkFrame(settings_frame)
-        check_new_version_frame.pack(padx=10, pady=10, fill="x")
+        last_frame = ctk.CTkFrame(settings_frame)
+        last_frame.pack(padx=10, pady=10, fill="x")
 
         ctk.CTkButton(
-            check_new_version_frame,
+            last_frame,
             text=f"{_('Check new versions (yours is')} {data.version_full})",
             command=lambda: webbrowser.open(r"https://github.com/limafresh/Brushshe/releases"),
+        ).pack(padx=10, pady=10)
+
+        ctk.CTkButton(
+            last_frame, text=_("Reset settings after exiting"), command=self.logic.reset_settings_after_exiting
         ).pack(padx=10, pady=10)
