@@ -14,16 +14,11 @@ class AddonManager:
         addon_manager.wm_iconbitmap()
         addon_manager.after(300, lambda: addon_manager.iconphoto(False, self.iconpath))
 
-        tabview = ctk.CTkTabview(addon_manager)
-        installed_addons_tab = tabview.add(_("Installed add-ons"))
-        tabview.add(_("Add-on Store"))
-        tabview.pack(padx=10, pady=10, fill="both", expand=True)
-
-        ctk.CTkButton(installed_addons_tab, text=_("Install add-on from file"), command=self.logic.install_addon).pack(
+        ctk.CTkButton(addon_manager, text=_("Install add-on from file"), command=self.logic.install_addon).pack(
             padx=10, pady=10, fill="x"
         )
 
-        self.installed_addons_frame = ctk.CTkScrollableFrame(installed_addons_tab)
+        self.installed_addons_frame = ctk.CTkScrollableFrame(addon_manager)
         self.installed_addons_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
         self.logic.load_installed_addons()
