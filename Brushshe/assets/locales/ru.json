@@ -170,5 +170,6 @@
 	"Add-ons": "Дополнения",
 	"Install add-on from file": "Установить дополнение из файла",
 	"Run": "Запустить",
-	"Uninstall add-on": "Удалить дополнение"
+	"Uninstall add-on": "Удалить дополнение",
+	"Empty": "Пусто"
 }

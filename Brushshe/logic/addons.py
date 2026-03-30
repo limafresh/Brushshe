@@ -8,6 +8,7 @@ import shutil
 from tkinter import filedialog
 from types import SimpleNamespace
 
+import customtkinter as ctk
 import data
 from ui import messagebox
 from ui.addon_manager_item import AddonManagerItem
@@ -63,9 +64,11 @@ class Addons:
             widget.destroy()
 
         files = os.listdir(data.addons_folder)
+        is_empty = True
 
         for f in files:
             if f.endswith(".py"):
+                is_empty = False
                 full_path = os.path.join(data.addons_folder, f)
                 AddonManagerItem(
                     self.ui.installed_addons_frame,
@@ -73,6 +76,9 @@ class Addons:
                     delete_button_command=lambda fp=full_path: self.uninstall_addon(fp),
                     run_button_command=lambda fp=full_path: self.run_addon(fp),
                 )
+
+        if is_empty:
+            ctk.CTkLabel(self.ui.installed_addons_frame, text=_("Empty")).pack(pady=50)
 
     def load_addon_store(self):
         pass
