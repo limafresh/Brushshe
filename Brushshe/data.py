@@ -72,6 +72,30 @@ is_reset_settings_after_exiting = False
 
 standard_palettes = ["default", "4bit", "vintage", "seven"]
 
+"""Image filetypes"""
+img_extensions = [
+    ".png",
+    ".jpeg",
+    ".gif",
+    ".bmp",
+    ".dds",
+    ".dib",
+    ".eps",
+    ".icns",
+    ".ico",
+    ".im",
+    ".mpo",
+    ".pcx",
+    ".ppm",
+    ".sgi",
+    ".tga",
+    ".tiff",
+    ".webp",
+    ".pdf",  # only for save, not for open
+]
+save_img_filetypes = [(ext.upper().lstrip("."), "*" + ext) for ext in img_extensions]
+open_img_filetypes = [(ext.upper().lstrip("."), "*" + ext) for ext in img_extensions[:-1]]  # without PDF
+
 """Stickers"""
 # Width and height of all sticker images - 88 px
 # Width and height of new sticker images - 512 px

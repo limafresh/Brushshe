@@ -3,13 +3,13 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 from io import BytesIO
+from tkinter import filedialog
 from urllib.request import urlopen
 
 import customtkinter as ctk
 import data
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageOps
 from ui import messagebox
-from ui.file_dialog import FileDialog
 from utils.translator import _
 
 """Stickers, frames and effects"""
@@ -17,10 +17,10 @@ from utils.translator import _
 
 class Decorations:
     def sticker_from_file(self, parent):
-        dialog = FileDialog(parent, title=_("Sticker from file"))
-        if dialog.path:
+        file_path = filedialog.askopenfilename(title=_("Sticker from file"), filetypes=data.open_img_filetypes)
+        if file_path:
             try:
-                sticker_image = Image.open(dialog.path)
+                sticker_image = Image.open(file_path)
                 self.set_current_sticker(sticker_image)
             except Exception as e:
                 messagebox.open_file_error(e)

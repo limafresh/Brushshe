@@ -29,7 +29,7 @@ class MenuBar:
         file_dropdown.add_option(option=_("Save changes to this picture"), command=self.logic.save_current)
         file_dropdown.add_option(option=_("Save as new picture"), command=self.logic.save_as)
         file_dropdown.add_separator()
-        file_dropdown.add_option(option=_("Import palette (hex)"), command=self.logic.import_palette)
+        file_dropdown.add_option(option=_("Import palette from file"), command=self.logic.import_palette)
         file_dropdown.add_separator()
         file_dropdown.add_option(option=_("Exit"), command=self.logic.when_closing)
 

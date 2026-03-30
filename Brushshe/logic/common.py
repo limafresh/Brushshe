@@ -5,6 +5,8 @@
 import math
 import os
 from io import BytesIO
+from pathlib import Path
+from tkinter import filedialog
 from urllib.request import urlopen
 from uuid import uuid4
 
@@ -14,7 +16,6 @@ from core.bhbrush import bh_draw_line
 from PIL import Image, ImageChops, ImageDraw, ImageFont, ImageGrab, ImageStat, ImageTk
 from ui import messagebox
 from ui.color_picker import AskColor
-from ui.file_dialog import FileDialog
 from utils import colors
 from utils.config_loader import config_file_path
 from utils.resource import resource
@@ -121,9 +122,9 @@ class Common:
         self.ui.brush_palette.main_color = self.obtained_color
 
     def open_from_file(self):
-        dialog = FileDialog(self.ui, title=_("Open from file"))
-        if dialog.path:
-            self.open_image(dialog.path)
+        file_path = filedialog.askopenfilename(title=_("Open from file"), filetypes=data.open_img_filetypes)
+        if file_path:
+            self.open_image(file_path)
 
     def open_from_url(self):
         dialog = ctk.CTkInputDialog(text=_("Enter URL:"), title=_("Open from URL"))
@@ -149,13 +150,13 @@ class Common:
             self.save_as()
 
     def save_as(self):
-        dialog = FileDialog(self.ui, title=_("Save to device"), save=True)
-        if dialog.path:
+        file_path = filedialog.asksaveasfilename(title=_("Save to device"), filetypes=data.save_img_filetypes)
+        if file_path:
             try:
-                self.image.save(dialog.path)
+                self.image.save(file_path)
                 self.saved_copy = self.image.copy()
-                messagebox.save_as(dialog.extension)
-                data.current_file = dialog.path
+                messagebox.save_as(Path(file_path).suffix)
+                data.current_file = file_path
                 self.ui.title(os.path.basename(data.current_file) + " - " + _("Brushshe"))
             except Exception as e:
                 messagebox.save_file_error(e)

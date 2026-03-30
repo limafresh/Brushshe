@@ -3,10 +3,10 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import math
+from tkinter import filedialog
 
 import customtkinter as ctk
 from PIL import Image
-from ui.file_dialog import FileDialog
 from ui.tooltip import Tooltip
 from utils.config_loader import config, write_config
 from utils.resource import resource
@@ -77,15 +77,12 @@ class DockerAndPalette:
 
     def import_palette(self, value=None):
         if value is None:
-            dialog = FileDialog(
-                self.ui,
-                title=_("Import palette from .hex file"),
-            )
+            file_path = filedialog.askopenfilename(title=_("Import palette from file"), filetypes=[("HEX", "*.hex")])
 
-            if dialog.path is None or dialog.path == "":
+            if not file_path:
                 return
 
-            palette_path = dialog.path
+            palette_path = file_path
             config.set("Brushshe", "palette", palette_path)
             write_config()
         else:

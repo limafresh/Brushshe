@@ -90,8 +90,6 @@
 	"Light": "Hell",
 	"Dark": "Dunkel",
 	"Cancel": "Abbrechen",
-	"Import palette (hex)": "Palette importieren (hex)",
-	"Import palette from .hex file": "Palette aus .hex-Datei importieren",
 	"Smoothing for brush/eraser": "Glättung für Pinsel/Radierer",
 	"Palette": "Palette",
 	"Default": "Standard",

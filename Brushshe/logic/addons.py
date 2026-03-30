@@ -3,19 +3,19 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import importlib.util
+from tkinter import filedialog
 from types import SimpleNamespace
 
 import data
 from ui import messagebox
-from ui.file_dialog import FileDialog
 from utils.translator import _
 
 
 class Addons:
     def open_addon(self):
-        dialog = FileDialog(self.ui, title=_("Open add-on"))
-        if dialog.path:
-            self.run_addon(dialog.path)
+        addon_path = filedialog.askopenfilename(title=_("Open add-on"), filetypes=([("PY", "*.py")]))
+        if addon_path:
+            self.run_addon(addon_path)
 
     def run_addon(self, path: str):
         data.tool_size = 2
