@@ -170,5 +170,7 @@
 	"Add-ons": "Дополнения",
 	"Installed add-ons": "Установленные дополнения",
 	"Add-on Store": "Магазин дополнений",
-	"Install add-on from file": "Установить дополнение из файла"
+	"Install add-on from file": "Установить дополнение из файла",
+	"Run": "Запустить",
+	"Uninstall add-on": "Удалить дополнение"
 }

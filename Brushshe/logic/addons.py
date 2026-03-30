@@ -3,11 +3,14 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import importlib.util
+import os
+import shutil
 from tkinter import filedialog
 from types import SimpleNamespace
 
 import data
 from ui import messagebox
+from ui.addon_manager_item import AddonManagerItem
 from utils.translator import _
 
 
@@ -52,5 +55,35 @@ class Addons:
         else:
             messagebox.addon_not_have_register_function()
 
-    def set_addon_tool_size(self, size):
+    def set_addon_tool_size(self, size: int):
         data.tool_size = size
+
+    def load_installed_addons(self):
+        for widget in self.ui.installed_addons_frame.winfo_children():
+            widget.destroy()
+
+        files = os.listdir(data.addons_folder)
+
+        for f in files:
+            if f.endswith(".py"):
+                full_path = os.path.join(data.addons_folder, f)
+                AddonManagerItem(
+                    self.ui.installed_addons_frame,
+                    title=f,
+                    delete_button_command=lambda fp=full_path: self.uninstall_addon(fp),
+                    run_button_command=lambda fp=full_path: self.run_addon(fp),
+                )
+
+    def load_addon_store(self):
+        pass
+
+    def install_addon(self):
+        addon_path = filedialog.askopenfilename(title=_("Open add-on"), filetypes=([("PY", "*.py")]))
+        if addon_path:
+            shutil.copy(addon_path, data.addons_folder)
+
+        self.load_installed_addons()
+
+    def uninstall_addon(self, path: str):
+        os.remove(path)
+        self.load_installed_addons()

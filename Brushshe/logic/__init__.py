@@ -4,7 +4,6 @@
 
 import data
 
-from .addon_manager import AddonManager
 from .addons import Addons
 from .canvas import CanvasOperations
 from .common import Common
@@ -32,7 +31,6 @@ class BrushsheLogic(
     ToolOperations,
     Addons,
     Gallery,
-    AddonManager,
 ):
     def __init__(self, ui):
         self.ui = ui
