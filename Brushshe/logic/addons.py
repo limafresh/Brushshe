@@ -78,7 +78,7 @@ class Addons:
                 )
 
         if is_empty:
-            ctk.CTkLabel(self.ui.installed_addons_frame, text=_("Empty")).pack(pady=50)
+            ctk.CTkLabel(self.ui.installed_addons_frame, text=_("Empty")).pack(pady=10)
 
     def load_addon_store(self):
         pass

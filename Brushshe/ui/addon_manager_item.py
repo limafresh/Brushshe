@@ -12,11 +12,8 @@ class AddonManagerItem(ctk.CTkFrame):
         super().__init__(master, **kwargs)
         super().pack(padx=10, pady=10, fill="x", expand=True)
 
-        self._text_frame = ctk.CTkFrame(self)
-        self._text_frame.pack(side="left")
-
-        self._label = ctk.CTkLabel(self._text_frame, text=title)
-        self._label.pack(padx=10, pady=10)
+        self._label = ctk.CTkLabel(self, text=title)
+        self._label.pack(padx=10, pady=10, side="left")
 
         self._delete_button = ctk.CTkButton(
             self, text="X", width=30, fg_color="red", hover_color="#cc0000", command=delete_button_command
