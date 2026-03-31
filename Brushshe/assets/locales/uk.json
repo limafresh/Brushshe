@@ -41,7 +41,6 @@
 	"Yes": "Так",
 	"Return": "Повернутися",
 	"Eraser": "Ластик",
-	"My gallery (empty)": "Моя галерея (пусто)",
 	"Brushshe is a painting program where you can create whatever you like.\n\nAn eagle named Brucklin is its mascot.\n\n": "Брашше - програма для малювання, в якій можна створювати те, що Вам подобається.\n\nОрел на ім'я Браклін - її талісман.\n\n",
 	"Saved": "Збережено",
 	"The picture has been successfully saved to the gallery (\"My Gallery\" in the menu at the top)!": "Малюнок успішно збережено в галерею (\"Моя галерея\" в меню вгорі)!",
@@ -172,5 +171,5 @@
 	"Install add-on from file": "Встановити доповнення з файлу",
 	"Run": "Запустити",
 	"Uninstall add-on": "Видалити доповнення",
-	"Empty": "Пусто"
+	"Installed add-ons": "Встановлені доповнення"
 }

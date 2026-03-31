@@ -58,7 +58,7 @@ class Gallery:
         preview_size = 160
         row = 0
         column = 0
-        is_image_found = False
+        images_number = 0
 
         self.ui.gallery_progressbar.start()
 
@@ -78,7 +78,8 @@ class Gallery:
 
             for filename in gallery_file_list:
                 if filename.suffix == ".png":
-                    is_image_found = True
+                    images_number += 1
+
                     img_path = str(filename)
                     img_file_name = os.path.basename(img_path)
                     name_without_ext, ext = os.path.splitext(img_file_name)
@@ -165,8 +166,7 @@ class Gallery:
             self.ui.gallery_progressbar.stop()
             self.ui.gallery_progressbar.pack_forget()
 
-            if not is_image_found:
-                self.ui.gallery_scrollable_frame.configure(label_text=_("My gallery (empty)"))
+            self.ui.gallery_scrollable_frame.configure(label_text=f"{_('My Gallery')} ({images_number})")
 
         except Exception as e:
             print(e)
