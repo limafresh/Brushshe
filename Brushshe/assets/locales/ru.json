@@ -170,5 +170,6 @@
 	"Install add-on from file": "Установить дополнение из файла",
 	"Run": "Запустить",
 	"Uninstall add-on": "Удалить дополнение",
-	"Installed add-ons": "Установленные дополнения"
+	"Installed add-ons": "Установленные дополнения",
+	"Import left toolbar config from file": "Импортировать конфиг левой панели инструментов из файла"
 }

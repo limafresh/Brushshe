@@ -26,6 +26,7 @@ def load_config():
         "autosave": "False",
         "color_theme": "brushshe_theme",
         "language": "None",
+        "left_toolbar_config": "default",
     }
 
     if not config.has_section("Brushshe"):

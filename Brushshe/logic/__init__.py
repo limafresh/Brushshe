@@ -8,10 +8,10 @@ from .addons import Addons
 from .canvas import CanvasOperations
 from .common import Common
 from .decorations import Decorations
-from .docker_and_palette import DockerAndPalette
 from .edit_tools import EditTools
 from .gallery import Gallery
 from .paint_tools import PaintTools
+from .panels import Panels
 from .screenshot import Screenshot
 from .selection import Selection
 from .shapes import Shapes
@@ -26,7 +26,7 @@ class BrushsheLogic(
     EditTools,
     Selection,
     Screenshot,
-    DockerAndPalette,
+    Panels,
     Decorations,
     ToolOperations,
     Addons,

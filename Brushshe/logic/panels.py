@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+import json
 import math
 from tkinter import filedialog
 
@@ -13,10 +14,36 @@ from utils.resource import resource
 from utils.translator import _
 
 
-class DockerAndPalette:
-    """Tools Docker"""
+class Panels:
+    """Left toolbar"""
 
-    def set_tools_docker(self, tools_list, columns=1):
+    def set_left_toolbar(self, need_choose_file=True):
+        if need_choose_file:
+            file_path = filedialog.askopenfilename(
+                title=_("Import left toolbar config from file"), filetypes=[("JSON", "*.json")]
+            )
+            if file_path:
+                json_path = file_path
+                config.set("Brushshe", "left_toolbar_config", json_path)
+                write_config()
+            else:
+                return
+        else:
+            config_entry = config.get("Brushshe", "left_toolbar_config")
+            if config_entry == "default":
+                json_path = resource("assets/configs/left_toolbar.json")
+            else:
+                json_path = config_entry
+
+        for widget in self.ui.tools_frame.winfo_children():
+            widget.destroy()
+
+        with open(json_path, "r", encoding="utf-8") as f:
+            config_data = json.load(f)
+
+        columns = config_data["columns"]
+        tools_list = config_data["tools"]
+
         row = 0
         column = 0
 
@@ -33,9 +60,15 @@ class DockerAndPalette:
                 row += 1
                 continue
 
-            tool_helper = tool["helper"]
-            tool_command = tool["action"]
+            tool_command = eval(tool["action"], {"self": self})
             tool_icon_name = tool["icon_name"]
+
+            if tool.get("helper"):
+                tooltip_text = _(tool["helper"])
+            elif tool.get("hotkey"):
+                tooltip_text = f"{_(tool['name'])} {tool['hotkey']}"
+            else:
+                tooltip_text = _(tool["name"])
 
             try:
                 if config.get("Brushshe", "color_theme") != "brushshe_theme":
@@ -66,7 +99,7 @@ class DockerAndPalette:
                 self.ui.tools_frame, text=None, width=30, height=30, image=tool_icon, command=tool_command
             )
             tool_button.grid(column=column, row=row, pady=1, padx=1)
-            Tooltip(tool_button, message=tool_helper)
+            Tooltip(tool_button, message=tooltip_text)
 
             column += 1
             if column >= columns:
