@@ -21,7 +21,7 @@ def load_config():
         "smoothing": "False",
         "brush_smoothing_factor": "10",
         "brush_smoothing_quality": "20",
-        "mask": "display as fill",
+        "mask": "0",
         "palette": "default",
         "autosave": "False",
         "color_theme": "brushshe_theme",

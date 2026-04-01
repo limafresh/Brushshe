@@ -160,7 +160,7 @@ class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Stickers, Frames, Gall
         self.update()  # Update interface before recalculate canvas.
         self.logic.force_resize_canvas()
         self.logic.update_canvas()
-        self.logic.set_mask_type(data.mask_types_dict[config.get("Brushshe", "mask")])
+        self.logic.set_mask_type(config.getint("Brushshe", "mask"))
 
         if len(sys.argv) > 1:
             self.logic.open_image(sys.argv[1])

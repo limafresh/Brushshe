@@ -195,7 +195,3 @@ if not gallery_folder.exists():
 addons_folder = Path.home() / ".brushshe" / "addons"
 if not addons_folder.exists():
     addons_folder.mkdir(parents=True)
-
-"""Masks"""
-mask_types = ["display as fill", "display as ants"]
-mask_types_dict = {"display as fill": 0, "display as ants": 1}
