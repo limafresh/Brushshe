@@ -4,7 +4,9 @@
 
 import customtkinter as ctk
 import data
+from PIL import ImageFont
 from ui.tooltip import Tooltip
+from utils.resource import resource
 from utils.translator import _
 
 
@@ -108,14 +110,19 @@ class ToolOperations:
             self.ui.tool_size_label.pack(side=ctk.LEFT, padx=5)
             self.ui.tool_size_tooltip.configure(message=data.tool_size)
 
+        def brush_shape_btn_callback(value):
+            data.brush_shape = {"●": "circle", "■": "square"}[value]
+
+        def font_optionmenu_callback(value):
+            data.current_font = value
+            data.font_path = resource(data.fonts_dict.get(value))
+            self.imagefont = ImageFont.truetype(data.font_path, data.tool_size)
+
         if self.current_tool in ["brush", "eraser"]:
             brush_shape_btn = ctk.CTkSegmentedButton(
-                self.ui.tool_config_docker, values=["●", "■"], command=self.brush_shape_btn_callback
+                self.ui.tool_config_docker, values=["●", "■"], command=brush_shape_btn_callback
             )
-            if data.brush_shape == "circle":
-                brush_shape_btn.set("●")
-            elif data.brush_shape == "square":
-                brush_shape_btn.set("■")
+            brush_shape_btn.set({"circle": "●", "square": "■"}[data.brush_shape])
             brush_shape_btn.pack(side=ctk.LEFT, padx=5)
         elif self.current_tool == "fill":
             ctk.CTkCheckBox(
@@ -139,7 +146,7 @@ class ToolOperations:
                 self.ui.tool_config_docker,
                 values=data.fonts,
                 dynamic_resizing=False,
-                command=self.font_optionmenu_callback,
+                command=font_optionmenu_callback,
             )
             font_optionmenu.set(data.current_font)
             font_optionmenu.pack(side=ctk.LEFT, padx=1)

@@ -7,7 +7,6 @@ import data
 from .addons import Addons
 from .canvas import CanvasOperations
 from .common import Common
-from .decorations import Decorations
 from .edit_tools import EditTools
 from .paint_tools import PaintTools
 from .panels import Panels
@@ -26,7 +25,6 @@ class BrushsheLogic(
     Selection,
     Screenshot,
     Panels,
-    Decorations,
     ToolOperations,
     Addons,
 ):
