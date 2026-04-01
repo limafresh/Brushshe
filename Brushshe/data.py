@@ -197,5 +197,5 @@ if not addons_folder.exists():
     addons_folder.mkdir(parents=True)
 
 """Masks"""
-mask_views = ["display as fill", "display as ants"]
-mask_views_dict = {"display as fill": 0, "display as ants": 1}
+mask_types = ["display as fill", "display as ants"]
+mask_types_dict = {"display as fill": 0, "display as ants": 1}

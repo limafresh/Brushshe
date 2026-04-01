@@ -44,7 +44,7 @@ class Settings:
             write_config()
 
         def mask_radiobutton_callback():
-            self.logic.set_mask_type(data.mask_views_dict[mask_var.get()])
+            self.logic.set_mask_type(data.mask_types_dict[mask_var.get()])
             config.set("Brushshe", "mask", mask_var.get())
             write_config()
 
@@ -131,7 +131,7 @@ class Settings:
         ctk.CTkLabel(mask_frame, text=_("Mask")).pack(padx=10, pady=10)
 
         mask_var = ctk.StringVar(value=config.get("Brushshe", "mask"))
-        for view in data.mask_views:
+        for view in data.mask_types:
             ctk.CTkRadioButton(
                 mask_frame,
                 text=_(view.capitalize()),
