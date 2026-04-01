@@ -9,7 +9,6 @@ from .canvas import CanvasOperations
 from .common import Common
 from .decorations import Decorations
 from .edit_tools import EditTools
-from .gallery import Gallery
 from .paint_tools import PaintTools
 from .panels import Panels
 from .screenshot import Screenshot
@@ -30,7 +29,6 @@ class BrushsheLogic(
     Decorations,
     ToolOperations,
     Addons,
-    Gallery,
 ):
     def __init__(self, ui):
         self.ui = ui

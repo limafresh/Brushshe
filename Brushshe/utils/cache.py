@@ -5,6 +5,7 @@
 import hashlib
 import os
 import sys
+from pathlib import Path
 
 # FIXME: Need just use 'platformdirs' or 'appdirs' and do not go bananas.
 if sys.platform == "win32":
@@ -74,3 +75,35 @@ def user_cache_dir(app_name=None, app_author=None, opinion=True):
 def get_cache_name(name, size, mtime):
     s_name = "{0}_{1}_{2}".format(name, size, mtime)
     return hashlib.sha1(s_name.encode("utf-8")).hexdigest()
+
+
+def set_image_to_cache(self, cache_folder, image, name, size, mtime, suffix):
+    if cache_folder is None:
+        return
+    im_name = get_cache_name(name, size, mtime)
+    try:
+        os.makedirs(os.path.normpath(cache_folder + "/thumbs/"), exist_ok=True)
+        image.save(os.path.normpath(cache_folder + "/thumbs/" + im_name + suffix))
+    except Exception:
+        print("Warning: cached file can't be saved")
+
+
+def clear_gallery_thumbs_cache(self):
+    cache_folder = user_cache_dir("brushshe")
+
+    try:
+        os.makedirs(cache_folder, exist_ok=True)
+    except Exception:
+        print("Warning: Can't use cache directory")
+        return
+
+    cache_thumbs_folder = os.path.normpath(cache_folder + "/thumbs/")
+
+    try:
+        thumbs_list = Path(cache_thumbs_folder).iterdir()
+        for filename in thumbs_list:
+            if filename.suffix == ".png":
+                os.remove(filename)
+    except Exception:
+        print("Warning: Can't clear thumbs cache.")
+        return
