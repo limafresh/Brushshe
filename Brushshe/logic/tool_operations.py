@@ -33,39 +33,18 @@ class ToolOperations:
 
     def change_tool_size(self, value):
         data.tool_size = int(value)
-        if self.current_tool == "brush" or self.current_tool == "r-brush":
-            data.brush_size = int(value)
-        elif self.current_tool == "eraser":
-            data.eraser_size = int(value)
-        elif self.current_tool == "spray":
-            data.spray_size = int(value)
-        elif self.current_tool == "shape":
-            data.shape_size = int(value)
-        elif self.current_tool == "sticker":
-            data.sticker_size = int(value)
-        elif self.current_tool == "text":
-            data.font_size = int(value)
+        self.ui.tool_size_tooltip.configure(message=data.tool_size)
+
+        if data.tool_size_dict.get(self.current_tool):
+            data.tool_size_dict[self.current_tool] = int(value)
+
         if self.current_tool in ["insert", "real size sticker"]:
             self.ui.tool_size_label.configure(text=f"{data.tool_size} %")
         else:
             self.ui.tool_size_label.configure(text=data.tool_size)
-        self.ui.tool_size_tooltip.configure(message=data.tool_size)
 
     def get_tool_size(self):
-        res = data.tool_size
-        if self.current_tool == "brush" or self.current_tool == "r-brush":
-            res = data.brush_size
-        elif self.current_tool == "eraser":
-            res = data.eraser_size
-        elif self.current_tool == "spray":
-            res = data.spray_size
-        elif self.current_tool == "shape":
-            res = data.shape_size
-        elif self.current_tool == "sticker":
-            res = data.sticker_size
-        elif self.current_tool == "text":
-            res = data.font_size
-        return res
+        return data.tool_size_dict.get(self.current_tool) or data.tool_size
 
     def set_tool(self, tool, tool_name, tool_size, from_, to, cursor):
         self.current_tool = tool

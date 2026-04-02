@@ -72,6 +72,17 @@ is_reset_settings_after_exiting = False
 
 standard_palettes = ["default", "4bit", "vintage", "seven"]
 
+"""Tool size dict"""
+tool_size_dict = {
+    "brush": brush_size,
+    "r-brush": brush_size,
+    "eraser": eraser_size,
+    "spray": spray_size,
+    "shape": shape_size,
+    "sticker": sticker_size,
+    "text": font_size,
+}
+
 """Image filetypes"""
 img_extensions = [
     ".png",
