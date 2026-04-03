@@ -5,7 +5,7 @@
 import time
 
 from PIL import Image, ImageDraw, ImageOps
-from utils import colors
+from utils import common
 
 
 class Selection:
@@ -339,7 +339,7 @@ class Selection:
                     for jj in range(y_max + 1):
                         try:
                             p = pixels_image[ii, jj]
-                            if colors.color_diff(p, background) <= thresh:
+                            if common.color_diff(p, background) <= thresh:
                                 pixels_mask[ii, jj] = fill_color
                         except (ValueError, IndexError):
                             pass
@@ -468,7 +468,7 @@ class Selection:
                     else:
                         full_edge.add((s, t))
                         if border is None:
-                            fill = colors.color_diff(p, background) <= thresh
+                            fill = common.color_diff(p, background) <= thresh
                         else:
                             fill = p not in (value, border)
                         if fill:

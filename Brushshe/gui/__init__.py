@@ -10,8 +10,8 @@ from logic import BrushsheLogic
 from PIL import Image, ImageTk
 from ui.brush_palette import BrushPalette
 from ui.tooltip import Tooltip
+from utils.common import resource
 from utils.config_loader import config
-from utils.resource import resource
 from utils.translator import _
 
 from .addon_manager import AddonManager

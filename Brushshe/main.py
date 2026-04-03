@@ -4,8 +4,8 @@
 
 import customtkinter as ctk
 from gui import BrushsheGui
+from utils.common import resource
 from utils.config_loader import config
-from utils.resource import resource
 
 ctk.set_appearance_mode(config.get("Brushshe", "theme"))
 

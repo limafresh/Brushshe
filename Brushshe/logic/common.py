@@ -16,7 +16,7 @@ from core.bhbrush import bh_draw_line
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter, ImageGrab, ImageOps, ImageStat, ImageTk
 from ui import messagebox
 from ui.color_picker import AskColor
-from utils import colors
+from utils import common
 from utils.config_loader import config_file_path
 from utils.translator import _
 
@@ -70,7 +70,7 @@ class Common:
             # For shape, etc.
             color = self.brush_color
             if self.image.mode == "RGBA":
-                color = colors.rgb_tuple_to_rgba_tuple(self.rgb_color_to_tuple(color), 255)
+                color = common.rgb_tuple_to_rgba_tuple(self.rgb_color_to_tuple(color), 255)
         return color
 
     def record_action(self):

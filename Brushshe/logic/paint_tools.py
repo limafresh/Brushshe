@@ -8,7 +8,7 @@ import random
 from core.bhbrush import bh_draw_recoloring_line
 from core.bhhistory import BhHistory, BhPoint
 from PIL import Image, ImageChops, ImageColor, ImageDraw, ImageFont
-from utils import colors
+from utils import common
 from utils.translator import _
 
 
@@ -133,7 +133,7 @@ class PaintTools:
         tmp_image = self.image if self.selected_mask_img is None else self.image.copy()
 
         if self.image.mode == "RGBA":
-            fill_color = colors.rgb_tuple_to_rgba_tuple(ImageColor.getrgb(self.brush_color), 255)
+            fill_color = common.rgb_tuple_to_rgba_tuple(ImageColor.getrgb(self.brush_color), 255)
         else:
             fill_color = ImageColor.getrgb(self.brush_color)
 
@@ -275,8 +275,8 @@ class PaintTools:
 
             # FIXME: In current time it works only for 100% opacity color.
             if self.image.mode == "RGBA":
-                color_from = colors.rgb_tuple_to_rgba_tuple(color_from, 255)
-                color_to = colors.rgb_tuple_to_rgba_tuple(color_to, 255)
+                color_from = common.rgb_tuple_to_rgba_tuple(color_from, 255)
+                color_to = common.rgb_tuple_to_rgba_tuple(color_to, 255)
 
             if self.selected_mask_img is None:
                 bh_draw_recoloring_line(self.image, x1, y1, x2, y2, color_from, color_to, self.tool_size)

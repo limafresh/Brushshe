@@ -9,8 +9,8 @@ import customtkinter as ctk
 from constants import Constants
 from ui.scroll import scroll
 from ui.spinbox import IntSpinbox
+from utils.common import resource
 from utils.config_loader import config, write_config
-from utils.resource import resource
 from utils.translator import _
 
 

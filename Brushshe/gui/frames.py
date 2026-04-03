@@ -6,7 +6,7 @@
 import customtkinter as ctk
 from constants import Constants
 from PIL import Image
-from utils.resource import resource
+from utils.common import resource
 from utils.translator import _
 
 
