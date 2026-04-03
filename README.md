@@ -70,6 +70,7 @@ pip install customtkinter Pillow
 + **Remove white background**: Replace white or really light gray background to transparent.
 + **Select**: rectangle and polygon select, invert selected, deselect all, fuzzy select, select by color.
 + **Add-ons**: [write your own add-ons in Python](https://github.com/limafresh/Brushshe/wiki/Brushshe-add%E2%80%90ons).
++ **Left toolbar**: you can customize it with [JSON config](https://github.com/limafresh/Brushshe/wiki/Left-toolbar-customization).
 
 ## Hotkeys
 

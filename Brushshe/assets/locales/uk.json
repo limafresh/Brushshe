@@ -172,5 +172,6 @@
 	"Run": "Запустити",
 	"Uninstall add-on": "Видалити доповнення",
 	"Installed add-ons": "Встановлені доповнення",
-	"Import left toolbar config from file": "Імпортувати конфіг лівої панелі інструментів з файлу"
+	"Import left toolbar config from file": "Імпортувати конфіг лівої панелі інструментів з файлу",
+	"Wiki": "Вікі"
 }

@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+import webbrowser
+
 import customtkinter as ctk
 from PIL import Image
 from ui import messagebox
@@ -79,6 +81,9 @@ class MenuBar:
         more_menu = menu.add_cascade(_("More"))
         more_dropdown = CustomDropdownMenu(widget=more_menu)
         more_dropdown.add_option(option=_("Settings"), command=self.settings)
+        more_dropdown.add_option(
+            option=_("Wiki"), command=lambda: webbrowser.open(r"https://github.com/limafresh/Brushshe/wiki")
+        )
         # Icon taken from CTkMessagebox by Akascape
         info_icon = ctk.CTkImage(Image.open(resource("assets/icons/info.png")), size=tools_icon_size)
         more_dropdown.add_option(option=_("About program"), image=info_icon, command=messagebox.about_brushshe)
