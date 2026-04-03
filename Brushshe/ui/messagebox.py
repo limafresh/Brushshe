@@ -14,7 +14,7 @@ import webbrowser
 from typing import Literal
 
 import customtkinter as ctk
-import data
+from constants import Constants
 from PIL import Image, ImageTk
 from utils.translator import _
 
@@ -609,7 +609,7 @@ def about_brushshe():
     )
     about_msg = Messagebox(
         title=_("About program"),
-        message=about_text + data.version_full,
+        message=about_text + Constants.VERSION,
         icon="brucklin",
         icon_size=(150, 191),
         option_1="OK",

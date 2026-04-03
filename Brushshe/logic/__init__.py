@@ -99,8 +99,6 @@ class BrushsheLogic(
             str(path.relative_to(themes_folder).with_suffix("")) for path in themes_folder.rglob("*.json")
         ] + ["blue", "green", "dark-blue"]
 
-        if not Constants.GALLERY_FOLDER.exists():
-            Constants.GALLERY_FOLDER.mkdir(parents=True)
-
-        if not Constants.ADDONS_FOLDER.exists():
-            Constants.ADDONS_FOLDER.mkdir(parents=True)
+        for folder in [Constants.GALLERY_FOLDER, Constants.ADDONS_FOLDER]:
+            if not folder.exists():
+                folder.mkdir(parents=True)
