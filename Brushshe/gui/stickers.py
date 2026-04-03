@@ -4,8 +4,10 @@
 
 
 import customtkinter as ctk
-import data
+from constants import Constants
+from PIL import Image
 from ui.scroll import scroll
+from utils.resource import resource
 from utils.translator import _
 
 
@@ -38,9 +40,10 @@ class Stickers:
         stickers_frame = ctk.CTkFrame(stickers_scrollable_frame)
         stickers_frame.pack()
 
+        stickers = [Image.open(resource(f"assets/stickers/{name}.png")) for name in Constants.STICKERS_NAMES]
         row = 0
         column = 0
-        for sticker_image in data.stickers:
+        for sticker_image in stickers:
             sticker_ctkimage = ctk.CTkImage(sticker_image, size=(100, 100))
             ctk.CTkButton(
                 stickers_frame,

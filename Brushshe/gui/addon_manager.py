@@ -7,7 +7,7 @@ import shutil
 from tkinter import filedialog
 
 import customtkinter as ctk
-import data
+from constants import Constants
 from ui.addon_manager_item import AddonManagerItem
 from utils.translator import _
 
@@ -33,13 +33,13 @@ class AddonManager:
         for widget in self.installed_addons_frame.winfo_children():
             widget.destroy()
 
-        files = os.listdir(data.addons_folder)
+        files = os.listdir(Constants.ADDONS_FOLDER)
         addons_number = 0
 
         for f in files:
             if f.endswith(".py"):
                 addons_number += 1
-                full_path = os.path.join(data.addons_folder, f)
+                full_path = os.path.join(Constants.ADDONS_FOLDER, f)
                 AddonManagerItem(
                     self.installed_addons_frame,
                     title=f,
@@ -52,7 +52,7 @@ class AddonManager:
     def install_addon(self):
         addon_path = filedialog.askopenfilename(title=_("Open add-on"), filetypes=([("PY", "*.py")]))
         if addon_path:
-            shutil.copy(addon_path, data.addons_folder)
+            shutil.copy(addon_path, Constants.ADDONS_FOLDER)
 
         self.load_installed_addons()
 

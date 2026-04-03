@@ -4,7 +4,6 @@
 
 import math
 
-import data
 from PIL import Image, ImageChops, ImageDraw, ImageTk
 
 
@@ -40,7 +39,7 @@ class EditTools:
         del tmp_img
 
         if deleted:
-            bg_color = data.bg_color
+            bg_color = self.bg_color
             if self.image.mode == "RGBA":
                 bg_color = (0, 0, 0, 0)
             tmp_img = Image.new(self.image.mode, (self.image.width, self.image.height), bg_color)
@@ -126,8 +125,8 @@ class EditTools:
                 if self.image.mode != "RGBA":
                     ImageDraw.Draw(self.image).rectangle(
                         (x1, y1, x2, y2),
-                        fill=data.bg_color,
-                        outline=data.bg_color,
+                        fill=self.bg_color,
+                        outline=self.bg_color,
                     )
                 else:
                     ImageDraw.Draw(self.image).rectangle(
@@ -143,19 +142,19 @@ class EditTools:
             self.ui.canvas.delete("tools")
 
             self.ui.canvas.create_rectangle(
-                int(x1 * data.zoom),
-                int(y1 * data.zoom),
-                int((x2 + 1) * data.zoom - 1),
-                int((y2 + 1) * data.zoom - 1),
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
                 outline="white",
                 width=1,
                 tag="tools",
             )
             self.ui.canvas.create_rectangle(
-                int(x1 * data.zoom),
-                int(y1 * data.zoom),
-                int((x2 + 1) * data.zoom - 1),
-                int((y2 + 1) * data.zoom - 1),
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
                 outline="black",
                 width=1,
                 tag="tools",
@@ -185,15 +184,15 @@ class EditTools:
             nonlocal image_tmp, image_tmp_view, image_tk, current_zoom, x1, y1
 
             if self.current_tool == "sticker":
-                it_width = data.tool_size
-                it_height = int(insert_image.height * data.tool_size / insert_image.width)
+                it_width = self.tool_size
+                it_height = int(insert_image.height * self.tool_size / insert_image.width)
                 resampling = Image.BICUBIC
             else:
-                it_width = int(insert_image.width / 100 * data.tool_size)
-                it_height = int(insert_image.height / 100 * data.tool_size)
+                it_width = int(insert_image.width / 100 * self.tool_size)
+                it_height = int(insert_image.height / 100 * self.tool_size)
                 if it_width <= 1 or it_height <= 1:
                     it_width, it_height = (1, 1)
-                if data.is_insert_smoothing.get() == "off":
+                if self.is_insert_smoothing.get() == "off":
                     resampling = Image.NEAREST
                 else:
                     resampling = Image.BICUBIC
@@ -206,9 +205,9 @@ class EditTools:
             x2 = int(x1 + it_width - 1)
             y2 = int(y1 + it_height - 1)
 
-            image_tmp_view = image_tmp.resize((int(it_width * data.zoom), int(it_height * data.zoom)), Image.BOX)
+            image_tmp_view = image_tmp.resize((int(it_width * self.zoom), int(it_height * self.zoom)), Image.BOX)
             image_tk = ImageTk.PhotoImage(image_tmp_view)
-            current_zoom = data.zoom
+            current_zoom = self.zoom
 
             draw_tool(x1, y1, x2, y2)
 
@@ -235,27 +234,27 @@ class EditTools:
             self.ui.canvas.delete("tools")
 
             self.ui.canvas.create_image(
-                int(x1 * data.zoom),
-                int(y1 * data.zoom),
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
                 image=image_tk,
                 tag="tools",
                 anchor="nw",
             )
 
             self.ui.canvas.create_rectangle(
-                int(x1 * data.zoom),
-                int(y1 * data.zoom),
-                int((x2 + 1) * data.zoom - 1),
-                int((y2 + 1) * data.zoom - 1),
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
                 outline="white",
                 width=1,
                 tag="tools",
             )
             self.ui.canvas.create_rectangle(
-                int(x1 * data.zoom),
-                int(y1 * data.zoom),
-                int((x2 + 1) * data.zoom - 1),
-                int((y2 + 1) * data.zoom - 1),
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
                 outline="black",
                 width=1,
                 tag="tools",
@@ -344,19 +343,19 @@ class EditTools:
             self.ui.canvas.delete("tools")
 
             self.ui.canvas.create_rectangle(
-                int(x1 * data.zoom),
-                int(y1 * data.zoom),
-                int((x2 + 1) * data.zoom - 1),
-                int((y2 + 1) * data.zoom - 1),
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
                 outline="white",
                 width=1,
                 tag="tools",
             )
             self.ui.canvas.create_rectangle(
-                int(x1 * data.zoom),
-                int(y1 * data.zoom),
-                int((x2 + 1) * data.zoom - 1),
-                int((y2 + 1) * data.zoom - 1),
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
                 outline="black",
                 width=1,
                 tag="tools",

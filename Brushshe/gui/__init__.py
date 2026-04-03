@@ -5,7 +5,7 @@
 import sys
 
 import customtkinter as ctk
-import data
+from constants import Constants
 from logic import BrushsheLogic
 from PIL import Image, ImageTk
 from ui.brush_palette import BrushPalette
@@ -145,7 +145,7 @@ class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Stickers, Frames, Gall
         )
         self.palette_widget.pack(side="left", fill="x", padx=2, pady=2)
 
-        if config.get("Brushshe", "palette") in data.standard_palettes:
+        if config.get("Brushshe", "palette") in Constants.STANDART_PALETTES:
             self.logic.import_palette(resource(f"assets/palettes/{config.get('Brushshe', 'palette')}_palette.hex"))
         else:
             self.logic.import_palette(resource(config.get("Brushshe", "palette")))
@@ -155,7 +155,7 @@ class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Stickers, Frames, Gall
 
         """Initialization"""
         self.logic.set_left_toolbar(False)
-        self.logic.new_picture(data.bg_color, first_time=True)
+        self.logic.new_picture(self.logic.bg_color, first_time=True)
         self.logic.brush()
         self.update()  # Update interface before recalculate canvas.
         self.logic.force_resize_canvas()

@@ -6,7 +6,7 @@ import webbrowser
 from collections import deque
 
 import customtkinter as ctk
-import data
+from constants import Constants
 from ui.scroll import scroll
 from ui.spinbox import IntSpinbox
 from utils.config_loader import config, write_config
@@ -23,24 +23,24 @@ class Settings:
             write_config()
 
         def change_undo_levels():
-            data.undo_stack = deque(data.undo_stack, maxlen=undo_levels_spinbox.get())
-            data.redo_stack = deque(data.redo_stack, maxlen=undo_levels_spinbox.get())
+            self.logic.undo_stack = deque(self.logic.undo_stack, maxlen=undo_levels_spinbox.get())
+            self.logic.redo_stack = deque(self.logic.redo_stack, maxlen=undo_levels_spinbox.get())
             config.set("Brushshe", "undo_levels", str(undo_levels_spinbox.get()))
             write_config()
 
         def smooth_switch_event():
-            data.is_brush_smoothing = smooth_var.get()
-            config.set("Brushshe", "smoothing", str(data.is_brush_smoothing))
+            self.logic.is_brush_smoothing = smooth_var.get()
+            config.set("Brushshe", "smoothing", str(self.logic.is_brush_smoothing))
             write_config()
 
         def bsq_event(value):
-            data.brush_smoothing_quality = int(value)
-            config.set("Brushshe", "brush_smoothing_quality", str(data.brush_smoothing_quality))
+            self.logic.brush_smoothing_quality = int(value)
+            config.set("Brushshe", "brush_smoothing_quality", str(self.logic.brush_smoothing_quality))
             write_config()
 
         def bsf_event(value):
-            data.brush_smoothing_factor = int(value)
-            config.set("Brushshe", "brush_smoothing_factor", str(data.brush_smoothing_factor))
+            self.logic.brush_smoothing_factor = int(value)
+            config.set("Brushshe", "brush_smoothing_factor", str(self.logic.brush_smoothing_factor))
             write_config()
 
         def mask_radiobutton_callback():
@@ -54,7 +54,7 @@ class Settings:
             write_config()
 
         def autosave_switch_event():
-            config.set("Brushshe", "autosave", str(data.autosave_var.get()))
+            config.set("Brushshe", "autosave", str(self.logic.autosave_var.get()))
             write_config()
 
         def ct_optionmenu_callback(choice):
@@ -62,7 +62,7 @@ class Settings:
             write_config()
 
         def language_optionmenu_callback(value):
-            config.set("Brushshe", "language", data.languages.get(value))
+            config.set("Brushshe", "language", Constants.LANGUAGES.get(value))
             write_config()
 
         settings_tl = ctk.CTkToplevel(self)
@@ -96,14 +96,14 @@ class Settings:
 
         undo_levels_spinbox = IntSpinbox(undo_levels_frame, width=150)
         undo_levels_spinbox.pack(padx=10, pady=10)
-        undo_levels_spinbox.set(data.undo_stack.maxlen)
+        undo_levels_spinbox.set(self.logic.undo_stack.maxlen)
 
         ctk.CTkButton(undo_levels_frame, text=_("Apply"), command=change_undo_levels).pack(padx=10, pady=10)
 
         smooth_frame = ctk.CTkFrame(settings_frame)
         smooth_frame.pack(padx=10, pady=10, fill="x")
 
-        smooth_var = ctk.BooleanVar(value=data.is_brush_smoothing)
+        smooth_var = ctk.BooleanVar(value=self.logic.is_brush_smoothing)
         ctk.CTkSwitch(
             smooth_frame,
             text=_("Smoothing for brush/eraser"),
@@ -116,13 +116,13 @@ class Settings:
         ctk.CTkLabel(smooth_frame, text=_("Brush smoothing quality")).pack(padx=10, pady=10)
 
         bsq_slider = ctk.CTkSlider(smooth_frame, from_=1, to=64, command=bsq_event)
-        bsq_slider.set(data.brush_smoothing_quality)
+        bsq_slider.set(self.logic.brush_smoothing_quality)
         bsq_slider.pack(padx=10, pady=10)
 
         ctk.CTkLabel(smooth_frame, text=_("Brush smoothing factor (weight)")).pack(padx=10, pady=1)
 
         bsf_slider = ctk.CTkSlider(smooth_frame, from_=3, to=64, command=bsf_event)
-        bsf_slider.set(data.brush_smoothing_factor)
+        bsf_slider.set(self.logic.brush_smoothing_factor)
         bsf_slider.pack(padx=10, pady=10)
 
         mask_frame = ctk.CTkFrame(settings_frame)
@@ -147,7 +147,7 @@ class Settings:
         ctk.CTkLabel(palette_frame, text=_("Palette")).pack(padx=10, pady=10)
 
         palette_var = ctk.StringVar(value=config.get("Brushshe", "palette"))
-        for palette_name in data.standard_palettes:
+        for palette_name in Constants.STANDART_PALETTES:
             ctk.CTkRadioButton(
                 palette_frame,
                 text=_(palette_name.capitalize()),
@@ -162,7 +162,7 @@ class Settings:
         ctk.CTkSwitch(
             autosave_frame,
             text=_("Autosave"),
-            variable=data.autosave_var,
+            variable=self.logic.autosave_var,
             onvalue=True,
             offvalue=False,
             command=autosave_switch_event,
@@ -174,7 +174,7 @@ class Settings:
         ctk.CTkLabel(color_theme_frame, text=_("Color theme")).pack(padx=10, pady=10)
 
         color_theme_optionmenu = ctk.CTkOptionMenu(
-            color_theme_frame, values=data.color_themes, command=ct_optionmenu_callback
+            color_theme_frame, values=self.logic.color_themes, command=ct_optionmenu_callback
         )
         color_theme_optionmenu.pack(padx=10, pady=10)
         color_theme_optionmenu.set(config.get("Brushshe", "color_theme"))
@@ -187,10 +187,12 @@ class Settings:
         ctk.CTkLabel(language_frame, text=_("Language")).pack(padx=10, pady=10)
 
         language_optionmenu = ctk.CTkOptionMenu(
-            language_frame, values=list(data.languages.keys()), command=language_optionmenu_callback
+            language_frame, values=list(Constants.LANGUAGES.keys()), command=language_optionmenu_callback
         )
         language_optionmenu.pack(padx=10, pady=10)
-        language_key = next((k for k, v in data.languages.items() if v == config.get("Brushshe", "language")), None)
+        language_key = next(
+            (k for k, v in Constants.LANGUAGES.items() if v == config.get("Brushshe", "language")), None
+        )
         language_optionmenu.set(language_key)
 
         ctk.CTkLabel(language_frame, text=_("A restart is required")).pack(padx=10, pady=10)
@@ -200,7 +202,7 @@ class Settings:
 
         ctk.CTkButton(
             last_frame,
-            text=f"{_('Check new versions (yours is')} {data.version_full})",
+            text=f"{_('Check new versions (yours is')} {Constants.VERSION})",
             command=lambda: webbrowser.open(r"https://github.com/limafresh/Brushshe/releases"),
         ).pack(padx=10, pady=10)
 

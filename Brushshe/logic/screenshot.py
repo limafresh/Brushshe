@@ -3,7 +3,6 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import customtkinter as ctk
-import data
 from PIL import Image, ImageGrab, ImageTk
 from utils.translator import _
 
@@ -72,7 +71,7 @@ class Screenshot:
             new_width = x2 - x1
             new_height = y2 - y1
 
-            self.finished_screenshot = Image.new("RGB", (new_width, new_height), data.bg_color)
+            self.finished_screenshot = Image.new("RGB", (new_width, new_height), self.bg_color)
             self.finished_screenshot.paste(screenshot, (-x1, -y1))
 
         def draw_tool(x1, y1, x2, y2):

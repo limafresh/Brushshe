@@ -5,7 +5,6 @@
 import math
 import random
 
-import data
 from core.bhbrush import bh_draw_recoloring_line
 from core.bhhistory import BhHistory, BhPoint
 from PIL import Image, ImageChops, ImageColor, ImageDraw, ImageFont
@@ -22,26 +21,26 @@ class PaintTools:
         point_history = None
 
         if type == "brush":
-            self.set_tool("brush", "Brush", data.brush_size, 1, 50, "pencil")
+            self.set_tool("brush", "Brush", self.brush_size, 1, 50, "pencil")
         elif type == "eraser":
-            self.set_tool("eraser", "Eraser", data.eraser_size, 1, 50, "target")
+            self.set_tool("eraser", "Eraser", self.eraser_size, 1, 50, "target")
         else:
             print("Warning: Incorrect brush type. Set default as.")
-            self.set_tool("brush", "Brush", data.brush_size, 1, 50, "pencil")
+            self.set_tool("brush", "Brush", self.brush_size, 1, 50, "pencil")
 
         def paint(event):
             nonlocal prev_x, prev_y, point_history
 
-            if data.is_brush_smoothing is False:
+            if self.is_brush_smoothing is False:
                 x, y = self.canvas_to_pict_xy(event.x, event.y)
             else:
                 if point_history is None:
-                    point_history = BhHistory(limit_length=data.brush_smoothing_factor)
+                    point_history = BhHistory(limit_length=self.brush_smoothing_factor)
                 xf, yf = self.canvas_to_pict_xy_f(event.x, event.y)
                 point_history.add_point(BhPoint(x=xf, y=yf, pressure=1.0))
                 s_point = point_history.get_smoothing_point(
-                    data.brush_smoothing_factor,
-                    data.brush_smoothing_quality,
+                    self.brush_smoothing_factor,
+                    self.brush_smoothing_quality,
                 )
                 if s_point is not None:
                     x = int(s_point.x)
@@ -80,30 +79,30 @@ class PaintTools:
         def draw_brush_halo(x, y):
             self.ui.canvas.delete("tools")
 
-            d1 = (data.tool_size - 1) // 2
-            d2 = data.tool_size // 2
+            d1 = (self.tool_size - 1) // 2
+            d2 = self.tool_size // 2
 
             # TODO: Need use the pixel perfect halo for zoom >= 2 if it doesn't too slow.
 
-            if data.brush_shape == "circle":
+            if self.brush_shape == "circle":
                 canvas_create_shape = self.ui.canvas.create_oval
-            elif data.brush_shape == "square":
+            elif self.brush_shape == "square":
                 canvas_create_shape = self.ui.canvas.create_rectangle
 
             canvas_create_shape(
-                int((x - d1) * data.zoom - 1),
-                int((y - d1) * data.zoom - 1),
-                int((x + d2 + 1) * data.zoom),
-                int((y + d2 + 1) * data.zoom),
+                int((x - d1) * self.zoom - 1),
+                int((y - d1) * self.zoom - 1),
+                int((x + d2 + 1) * self.zoom),
+                int((y + d2 + 1) * self.zoom),
                 outline="white",
                 width=1,
                 tag="tools",
             )
             canvas_create_shape(
-                int((x - d1) * data.zoom),
-                int((y - d1) * data.zoom),
-                int((x + d2 + 1) * data.zoom - 1),
-                int((y + d2 + 1) * data.zoom - 1),
+                int((x - d1) * self.zoom),
+                int((y - d1) * self.zoom),
+                int((x + d2 + 1) * self.zoom - 1),
+                int((y + d2 + 1) * self.zoom - 1),
                 outline="black",
                 width=1,
                 tag="tools",
@@ -134,11 +133,11 @@ class PaintTools:
         tmp_image = self.image if self.selected_mask_img is None else self.image.copy()
 
         if self.image.mode == "RGBA":
-            fill_color = colors.rgb_tuple_to_rgba_tuple(ImageColor.getrgb(data.brush_color), 255)
+            fill_color = colors.rgb_tuple_to_rgba_tuple(ImageColor.getrgb(self.brush_color), 255)
         else:
-            fill_color = ImageColor.getrgb(data.brush_color)
+            fill_color = ImageColor.getrgb(self.brush_color)
 
-        if data.is_gradient_fill.get() == "on":
+        if self.is_gradient_fill.get() == "on":
             self.gradient_fill(x, y)
         else:
             ImageDraw.floodfill(tmp_image, (x, y), fill_color)
@@ -155,8 +154,8 @@ class PaintTools:
         if not (0 <= x < self.image.width and 0 <= y < self.image.height):
             return
 
-        start_color = ImageColor.getrgb(data.brush_color)
-        end_color = ImageColor.getrgb(data.second_brush_color)
+        start_color = ImageColor.getrgb(self.brush_color)
+        end_color = ImageColor.getrgb(self.second_brush_color)
         threshold = 50
         direction = self.gradient_mode_optionmenu.get()
 
@@ -217,7 +216,7 @@ class PaintTools:
     """Recoloring brush"""
 
     def recoloring_brush(self):
-        self.set_tool("r-brush", "R. Brush", data.brush_size, 1, 50, "pencil")
+        self.set_tool("r-brush", "R. Brush", self.brush_size, 1, 50, "pencil")
 
         prev_x = None
         prev_y = None
@@ -226,16 +225,16 @@ class PaintTools:
         def drawing(event):
             nonlocal prev_x, prev_y, point_history
 
-            if data.is_brush_smoothing is False:
+            if self.is_brush_smoothing is False:
                 x, y = self.canvas_to_pict_xy(event.x, event.y)
             else:
                 if point_history is None:
-                    point_history = BhHistory(limit_length=data.brush_smoothing_factor)
+                    point_history = BhHistory(limit_length=self.brush_smoothing_factor)
                 xf, yf = self.canvas_to_pict_xy_f(event.x, event.y)
                 point_history.add_point(BhPoint(x=xf, y=yf, pressure=1.0))
                 s_point = point_history.get_smoothing_point(
-                    data.brush_smoothing_factor,
-                    data.brush_smoothing_quality,
+                    self.brush_smoothing_factor,
+                    self.brush_smoothing_quality,
                 )
                 if s_point is not None:
                     x = int(s_point.x)
@@ -271,8 +270,8 @@ class PaintTools:
             draw_brush_halo(x, y)
 
         def draw_recoloring_brush(x1, y1, x2, y2):
-            color_to = ImageColor.getrgb(data.brush_color)
-            color_from = ImageColor.getrgb(data.second_brush_color)
+            color_to = ImageColor.getrgb(self.brush_color)
+            color_from = ImageColor.getrgb(self.second_brush_color)
 
             # FIXME: In current time it works only for 100% opacity color.
             if self.image.mode == "RGBA":
@@ -280,33 +279,33 @@ class PaintTools:
                 color_to = colors.rgb_tuple_to_rgba_tuple(color_to, 255)
 
             if self.selected_mask_img is None:
-                bh_draw_recoloring_line(self.image, x1, y1, x2, y2, color_from, color_to, data.tool_size)
+                bh_draw_recoloring_line(self.image, x1, y1, x2, y2, color_from, color_to, self.tool_size)
             else:
                 tmp_image = self.image.copy()
-                bh_draw_recoloring_line(tmp_image, x1, y1, x2, y2, color_from, color_to, data.tool_size)
+                bh_draw_recoloring_line(tmp_image, x1, y1, x2, y2, color_from, color_to, self.tool_size)
                 self.image.paste(tmp_image, (0, 0), self.selected_mask_img)
                 del tmp_image
 
         def draw_brush_halo(x, y):
             self.ui.canvas.delete("tools")
 
-            d1 = (data.tool_size - 1) // 2
-            d2 = data.tool_size // 2
+            d1 = (self.tool_size - 1) // 2
+            d2 = self.tool_size // 2
 
             self.ui.canvas.create_rectangle(
-                int((x - d1) * data.zoom - 1),
-                int((y - d1) * data.zoom - 1),
-                int((x + d2 + 1) * data.zoom),
-                int((y + d2 + 1) * data.zoom),
+                int((x - d1) * self.zoom - 1),
+                int((y - d1) * self.zoom - 1),
+                int((x + d2 + 1) * self.zoom),
+                int((y + d2 + 1) * self.zoom),
                 outline="white",
                 width=1,
                 tag="tools",
             )
             self.ui.canvas.create_rectangle(
-                int((x - d1) * data.zoom),
-                int((y - d1) * data.zoom),
-                int((x + d2 + 1) * data.zoom - 1),
-                int((y + d2 + 1) * data.zoom - 1),
+                int((x - d1) * self.zoom),
+                int((y - d1) * self.zoom),
+                int((x + d2 + 1) * self.zoom - 1),
+                int((y + d2 + 1) * self.zoom - 1),
                 outline="black",
                 width=1,
                 tag="tools",
@@ -325,12 +324,12 @@ class PaintTools:
 
     def spray(self):
         def start_spray(event):
-            data.prev_x, data.prev_y = self.canvas_to_pict_xy(event.x, event.y)
+            self.prev_x, self.prev_y = self.canvas_to_pict_xy(event.x, event.y)
             self.spraying = True
             do_spray()
 
         def do_spray():
-            if not self.spraying or data.prev_x is None or data.prev_y is None:
+            if not self.spraying or self.prev_x is None or self.prev_y is None:
                 return
 
             if self.selected_mask_img is None:
@@ -340,11 +339,11 @@ class PaintTools:
                 tmp_image = self.image.copy()
                 tmp_draw = ImageDraw.Draw(tmp_image)
 
-            for i in range(data.tool_size * 2):
-                offset_x = random.randint(-data.tool_size, data.tool_size)
-                offset_y = random.randint(-data.tool_size, data.tool_size)
-                if offset_x**2 + offset_y**2 <= data.tool_size**2:
-                    tmp_draw.point((data.prev_x + offset_x, data.prev_y + offset_y), fill=data.brush_color)
+            for i in range(self.tool_size * 2):
+                offset_x = random.randint(-self.tool_size, self.tool_size)
+                offset_y = random.randint(-self.tool_size, self.tool_size)
+                if offset_x**2 + offset_y**2 <= self.tool_size**2:
+                    tmp_draw.point((self.prev_x + offset_x, self.prev_y + offset_y), fill=self.brush_color)
 
             if self.selected_mask_img is None:
                 pass
@@ -357,17 +356,17 @@ class PaintTools:
             self.spray_job = self.ui.after(50, do_spray)
 
         def move_spray(event):
-            data.prev_x, data.prev_y = self.canvas_to_pict_xy(event.x, event.y)
+            self.prev_x, self.prev_y = self.canvas_to_pict_xy(event.x, event.y)
 
         def stop_spray(event):
             self.spraying = False
             if self.spray_job:
                 self.ui.after_cancel(self.spray_job)
                 self.spray_job = None
-            data.prev_x, data.prev_y = (None, None)
+            self.prev_x, self.prev_y = (None, None)
             self.record_action()
 
-        self.set_tool("spray", "Spray", data.spray_size, 5, 30, "spraycan")
+        self.set_tool("spray", "Spray", self.spray_size, 5, 30, "spraycan")
 
         self.spraying = False
         self.spray_job = None
@@ -379,7 +378,7 @@ class PaintTools:
 
     def text_tool(self):
         def add_text(event):
-            self.draw.text((self.text_x, self.text_y), self.tx_entry.get(), fill=data.brush_color, font=self.imagefont)
+            self.draw.text((self.text_x, self.text_y), self.tx_entry.get(), fill=self.brush_color, font=self.imagefont)
             self.update_canvas()
             self.record_action()
 
@@ -387,7 +386,7 @@ class PaintTools:
             self.ui.canvas.delete("tools")
 
             x, y = self.canvas_to_pict_xy(event.x, event.y)
-            self.imagefont = ImageFont.truetype(data.font_path, data.tool_size)
+            self.imagefont = ImageFont.truetype(self.font_path, self.tool_size)
 
             bbox = self.draw.textbbox((0, 0), self.tx_entry.get(), font=self.imagefont)
 
@@ -398,20 +397,20 @@ class PaintTools:
             self.text_y = y - text_height // 2 - bbox[1]
 
             self.ui.canvas.create_rectangle(
-                (x - text_width // 2) * data.zoom,
-                (y - text_height // 2) * data.zoom,
-                (x + text_width // 2) * data.zoom,
-                (y + text_height // 2) * data.zoom,
+                (x - text_width // 2) * self.zoom,
+                (y - text_height // 2) * self.zoom,
+                (x + text_width // 2) * self.zoom,
+                (y + text_height // 2) * self.zoom,
                 outline="white",
                 width=1,
                 tag="tools",
             )
 
             self.ui.canvas.create_rectangle(
-                (x - text_width // 2) * data.zoom,
-                (y - text_height // 2) * data.zoom,
-                (x + text_width // 2) * data.zoom,
-                (y + text_height // 2) * data.zoom,
+                (x - text_width // 2) * self.zoom,
+                (y - text_height // 2) * self.zoom,
+                (x + text_width // 2) * self.zoom,
+                (y + text_height // 2) * self.zoom,
                 outline="black",
                 width=1,
                 tag="tools",
@@ -421,7 +420,7 @@ class PaintTools:
         def leave(event):
             self.ui.canvas.delete("tools")
 
-        self.set_tool("text", "Text", data.font_size, 11, 96, "cross")
+        self.set_tool("text", "Text", self.font_size, 11, 96, "cross")
         self.ui.canvas.bind("<Button-1>", add_text)
         self.ui.canvas.bind("<Motion>", draw_text_halo)
         self.ui.canvas.bind("<Leave>", leave)

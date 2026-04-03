@@ -6,7 +6,6 @@ import importlib.util
 from tkinter import filedialog
 from types import SimpleNamespace
 
-import data
 from ui import messagebox
 from utils.translator import _
 
@@ -18,7 +17,7 @@ class Addons:
             self.run_addon(addon_path)
 
     def run_addon(self, path: str):
-        data.tool_size = 2
+        self.tool_size = 2
         self.set_tool("addon", "Add-on", None, None, None, "arrow")
 
         api = SimpleNamespace(
@@ -53,4 +52,4 @@ class Addons:
             messagebox.addon_not_have_register_function()
 
     def set_addon_tool_size(self, size: int):
-        data.tool_size = size
+        self.tool_size = size

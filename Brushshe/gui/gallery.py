@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 import customtkinter as ctk
-import data
+from constants import Constants
 from PIL import Image
 from ui import messagebox
 from ui.CTkMenuBar import CTkMenuBar, CustomDropdownMenu
@@ -67,7 +67,7 @@ class Gallery:
             cache_folder = None
 
         try:
-            gallery_file_list = sorted(Path(data.gallery_folder).iterdir(), key=os.path.getmtime, reverse=True)
+            gallery_file_list = sorted(Path(Constants.GALLERY_FOLDER).iterdir(), key=os.path.getmtime, reverse=True)
 
             for filename in gallery_file_list:
                 if filename.suffix == ".png":
