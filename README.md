@@ -111,7 +111,6 @@ The goal of the project is to provide a open-source, convenient, beautiful and m
 + Project license - *MPL 2.0* (old code before the license change - under MPL 2.0 or GNU GPLv3)
 + Some Brushshe components or third-party components are in the *public domain* (see below for which ones)
 + Fonts - *OFL 1.1*
-+ [Picture on screenshot](https://github.com/limafresh/Brushshe/pull/15) - [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), by Chip Viled, drawn in Brushshe
 + Builds (for example .exe, .deb) may contain other components
 
 ### Public domain components (paths are relative)
