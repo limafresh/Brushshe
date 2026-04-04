@@ -16,7 +16,7 @@ if os.path.basename(script_dir) != "dev_tools" or script_dir != os.getcwd():
     raise RuntimeError("ERROR: This script must be executed from the dev_tools folder!")
     sys.exit(1)
 
-version = "2.5.0"
+version = "2.6.0"
 windows_python_license_path = None
 venv_python = None
 
@@ -126,7 +126,7 @@ if args.deb:
         f.write(linux_deb_control)
 
     print("Copying program files...")
-    shutil.copytree("../Brushshe", "brushshe/opt")
+    shutil.copytree("../Brushshe", "brushshe/opt/Brushshe")
 
     print("Copying the icon...")
     os.makedirs("brushshe/usr/share/icons/hicolor/512x512/apps")

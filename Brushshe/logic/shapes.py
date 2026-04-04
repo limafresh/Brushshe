@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-import data
 from core.bezier import make_bezier
 from core.bhbrush import bh_draw_line
 from PIL import ImageDraw
@@ -66,18 +65,18 @@ class Shapes:
             color = self.get_tool_main_color()
 
             if shape == "Rectangle":
-                tmp_draw.rectangle([x0, y0, x1, y1], outline=data.brush_color, width=data.tool_size)
+                tmp_draw.rectangle([x0, y0, x1, y1], outline=self.brush_color, width=self.tool_size)
             elif shape == "Oval":
-                tmp_draw.ellipse([x0, y0, x1, y1], outline=data.brush_color, width=data.tool_size)
+                tmp_draw.ellipse([x0, y0, x1, y1], outline=self.brush_color, width=self.tool_size)
             elif shape == "Line":
                 # self.draw_line(x_begin, y_begin, x_end, y_end)
                 bh_draw_line(
-                    tmp_draw, x_begin, y_begin, x_end, y_end, color, data.tool_size, data.brush_shape, self.current_tool
+                    tmp_draw, x_begin, y_begin, x_end, y_end, color, self.tool_size, self.brush_shape, self.current_tool
                 )
             elif shape == "Fill rectangle":
-                tmp_draw.rectangle([x0, y0, x1, y1], fill=data.brush_color)
+                tmp_draw.rectangle([x0, y0, x1, y1], fill=self.brush_color)
             elif shape == "Fill oval":
-                tmp_draw.ellipse([x0, y0, x1, y1], fill=data.brush_color)
+                tmp_draw.ellipse([x0, y0, x1, y1], fill=self.brush_color)
             else:
                 print("Warning: Incorrect shape.")
 
@@ -98,7 +97,7 @@ class Shapes:
         if shape == "Fill rectangle" or shape == "Fill oval":
             self.set_tool("shape", shape, None, None, None, "cross")
         else:
-            self.set_tool("shape", shape, data.shape_size, 1, 50, "cross")
+            self.set_tool("shape", shape, self.shape_size, 1, 50, "cross")
 
         self.ui.canvas.bind("<ButtonPress-1>", start_shape)
         self.ui.canvas.bind("<B1-Motion>", draw_shape)
@@ -220,8 +219,8 @@ class Shapes:
                             int(points[it + 1][0]),
                             int(points[it + 1][1]),
                             color,
-                            data.tool_size,
-                            data.brush_shape,
+                            self.tool_size,
+                            self.brush_shape,
                             self.current_tool,
                         )
 
@@ -240,7 +239,7 @@ class Shapes:
                 image_points = []
                 bezier_id = None
 
-        self.set_tool("shape", "Bezier", data.shape_size, 1, 50, "cross")
+        self.set_tool("shape", "Bezier", self.shape_size, 1, 50, "cross")
 
         self.ui.canvas.bind("<ButtonPress-1>", start)
         self.ui.canvas.bind("<B1-Motion>", drawing)

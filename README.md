@@ -70,6 +70,7 @@ pip install customtkinter Pillow
 + **Remove white background**: Replace white or really light gray background to transparent.
 + **Select**: rectangle and polygon select, invert selected, deselect all, fuzzy select, select by color.
 + **Add-ons**: [write your own add-ons in Python](https://github.com/limafresh/Brushshe/wiki/Brushshe-add%E2%80%90ons).
++ **Left toolbar**: you can customize it with [JSON config](https://github.com/limafresh/Brushshe/wiki/Left-toolbar-customization).
 
 ## Hotkeys
 
@@ -110,14 +111,13 @@ The goal of the project is to provide a open-source, convenient, beautiful and m
 + Project license - *MPL 2.0* (old code before the license change - under MPL 2.0 or GNU GPLv3)
 + Some Brushshe components or third-party components are in the *public domain* (see below for which ones)
 + Fonts - *OFL 1.1*
-+ [Picture on screenshot](https://github.com/limafresh/Brushshe/pull/15) - [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), by Chip Viled, drawn in Brushshe
 + Builds (for example .exe, .deb) may contain other components
 
 ### Public domain components (paths are relative)
 
 + `assets/` (stickers, frames, etc., except for some subfolders with other licenses) - *CC0 1.0*
 + `CTkMenuBar` - *CC0 1.0*
-+ `main.py`, other files with the CC0 header - *CC0 1.0*
++ `ui/messagebox.py`, other files with the CC0 header - *CC0 1.0*
 
 ## For developers
 

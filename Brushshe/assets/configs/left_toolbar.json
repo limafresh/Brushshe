@@ -1,0 +1,153 @@
+{
+	"columns": 2,
+	"tools": [
+		{
+			"type": "button",
+			"name": "Brush",
+			"hotkey": "(Ctrl+B)",
+			"action": "self.brush",
+			"icon_name": "brush"
+		},
+		{
+			"type": "button",
+			"name": "Eraser",
+			"hotkey": "(Ctrl+E)",
+			"action": "self.eraser",
+			"icon_name": "eraser"
+		},
+		{
+			"type": "button",
+			"name": "Fill",
+			"action": "self.start_fill",
+			"icon_name": "fill"
+		},
+		{
+			"type": "button",
+			"name": "Recoloring Brush",
+			"action": "self.recoloring_brush",
+			"icon_name": "recoloring_brush"
+		},
+		{
+			"type": "button",
+			"name": "Spray",
+			"action": "self.spray",
+			"icon_name": "spray"
+		},
+		{
+			"type": "button",
+			"name": "Text",
+			"action": "self.text_tool",
+			"icon_name": "text"
+		},
+		{
+			"type": "separator"
+		},
+		{
+			"type": "button",
+			"name": "Rectangle",
+			"action": "lambda: self.create_shape(\"Rectangle\")",
+			"icon_name": "rectangle"
+		},
+		{
+			"type": "button",
+			"name": "Oval",
+			"action": "lambda: self.create_shape(\"Oval\")",
+			"icon_name": "oval"
+		},
+		{
+			"type": "button",
+			"name": "Fill rectangle",
+			"action": "lambda: self.create_shape(\"Fill rectangle\")",
+			"icon_name": "fill_rectangle"
+		},
+		{
+			"type": "button",
+			"name": "Fill oval",
+			"action": "lambda: self.create_shape(\"Fill oval\")",
+			"icon_name": "fill_oval"
+		},
+		{
+			"type": "button",
+			"name": "Line",
+			"action": "lambda: self.create_shape(\"Line\")",
+			"icon_name": "line"
+		},
+		{
+			"type": "button",
+			"name": "Bezier",
+			"action": "self.bezier_shape",
+			"icon_name": "bezier"
+		},
+		{"type": "separator"},
+		{
+			"type": "button",
+			"name": "Cut",
+			"hotkey": "(Ctrl+X)",
+			"action": "lambda: self.copy_tool(deleted=True)",
+			"icon_name": "cut"
+		},
+		{
+			"type": "button",
+			"name": "Copy",
+			"hotkey": "(Ctrl+C)",
+			"action": "self.copy_tool",
+			"icon_name": "copy"
+		},
+		{
+			"type": "button",
+			"name": "Insert",
+			"hotkey": "(Ctrl+V)",
+			"action": "self.start_insert",
+			"icon_name": "insert"
+		},
+		{
+			"type": "button",
+			"name": "Crop",
+			"action": "self.crop_simple",
+			"icon_name": "crop"
+		},
+		{
+			"type": "separator"
+		},
+		{
+			"type": "button",
+			"name": "Rectangle select",
+			"action": "lambda: self.select_by_shape(shape=\"rectangle\")",
+			"icon_name": "rectangle_select"
+		},
+		{
+			"type": "button",
+			"name": "Polygon select",
+			"action": "self.select_by_polygon",
+			"icon_name": "polygon_select"
+		},
+		{
+			"type": "button",
+			"name": "Fuzzy select",
+			"helper": "Fuzzy select (limited select by color)",
+			"action": "lambda: self.select_by_color(fill_limit=True)",
+			"icon_name": "fuzzy_select"
+		},
+		{
+			"type": "button",
+			"name": "Select by color",
+			"action": "self.select_by_color",
+			"icon_name": "select_by_color"
+		},
+		{
+			"type": "button",
+			"name": "Deselect all",
+			"action": "self.remove_mask",
+			"icon_name": "deselect_all"
+		},
+		{
+			"type": "separator"
+		},
+		{
+			"type": "button",
+			"name": "Effects",
+			"action": "self.effects",
+			"icon_name": "effects"
+		}
+	]
+}

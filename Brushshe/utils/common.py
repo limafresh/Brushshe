@@ -2,6 +2,21 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+import os
+import sys
+
+
+def resource(relative_path):
+    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    return os.path.join(base_path, relative_path)
+
+
+def shorten_filename(filename: str, max_length: int = 20) -> str:
+    if len(filename) > max_length:
+        return filename[: max_length - 3] + "..."
+    else:
+        return filename
+
 
 def rgb_tuple_to_rgba_tuple(color, alpha: int):
     try:

@@ -4,9 +4,8 @@
 
 import time
 
-import data
 from PIL import Image, ImageDraw, ImageOps
-from utils import colors
+from utils import common
 
 
 class Selection:
@@ -93,26 +92,26 @@ class Selection:
             else:  # add or replace
                 draw.rectangle([x1, y1, x2, y2], fill="white")
 
-            data.composer.set_force_update_mask()
+            self.composer.set_force_update_mask()
             self.update_canvas()
 
         def draw_tool(x1, y1, x2, y2):
             self.ui.canvas.delete("tools")
 
             self.ui.canvas.create_rectangle(
-                int(x1 * data.zoom),
-                int(y1 * data.zoom),
-                int((x2 + 1) * data.zoom - 1),
-                int((y2 + 1) * data.zoom - 1),
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
                 outline="white",
                 width=1,
                 tag="tools",
             )
             self.ui.canvas.create_rectangle(
-                int(x1 * data.zoom),
-                int(y1 * data.zoom),
-                int((x2 + 1) * data.zoom - 1),
-                int((y2 + 1) * data.zoom - 1),
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
                 outline="black",
                 width=1,
                 tag="tools",
@@ -201,7 +200,7 @@ class Selection:
 
             xy_list = None
 
-            data.composer.set_force_update_mask()
+            self.composer.set_force_update_mask()
             self.update_canvas()
 
         def key_backspace(event):
@@ -240,34 +239,34 @@ class Selection:
                 x_begin = xy_list[0]
                 y_begin = xy_list[1]
                 self.ui.canvas.create_line(
-                    int(xy_list[xy_len - 2] * data.zoom),
-                    int(xy_list[xy_len - 1] * data.zoom),
-                    int(x * data.zoom),
-                    int(y * data.zoom),
+                    int(xy_list[xy_len - 2] * self.zoom),
+                    int(xy_list[xy_len - 1] * self.zoom),
+                    int(x * self.zoom),
+                    int(y * self.zoom),
                     fill="black",
                     width=1,
                     tag="tools",
                 )
                 self.ui.canvas.create_line(
-                    int(xy_list[xy_len - 2] * data.zoom),
-                    int(xy_list[xy_len - 1] * data.zoom),
-                    int(x * data.zoom),
-                    int(y * data.zoom),
+                    int(xy_list[xy_len - 2] * self.zoom),
+                    int(xy_list[xy_len - 1] * self.zoom),
+                    int(x * self.zoom),
+                    int(y * self.zoom),
                     fill="white",
                     width=1,
                     tag="tools",
                     dash=(5, 5),
                 )
                 if xy_len >= 4:
-                    tmp_xy_list = [int(x * data.zoom) for x in xy_list]
+                    tmp_xy_list = [int(x * self.zoom) for x in xy_list]
                     self.ui.canvas.create_line(tmp_xy_list, fill="black", width=1, tag="tools")
                     self.ui.canvas.create_line(tmp_xy_list, fill="white", width=1, tag="tools", dash=(5, 5))
 
             self.ui.canvas.create_rectangle(
-                int(x_begin * data.zoom + delta),
-                int(y_begin * data.zoom + delta),
-                int(x_begin * data.zoom - delta),
-                int(y_begin * data.zoom - delta),
+                int(x_begin * self.zoom + delta),
+                int(y_begin * self.zoom + delta),
+                int(x_begin * self.zoom - delta),
+                int(y_begin * self.zoom - delta),
                 outline="black",
                 fill="white",
                 width=1,
@@ -340,14 +339,14 @@ class Selection:
                     for jj in range(y_max + 1):
                         try:
                             p = pixels_image[ii, jj]
-                            if colors.color_diff(p, background) <= thresh:
+                            if common.color_diff(p, background) <= thresh:
                                 pixels_mask[ii, jj] = fill_color
                         except (ValueError, IndexError):
                             pass
             else:
                 self._floodfill_mask(self.image, self.selected_mask_img, (x, y), fill_color)
 
-            data.composer.set_force_update_mask()
+            self.composer.set_force_update_mask()
             self.update_canvas()
 
         self.ui.canvas.bind("<Button-1>", lambda e: selecting(e, "replace"))
@@ -361,7 +360,7 @@ class Selection:
         self.selected_mask_img = tmp_mask_img
         del tmp_mask_img
 
-        data.composer.set_force_update_mask()
+        self.composer.set_force_update_mask()
         self.update_canvas()
 
     def select_all_mask(self):
@@ -372,11 +371,11 @@ class Selection:
         draw = ImageDraw.Draw(self.selected_mask_img)
         draw.rectangle([0, 0, x_max, y_max], fill=255)
 
-        data.composer.set_force_update_mask()
+        self.composer.set_force_update_mask()
         self.update_canvas()
 
     def select_init_mask(self):
-        if data.composer is None:
+        if self.composer is None:
             return
 
         if self.selected_mask_img is None:
@@ -386,9 +385,9 @@ class Selection:
 
     def remove_mask(self):
         self.selected_mask_img = None
-        data.composer.mask_img = None
+        self.composer.mask_img = None
 
-        data.composer.set_force_update_mask()
+        self.composer.set_force_update_mask()
         self.update_canvas()
 
     # Timer for musk
@@ -396,13 +395,13 @@ class Selection:
         mm_time = int(time.time() * 1000)
 
         if (
-            data.composer.mask_type != 0
+            self.composer.mask_type != 0
             and self.selected_mask_img is not None
             and self.timer_mask_last_update + 500 < mm_time
         ):
             # self.timer_mask_last_update = mm_time
 
-            data.composer.inc_ants_position()
+            self.composer.inc_ants_position()
             self.update_canvas()
             # print("DEBUG: ants update: {}".format(mm_time))
 
@@ -410,17 +409,17 @@ class Selection:
         self.timer_mask_update = self.ui.after(self.timer_mask_time_for_update, self.mask_update)
 
     def set_mask_type(self, type: int = 0):
-        data.composer.mask_type = type
+        self.composer.mask_type = type
         # self.timer_mask_last_update = int(time.time() * 1000)
 
-        data.composer.set_force_update_mask()
+        self.composer.set_force_update_mask()
         self.update_canvas()
 
     def delete_selected(self):
         if self.selected_mask_img is None:
             return
 
-        bg_color = data.bg_color
+        bg_color = self.bg_color
         if self.image.mode == "RGBA":
             bg_color = (0, 0, 0, 0)
         tmp_img = Image.new(self.image.mode, (self.image.width, self.image.height), bg_color)
@@ -469,7 +468,7 @@ class Selection:
                     else:
                         full_edge.add((s, t))
                         if border is None:
-                            fill = colors.color_diff(p, background) <= thresh
+                            fill = common.color_diff(p, background) <= thresh
                         else:
                             fill = p not in (value, border)
                         if fill:
