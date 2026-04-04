@@ -198,13 +198,10 @@ class Common:
     def undo(self):
         if len(self.undo_stack) > 1:
             tmp_image = self.undo_stack.pop()
-            is_resize = False
-            if self.image.width != tmp_image.width or self.image.height != tmp_image.height:
-                is_resize = True
             self.redo_stack.append(tmp_image)
             self.image = self.undo_stack[-1].copy()
             self.draw = ImageDraw.Draw(self.image)
-            if is_resize:
+            if self.image.width != tmp_image.width or self.image.height != tmp_image.height:
                 self.selected_mask_img = None
                 self.force_resize_canvas()
             self.update_canvas()
