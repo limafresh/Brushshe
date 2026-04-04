@@ -126,7 +126,7 @@ if args.deb:
         f.write(linux_deb_control)
 
     print("Copying program files...")
-    shutil.copytree("../Brushshe", "brushshe/opt")
+    shutil.copytree("../Brushshe", "brushshe/opt/Brushshe")
 
     print("Copying the icon...")
     os.makedirs("brushshe/usr/share/icons/hicolor/512x512/apps")
