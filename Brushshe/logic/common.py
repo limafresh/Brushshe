@@ -149,7 +149,9 @@ class Common:
             self.save_as()
 
     def save_as(self):
-        file_path = filedialog.asksaveasfilename(title=_("Save to device"), filetypes=Constants.SAVE_IMG_FILETYPES)
+        file_path = filedialog.asksaveasfilename(
+            title=_("Save to device"), filetypes=Constants.SAVE_IMG_FILETYPES, defaultextension=".png"
+        )
         if file_path:
             try:
                 self.image.save(file_path)
