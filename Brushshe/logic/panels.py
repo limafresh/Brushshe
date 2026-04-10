@@ -38,11 +38,15 @@ class Panels:
         for widget in self.ui.tools_frame.winfo_children():
             widget.destroy()
 
-        with open(json_path, "r", encoding="utf-8") as f:
-            config_data = json.load(f)
+        try:
+            with open(json_path, "r", encoding="utf-8") as f:
+                config_data = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            print("Warning: Left toolbar configuration file is invalid or missing.")
+            return
 
-        columns = config_data["columns"]
-        tools_list = config_data["tools"]
+        columns = config_data.get("columns", 4)
+        tools_list = config_data.get("tools", [])
 
         row = 0
         column = 0
@@ -60,7 +64,16 @@ class Panels:
                 row += 1
                 continue
 
-            tool_command = eval(tool["action"], {"self": self})
+            action_string = tool["action"]
+            if action_string.startswith("lambda "):
+                tool_command = eval(action_string, {"self": self})
+            elif action_string.startswith("self.") and "(" not in action_string:
+                method_name = action_string.split("self.", 1)[1]
+                tool_command = getattr(self, method_name, None)
+                if tool_command is None:
+                    raise AttributeError(f"Toolbar action method not found: {method_name}")
+            else:
+                tool_command = eval(action_string, {"self": self})
             tool_icon_name = tool["icon_name"]
 
             if tool.get("helper"):
@@ -127,11 +140,11 @@ class Panels:
             with open(palette_path) as f:
                 lines = f.readlines()
                 for line in lines:
-                    if len(line) == 0:
+                    color = line.strip()
+                    if not color:
                         continue
 
-                    color = line.strip()
-                    if line[0] != "#":
+                    if not color.startswith("#"):
                         color = "#" + color
                     try:
                         self.ui.winfo_rgb(color)
