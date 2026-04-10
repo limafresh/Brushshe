@@ -58,7 +58,41 @@ class MenuBar:
         """Tools menu"""
         tools_menu = menu.add_cascade(_("Tools"))
         tools_dropdown = CustomDropdownMenu(widget=tools_menu)
-        tools_dropdown.add_option(option=_("Select all"), command=self.logic.select_all_mask)
+
+        draw_submenu = tools_dropdown.add_submenu(_("Draw tools"))
+        draw_submenu.add_option(option=_("Brush"), command=self.logic.brush)
+        draw_submenu.add_option(option=_("Eraser"), command=self.logic.eraser)
+        draw_submenu.add_option(option=_("Fill"), command=self.logic.start_fill)
+        draw_submenu.add_option(option=_("Recoloring Brush"), command=self.logic.recoloring_brush)
+        draw_submenu.add_option(option=_("Spray"), command=self.logic.spray)
+        draw_submenu.add_option(option=_("Text"), command=self.logic.text_tool)
+
+        shapes_submenu = tools_dropdown.add_submenu(_("Shapes"))
+        shapes_submenu.add_option(option=_("Rectangle"), command=lambda: self.logic.create_shape("Rectangle"))
+        shapes_submenu.add_option(option=_("Oval"), command=lambda: self.logic.create_shape("Oval"))
+        shapes_submenu.add_option(option=_("Fill rectangle"), command=lambda: self.logic.create_shape("Fill rectangle"))
+        shapes_submenu.add_option(option=_("Fill oval"), command=lambda: self.logic.create_shape("Fill oval"))
+        shapes_submenu.add_option(option=_("Line"), command=lambda: self.logic.create_shape("Line"))
+        shapes_submenu.add_option(option=_("Bezier"), command=self.logic.bezier_shape)
+
+        edit_submenu = tools_dropdown.add_submenu(_("Edit tools"))
+        edit_submenu.add_option(option=_("Cut"), command=lambda: self.logic.copy_tool(deleted=True))
+        edit_submenu.add_option(option=_("Copy"), command=self.logic.copy_tool)
+        edit_submenu.add_option(option=_("Insert"), command=self.logic.start_insert)
+        edit_submenu.add_option(option=_("Crop"), command=self.logic.crop_simple)
+
+        select_submenu = tools_dropdown.add_submenu(_("Select"))
+        select_submenu.add_option(
+            option=_("Rectangle select"), command=lambda: self.logic.select_by_shape(shape="rectangle")
+        )
+        select_submenu.add_option(option=_("Polygon select"), command=self.logic.select_by_polygon)
+        select_submenu.add_option(option=_("Fuzzy select"), command=lambda: self.logic.select_by_color(fill_limit=True))
+        select_submenu.add_option(option=_("Select by color"), command=self.logic.select_by_color)
+        select_submenu.add_separator()
+        select_submenu.add_option(option=_("Deselect all"), command=self.logic.remove_mask)
+        select_submenu.add_option(option=_("Select all"), command=self.logic.select_all_mask)
+
+        tools_dropdown.add_option(option=_("Effects"), command=self.logic.effects)
         tools_dropdown.add_separator()
         tools_icon_size = (20, 20)
         smile_icon = ctk.CTkImage(Image.open(resource("assets/icons/smile.png")), size=tools_icon_size)
