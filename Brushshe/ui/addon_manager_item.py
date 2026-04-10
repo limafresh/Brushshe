@@ -8,7 +8,17 @@ from utils.translator import _
 
 
 class AddonManagerItem(ctk.CTkFrame):
-    def __init__(self, master, title: str, author=None, version=None, description=None, delete_button_command=None, run_button_command=None, **kwargs):
+    def __init__(
+        self,
+        master,
+        title: str,
+        author=None,
+        version=None,
+        description=None,
+        delete_button_command=None,
+        run_button_command=None,
+        **kwargs,
+    ):
         super().__init__(master, **kwargs)
         super().pack(padx=10, pady=10, fill="x", expand=True)
 

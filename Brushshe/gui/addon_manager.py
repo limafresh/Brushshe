@@ -2,9 +2,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+import ast
 import os
 import shutil
-import ast
 from tkinter import filedialog
 
 import customtkinter as ctk
@@ -49,7 +49,7 @@ class AddonManager:
                     version=metadata.get("version"),
                     description=metadata.get("description"),
                     delete_button_command=lambda fp=full_path: self.uninstall_addon(fp),
-                    run_button_command=lambda fp=full_path: self.run_addon(fp),
+                    run_button_command=lambda fp=full_path: self.logic.run_addon(fp),
                 )
 
         self.installed_addons_frame.configure(label_text=f"{_('Installed add-ons')} ({addons_number})")
@@ -65,14 +65,14 @@ class AddonManager:
                             if isinstance(node.value, ast.Dict):
                                 metadata = {}
                                 for key, value in zip(node.value.keys, node.value.values):
-                                    if isinstance(key, (ast.Constant, ast.Str)):
-                                        k = key.value if isinstance(key, ast.Constant) else key.s
-                                        if isinstance(value, (ast.Constant, ast.Str, ast.Num)):
-                                            v = value.value if isinstance(value, ast.Constant) else (value.s if isinstance(value, ast.Str) else value.n)
+                                    if isinstance(key, ast.Constant):
+                                        k = key.value
+                                        if isinstance(value, ast.Constant):
+                                            v = value.value
                                             metadata[k] = v
                                 return metadata
-        except Exception:
-            pass
+        except Exception as e:
+            print(e)
         return {}
 
     def install_addon(self):
