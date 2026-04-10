@@ -8,12 +8,21 @@ from utils.translator import _
 
 
 class AddonManagerItem(ctk.CTkFrame):
-    def __init__(self, master, title: str, delete_button_command=None, run_button_command=None, **kwargs):
+    def __init__(self, master, title: str, author=None, version=None, description=None, delete_button_command=None, run_button_command=None, **kwargs):
         super().__init__(master, **kwargs)
         super().pack(padx=10, pady=10, fill="x", expand=True)
 
-        self._label = ctk.CTkLabel(self, text=title)
+        display_text = title
+        if version:
+            display_text += f" v{version}"
+        if author:
+            display_text += f" {_('by')} {author}"
+
+        self._label = ctk.CTkLabel(self, text=display_text)
         self._label.pack(padx=10, pady=10, side="left")
+
+        if description:
+            Tooltip(self._label, description)
 
         self._delete_button = ctk.CTkButton(
             self, text="X", width=30, fg_color="red", hover_color="#cc0000", command=delete_button_command
