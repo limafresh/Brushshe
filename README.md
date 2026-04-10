@@ -125,11 +125,6 @@ The goal of the project is to provide a open-source, convenient, beautiful and m
 
 The internationalization of this program has a simple principle - it determines what the computer's localization is (for example, *en*, *ru*, etc.), and then applies the `Brushshe/assets/locales/{localization}.json` file, where *localization* is the computer's localization.
 
-### Contributions
-
-All contributions are welcome!
-+ Do not use third-party libraries. Only standard Python libraries, CustomTkinter and Pillow/PIL.
-
 ### Linter
 
 [Ruff](https://github.com/astral-sh/ruff) is used to maintain code cleanliness.
