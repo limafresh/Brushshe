@@ -115,6 +115,8 @@ class Common:
         x, y = self.canvas_to_pict_xy(event.x, event.y)
 
         color = self.image.getpixel((x, y))
+        if isinstance(color, tuple):
+            color = color[:3]
         self.obtained_color = "#{:02x}{:02x}{:02x}".format(*color)
 
         self.brush_color = self.obtained_color

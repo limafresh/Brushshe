@@ -77,7 +77,7 @@ def get_cache_name(name, size, mtime):
     return hashlib.sha1(s_name.encode("utf-8")).hexdigest()
 
 
-def set_image_to_cache(self, cache_folder, image, name, size, mtime, suffix):
+def set_image_to_cache(cache_folder, image, name, size, mtime, suffix):
     if cache_folder is None:
         return
     im_name = get_cache_name(name, size, mtime)
@@ -88,7 +88,7 @@ def set_image_to_cache(self, cache_folder, image, name, size, mtime, suffix):
         print("Warning: cached file can't be saved")
 
 
-def clear_gallery_thumbs_cache(self):
+def clear_gallery_thumbs_cache():
     cache_folder = user_cache_dir("brushshe")
 
     try:

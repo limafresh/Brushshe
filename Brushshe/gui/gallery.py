@@ -181,10 +181,7 @@ class Gallery:
             else:
                 msg = messagebox.overwrite_file()
                 if msg.get() == _("Yes"):
-                    os.rename(img_path, new_path)
-                    label_text = new_text
-                    self.load_gallery_buttons()
-                    return
+                    os.replace(img_path, new_path)
                 else:
                     label_text = text
 
