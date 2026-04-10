@@ -47,7 +47,11 @@ class Common:
                 self.eraser()
 
     def when_closing(self):
-        if ImageChops.difference(self.saved_copy, self.image).getbbox() or self.saved_copy.size != self.image.size:
+        if (
+            self.saved_copy.mode != self.image.mode
+            or self.saved_copy.size != self.image.size
+            or ImageChops.difference(self.saved_copy, self.image).getbbox()
+        ):
             msg = messagebox.leave_brushshe()
             if msg.get() == _("Save"):
                 self.save_current()
