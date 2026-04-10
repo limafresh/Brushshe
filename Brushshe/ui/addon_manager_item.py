@@ -22,17 +22,21 @@ class AddonManagerItem(ctk.CTkFrame):
         super().__init__(master, **kwargs)
         super().pack(padx=10, pady=10, fill="x", expand=True)
 
-        display_text = title
+        self._text_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self._text_frame.pack(padx=10, pady=10, side="left")
+
+        self._title_label = ctk.CTkLabel(self._text_frame, text=title, font=(None, 14, "bold"))
+        self._title_label.pack(padx=5, side="left")
+
         if version:
-            display_text += f" v{version}"
+            self._version_label = ctk.CTkLabel(self._text_frame, text=version)
+            self._version_label.pack(padx=5, side="left")
         if author:
-            display_text += f" {_('by')} {author}"
-
-        self._label = ctk.CTkLabel(self, text=display_text)
-        self._label.pack(padx=10, pady=10, side="left")
-
+            self._author_label = ctk.CTkLabel(self._text_frame, text=f"{_('by')} {author}", font=(None, 14, "italic"))
+            self._author_label.pack(padx=5, side="left")
         if description:
-            Tooltip(self._label, description)
+            self._title_label.configure(cursor="hand2")
+            Tooltip(self._title_label, description)
 
         self._delete_button = ctk.CTkButton(
             self,
