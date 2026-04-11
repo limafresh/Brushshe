@@ -137,7 +137,7 @@ class PaintTools:
         else:
             fill_color = ImageColor.getrgb(self.brush_color)
 
-        if self.is_gradient_fill.get() == "on":
+        if self.is_gradient_fill.get():
             self.gradient_fill(x, y)
         else:
             ImageDraw.floodfill(tmp_image, (x, y), fill_color)

@@ -61,7 +61,7 @@ class Common:
             self.destroy_app()
 
     def destroy_app(self):
-        if self.is_reset_settings_after_exiting:
+        if self.is_reset_settings_after_exiting.get():
             os.remove(config_file_path)
         self.ui.destroy()
 
@@ -324,9 +324,6 @@ class Common:
 
         self.record_action()
 
-    def reset_settings_after_exiting(self):
-        self.is_reset_settings_after_exiting = True
-
     def brush_shape_btn_callback(self, value):
         if value == "●":
             self.brush_shape = "circle"
@@ -382,7 +379,7 @@ class Common:
         if sticker_image:
             self.last_sticker_image = sticker_image
 
-        if self.is_sticker_use_real_size.get() == "off":
+        if self.is_sticker_use_real_size.get():
             self.set_tool("sticker", "Stickers", self.sticker_size, 10, 250, "cross")
             self.insert_simple(self.last_sticker_image)
         else:

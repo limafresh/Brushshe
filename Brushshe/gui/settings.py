@@ -108,8 +108,6 @@ class Settings:
             smooth_frame,
             text=_("Smoothing for brush/eraser"),
             variable=smooth_var,
-            onvalue=True,
-            offvalue=False,
             command=smooth_switch_event,
         ).pack(padx=10, pady=10)
 
@@ -163,8 +161,6 @@ class Settings:
             autosave_frame,
             text=_("Autosave"),
             variable=self.logic.autosave_var,
-            onvalue=True,
-            offvalue=False,
             command=autosave_switch_event,
         ).pack(padx=10, pady=10)
 
@@ -206,6 +202,8 @@ class Settings:
             command=lambda: webbrowser.open(r"https://github.com/limafresh/Brushshe/releases"),
         ).pack(padx=10, pady=10)
 
-        ctk.CTkButton(
-            last_frame, text=_("Reset settings after exiting"), command=self.logic.reset_settings_after_exiting
+        ctk.CTkCheckBox(
+            last_frame,
+            text=_("Reset settings after exiting"),
+            variable=self.logic.is_reset_settings_after_exiting,
         ).pack(padx=10, pady=10)

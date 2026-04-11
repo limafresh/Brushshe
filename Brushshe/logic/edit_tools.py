@@ -192,7 +192,7 @@ class EditTools:
                 it_height = int(insert_image.height / 100 * self.tool_size)
                 if it_width <= 1 or it_height <= 1:
                     it_width, it_height = (1, 1)
-                if self.is_insert_smoothing.get() == "off":
+                if self.is_insert_smoothing.get():
                     resampling = Image.NEAREST
                 else:
                     resampling = Image.BICUBIC

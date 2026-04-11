@@ -46,9 +46,10 @@ class BrushsheLogic(
         self.brush_smoothing_quality = config.getint("Brushshe", "brush_smoothing_quality")  # Between: 1..64
         self.autosave_var = ctk.BooleanVar(value=config.getboolean("Brushshe", "autosave"))
 
-        self.is_gradient_fill = ctk.StringVar(value="off")
-        self.is_sticker_use_real_size = ctk.StringVar(value="off")
-        self.is_insert_smoothing = ctk.StringVar(value="off")
+        self.is_gradient_fill = ctk.BooleanVar(value=False)
+        self.is_sticker_use_real_size = ctk.BooleanVar(value=False)
+        self.is_insert_smoothing = ctk.BooleanVar(value=False)
+        self.is_reset_settings_after_exiting = ctk.BooleanVar(value=False)
 
         # Max tail can not be more 4 MB = 1024 (width) x 1024 (height) x 4 (rgba).
         # canvas_tail_size: Max = 1024. Default = 128. Min = 16.
@@ -87,7 +88,6 @@ class BrushsheLogic(
         self.prev_x, self.prev_y = None, None
         self.current_font = "Open Sans"
         self.font_path = resource("assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
-        self.is_reset_settings_after_exiting = False
 
         self.timer_mask_time_for_update = 200  # ms
         self.timer_mask_last_update = 0

@@ -108,8 +108,6 @@ class ToolOperations:
                 self.ui.tool_config_docker,
                 text=_("Gradient"),
                 variable=self.is_gradient_fill,
-                onvalue="on",
-                offvalue="off",
             ).pack(side=ctk.LEFT, padx=5)
             self.gradient_mode_optionmenu = ctk.CTkOptionMenu(
                 self.ui.tool_config_docker,
@@ -134,8 +132,6 @@ class ToolOperations:
                 self.ui.tool_config_docker,
                 text=_("Use real size"),
                 variable=self.is_sticker_use_real_size,
-                onvalue="on",
-                offvalue="off",
                 command=self.set_current_sticker,
             ).pack(side=ctk.LEFT, padx=5)
         elif self.current_tool == "effects":
@@ -147,13 +143,9 @@ class ToolOperations:
                 side=ctk.LEFT, padx=1
             )
         elif self.current_tool == "insert":
-            ctk.CTkCheckBox(
-                self.ui.tool_config_docker,
-                text=_("Smoothing"),
-                variable=self.is_insert_smoothing,
-                onvalue="on",
-                offvalue="off",
-            ).pack(side=ctk.LEFT, padx=5)
+            ctk.CTkCheckBox(self.ui.tool_config_docker, text=_("Smoothing"), variable=self.is_insert_smoothing).pack(
+                side=ctk.LEFT, padx=5
+            )
 
         self.ui.focus_set()
 
