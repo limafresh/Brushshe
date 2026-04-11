@@ -64,16 +64,7 @@ class Panels:
                 row += 1
                 continue
 
-            action_string = tool["action"]
-            if action_string.startswith("lambda "):
-                tool_command = eval(action_string, {"self": self})
-            elif action_string.startswith("self.") and "(" not in action_string:
-                method_name = action_string.split("self.", 1)[1]
-                tool_command = getattr(self, method_name, None)
-                if tool_command is None:
-                    raise AttributeError(f"Toolbar action method not found: {method_name}")
-            else:
-                tool_command = eval(action_string, {"self": self})
+            tool_command = eval(tool["action"], {"self": self})
             tool_icon_name = tool["icon_name"]
 
             if tool.get("helper"):
