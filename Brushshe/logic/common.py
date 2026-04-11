@@ -379,7 +379,7 @@ class Common:
         if sticker_image:
             self.last_sticker_image = sticker_image
 
-        if self.is_sticker_use_real_size.get():
+        if not self.is_sticker_use_real_size.get():
             self.set_tool("sticker", "Stickers", self.sticker_size, 10, 250, "cross")
             self.insert_simple(self.last_sticker_image)
         else:
