@@ -65,6 +65,11 @@ class Settings:
             config.set("Brushshe", "language", Constants.LANGUAGES.get(value))
             write_config()
 
+        def reset_left_toolbar_config():
+            config.set("Brushshe", "left_toolbar_config", "default")
+            write_config()
+            self.logic.set_left_toolbar(False)
+
         settings_tl = ctk.CTkToplevel(self)
         settings_tl.geometry("400x650")
         settings_tl.title(_("Settings"))
@@ -195,6 +200,11 @@ class Settings:
 
         last_frame = ctk.CTkFrame(settings_frame)
         last_frame.pack(padx=10, pady=10, fill="x")
+
+        reset_left_toolbar_config_button = ctk.CTkButton(
+            last_frame, text=_("Reset left toolbar config"), command=reset_left_toolbar_config
+        )
+        reset_left_toolbar_config_button.pack(padx=10, pady=10)
 
         ctk.CTkButton(
             last_frame,
