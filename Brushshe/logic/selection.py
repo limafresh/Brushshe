@@ -453,7 +453,7 @@ class Selection:
         edge = {(x, y)}
 
         # Default floodfill algorithm.
-        full_edge = set()
+        full_edge = {(x, y)}
         while edge:
             new_edge = set()
             for x, y in edge:
@@ -466,7 +466,6 @@ class Selection:
                     except (ValueError, IndexError):
                         pass
                     else:
-                        full_edge.add((s, t))
                         if border is None:
                             fill = common.color_diff(p, background) <= thresh
                         else:
@@ -475,5 +474,5 @@ class Selection:
                             pixel[s, t] = value
                             pixel_m[s, t] = value
                             new_edge.add((s, t))
-            full_edge = edge
+                        full_edge.add((s, t))
             edge = new_edge

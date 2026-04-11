@@ -180,14 +180,18 @@ class AskColor(ctk.CTkToplevel):
 
     def get_target_color(self):
         try:
-            self.rgb_color = self.img1.getpixel((self.target_x, self.target_y))
+            x = int(self.target_x)
+            y = int(self.target_y)
+            if x < 0 or y < 0 or x >= self.img1.width or y >= self.img1.height:
+                raise IndexError
+            self.rgb_color = self.img1.getpixel((x, y))
 
             r = self.rgb_color[0]
             g = self.rgb_color[1]
             b = self.rgb_color[2]
             self.rgb_color = [r, g, b]
 
-        except AttributeError:
+        except (AttributeError, IndexError, ValueError):
             self.rgb_color = self.default_rgb
 
     def update_colors(self):

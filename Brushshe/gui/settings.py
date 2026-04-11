@@ -65,6 +65,11 @@ class Settings:
             config.set("Brushshe", "language", Constants.LANGUAGES.get(value))
             write_config()
 
+        def reset_left_toolbar_config():
+            config.set("Brushshe", "left_toolbar_config", "default")
+            write_config()
+            self.logic.set_left_toolbar(False)
+
         settings_tl = ctk.CTkToplevel(self)
         settings_tl.geometry("400x650")
         settings_tl.title(_("Settings"))
@@ -108,8 +113,6 @@ class Settings:
             smooth_frame,
             text=_("Smoothing for brush/eraser"),
             variable=smooth_var,
-            onvalue=True,
-            offvalue=False,
             command=smooth_switch_event,
         ).pack(padx=10, pady=10)
 
@@ -163,8 +166,6 @@ class Settings:
             autosave_frame,
             text=_("Autosave"),
             variable=self.logic.autosave_var,
-            onvalue=True,
-            offvalue=False,
             command=autosave_switch_event,
         ).pack(padx=10, pady=10)
 
@@ -200,12 +201,19 @@ class Settings:
         last_frame = ctk.CTkFrame(settings_frame)
         last_frame.pack(padx=10, pady=10, fill="x")
 
+        reset_left_toolbar_config_button = ctk.CTkButton(
+            last_frame, text=_("Reset left toolbar config"), command=reset_left_toolbar_config
+        )
+        reset_left_toolbar_config_button.pack(padx=10, pady=10)
+
         ctk.CTkButton(
             last_frame,
             text=f"{_('Check new versions (yours is')} {Constants.VERSION})",
             command=lambda: webbrowser.open(r"https://github.com/limafresh/Brushshe/releases"),
         ).pack(padx=10, pady=10)
 
-        ctk.CTkButton(
-            last_frame, text=_("Reset settings after exiting"), command=self.logic.reset_settings_after_exiting
+        ctk.CTkCheckBox(
+            last_frame,
+            text=_("Reset settings after exiting"),
+            variable=self.logic.is_reset_settings_after_exiting,
         ).pack(padx=10, pady=10)

@@ -171,5 +171,7 @@
 	"Uninstall add-on": "Удалить дополнение",
 	"Installed add-ons": "Установленные дополнения",
 	"Import left toolbar config from file": "Импортировать конфиг левой панели инструментов из файла",
-	"Wiki": "Вики"
+	"Wiki": "Вики",
+	"by": "от",
+	"Reset left toolbar config": "Сбросить конфиг левой панели инструментов"
 }

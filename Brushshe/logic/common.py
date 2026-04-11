@@ -47,7 +47,11 @@ class Common:
                 self.eraser()
 
     def when_closing(self):
-        if ImageChops.difference(self.saved_copy, self.image).getbbox() or self.saved_copy.size != self.image.size:
+        if (
+            self.saved_copy.mode != self.image.mode
+            or self.saved_copy.size != self.image.size
+            or ImageChops.difference(self.saved_copy, self.image).getbbox()
+        ):
             msg = messagebox.leave_brushshe()
             if msg.get() == _("Save"):
                 self.save_current()
@@ -57,7 +61,7 @@ class Common:
             self.destroy_app()
 
     def destroy_app(self):
-        if self.is_reset_settings_after_exiting:
+        if self.is_reset_settings_after_exiting.get():
             os.remove(config_file_path)
         self.ui.destroy()
 
@@ -115,6 +119,8 @@ class Common:
         x, y = self.canvas_to_pict_xy(event.x, event.y)
 
         color = self.image.getpixel((x, y))
+        if isinstance(color, tuple):
+            color = color[:3]
         self.obtained_color = "#{:02x}{:02x}{:02x}".format(*color)
 
         self.brush_color = self.obtained_color
@@ -318,9 +324,6 @@ class Common:
 
         self.record_action()
 
-    def reset_settings_after_exiting(self):
-        self.is_reset_settings_after_exiting = True
-
     def brush_shape_btn_callback(self, value):
         if value == "●":
             self.brush_shape = "circle"
@@ -376,7 +379,7 @@ class Common:
         if sticker_image:
             self.last_sticker_image = sticker_image
 
-        if self.is_sticker_use_real_size.get() == "off":
+        if not self.is_sticker_use_real_size.get():
             self.set_tool("sticker", "Stickers", self.sticker_size, 10, 250, "cross")
             self.insert_simple(self.last_sticker_image)
         else:

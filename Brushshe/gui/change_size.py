@@ -22,7 +22,7 @@ class ChangeSize:
 
         def crop():
             try:
-                if aspect_ratio_var.get() == "on":
+                if aspect_ratio_var.get():
                     new_height = int(self.logic.image.height * width_spinbox.get() / self.logic.image.width)
                 else:
                     new_height = int(height_spinbox.get())
@@ -38,7 +38,7 @@ class ChangeSize:
 
         def scale():
             try:
-                if aspect_ratio_var.get() == "on":
+                if aspect_ratio_var.get():
                     new_height = int(self.logic.image.height * width_spinbox.get() / self.logic.image.width)
                 else:
                     new_height = int(height_spinbox.get())
@@ -79,13 +79,11 @@ class ChangeSize:
         height_spinbox.grid(row=2, column=2, padx=10, pady=10)
         height_spinbox.set(self.logic.image.height)
 
-        aspect_ratio_var = ctk.StringVar(value="on")
+        aspect_ratio_var = ctk.BooleanVar(value=True)
         ctk.CTkCheckBox(
             change_size_toplevel,
             text=_("Maintain aspect ratio"),
             variable=aspect_ratio_var,
-            onvalue="on",
-            offvalue="off",
         ).pack(padx=10, pady=10)
 
         ready_size_button = ctk.CTkButton(change_size_toplevel, text="OK", command=crop)

@@ -16,7 +16,7 @@ if os.path.basename(script_dir) != "dev_tools" or script_dir != os.getcwd():
     raise RuntimeError("ERROR: This script must be executed from the dev_tools folder!")
     sys.exit(1)
 
-version = "2.6.0"
+version = "2.7.0"
 windows_python_license_path = None
 venv_python = None
 
@@ -164,7 +164,7 @@ elif args.rpm:
         print("Unsupported distribution or typo")
         sys.exit(1)
 
-    basic_licenses = "MPL-2.0 AND CC0-1.0 AND OFL-1.1-no-RFN AND OFL-1.1-RFN"
+    basic_licenses = "MPL-2.0 AND CC0-1.0 AND OFL-1.1-no-RFN AND OFL-1.1-RFN AND Unlicense"
     if distro != "OpenMandriva":
         licenses = basic_licenses + " AND MIT AND Apache-2.0 AND BSD-3-Clause AND (Apache-2.0 OR BSD-2-Clause)"
     else:
