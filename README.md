@@ -103,7 +103,8 @@ The goal of the project is to provide a open-source, convenient, beautiful and m
 
 + Thanks [Akascape](https://github.com/Akascape) for CTkColorPicker, CTkMenuBar, CTkMessagebox and CTkToolTip.
 + Thanks to [a13xe](https://github.com/a13xe/) for the wonderful [CTkThemesPack](https://github.com/a13xe/CTkThemesPack).
-+ Thanks [Chip Viled](https://github.com/chipviled) for contributing.
++ Special thanks [Chip Viled](https://github.com/chipviled) for contributing.
++ Thanks [Deepak singh](https://github.com/Deepak8858) for contributing.
 + Thanks to our translators: [sagar12](https://github.com/Sagar1205b) (Hindi); [Sagar Sirbi](https://github.com/sagarsirbi), [iLollek](https://github.com/iLollek) (German); [albanobattistella](https://github.com/albanobattistella) (Italian).
 
 ## Licenses
