@@ -3,6 +3,7 @@
 
 #define MyAppName "Brushshe"
 #define MyAppVersion "2.7.0"
+#define MyAppCodename "Zviahel"
 #define MyAppPublisher "Brushshe developers"
 #define MyAppURL "https://github.com/limafresh/Brushshe"
 #define MyAppExeName "brushshe.exe"
@@ -13,7 +14,7 @@
 AppId={{EF032D4B-48F7-44D3-B5B7-DD749EDA3A1D}}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-AppVerName=Brushshe 2.7.0 "Zviahel"
+AppVerName={#MyAppName} {#MyAppVersion} {#MyAppCodename}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
