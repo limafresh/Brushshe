@@ -175,7 +175,6 @@ class Gallery:
             new_text = filename_entry.get()
             new_path = os.path.join(os.path.dirname(img_path), new_text + extension)
 
-            label_text = text
             if not os.path.exists(new_path):
                 os.rename(img_path, new_path)
                 label_text = new_text
@@ -183,8 +182,10 @@ class Gallery:
                 msg = messagebox.overwrite_file()
                 if msg.get() == _("Yes"):
                     os.replace(img_path, new_path)
-                    label_text = new_text
                     self.load_gallery_buttons()
+                    return
+                else:
+                    label_text = text
 
             label_content = shorten_filename(label_text)
 
