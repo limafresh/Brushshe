@@ -6,8 +6,8 @@ import importlib.util
 from tkinter import filedialog
 from types import SimpleNamespace
 
-from ui import messagebox
-from utils.translator import _
+from ..ui import messagebox
+from ..utils.translator import _
 
 
 class Addons:

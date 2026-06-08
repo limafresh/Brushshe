@@ -3,11 +3,12 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import customtkinter as ctk
-from constants import Constants
 from PIL import ImageFont
-from ui.tooltip import Tooltip
-from utils.common import resource
-from utils.translator import _
+
+from ..constants import Constants
+from ..ui.tooltip import Tooltip
+from ..utils.common import resource
+from ..utils.translator import _
 
 
 class ToolOperations:

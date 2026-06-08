@@ -11,14 +11,15 @@ from urllib.request import urlopen
 from uuid import uuid4
 
 import customtkinter as ctk
-from constants import Constants
-from core.bhbrush import bh_draw_line
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter, ImageGrab, ImageOps, ImageStat, ImageTk
-from ui import messagebox
-from ui.color_picker import AskColor
-from utils import common
-from utils.config_loader import config_file_path
-from utils.translator import _
+
+from ..constants import Constants
+from ..core.bhbrush import bh_draw_line
+from ..ui import messagebox
+from ..ui.color_picker import AskColor
+from ..utils import common
+from ..utils.config_loader import config_file_path
+from ..utils.translator import _
 
 
 class Common:

@@ -5,12 +5,13 @@
 import math
 import random
 
-from core.bhbrush import bh_draw_recoloring_line
-from core.bhhistory import BhHistory, BhPoint
 from PIL import Image, ImageChops, ImageColor, ImageDraw, ImageFont
-from utils import common
-from utils.translator import _
+from ..utils import common
 
+from ..core.bhbrush import bh_draw_recoloring_line
+from ..core.bhhistory import BhHistory, BhPoint
+
+from ..utils.translator import _
 
 class PaintTools:
     """Brush"""

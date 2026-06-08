@@ -6,15 +6,15 @@ import os
 from pathlib import Path
 
 import customtkinter as ctk
-from constants import Constants
+from ..constants import Constants
 from PIL import Image
-from ui import messagebox
-from ui.CTkMenuBar import CTkMenuBar, CustomDropdownMenu
-from ui.scroll import scroll
-from ui.tooltip import Tooltip
-from utils import cache
-from utils.common import shorten_filename
-from utils.translator import _
+from ..ui import messagebox
+from ..ui.CTkMenuBar import CTkMenuBar, CustomDropdownMenu
+from ..ui.scroll import scroll
+from ..ui.tooltip import Tooltip
+from ..utils import cache
+from ..utils.common import shorten_filename
+from ..utils.translator import _
 
 
 class Gallery:

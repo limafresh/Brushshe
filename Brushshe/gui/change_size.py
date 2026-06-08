@@ -5,9 +5,9 @@
 
 import customtkinter as ctk
 from PIL import Image
-from ui import messagebox
-from ui.spinbox import IntSpinbox
-from utils.translator import _
+from ..ui import messagebox
+from ..ui.spinbox import IntSpinbox
+from ..utils.translator import _
 
 
 class ChangeSize:

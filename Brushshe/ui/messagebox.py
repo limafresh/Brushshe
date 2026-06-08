@@ -14,9 +14,9 @@ import webbrowser
 from typing import Literal
 
 import customtkinter as ctk
-from constants import Constants
-from PIL import Image, ImageTk
-from utils.translator import _
+
+from ..constants import Constants
+from ..utils.translator import _
 
 
 class Messagebox(ctk.CTkToplevel):
