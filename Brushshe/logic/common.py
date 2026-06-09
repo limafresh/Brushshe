@@ -52,7 +52,7 @@ class Common:
             or self.saved_copy.size != self.image.size
             or ImageChops.difference(self.saved_copy, self.image).getbbox()
         ):
-            msg = messagebox.leave_brushshe()
+            msg = messagebox.leave_brushshe(self.ui)
             if msg.get() == _("Save"):
                 self.save_current()
             elif msg.get() == _("Yes"):
