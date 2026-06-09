@@ -2,14 +2,57 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+from dataclasses import dataclass, field
 import math
 import random
 
+from Brushshe.core import bhhistory
+from Brushshe.logic.canvas import CanvasOperations
 from core.bhbrush import bh_draw_recoloring_line
 from core.bhhistory import BhHistory, BhPoint
 from PIL import Image, ImageChops, ImageColor, ImageDraw, ImageFont
 from utils import common
 from utils.translator import _
+
+
+
+
+@dataclass
+class PaintTool:
+    canvas: CanvasOperations
+    is_brush_smoothing: bool
+    brush_smoothing_factor: int
+    prev_x: int | None  = field(default=None, init=False)
+    prev_y: int | None = field(default=None, init=False)
+    point_history: BhHistory = field(default_factory=BhHistory)
+
+    def paint(self, event):
+        if self.is_brush_smoothing is False:
+            x, y = self.canvas.canvas_to_pict_xy(event.x, event.y)
+        else:
+            if self.point_history is None:
+                point_history = BhHistory(limit_length=self.brush_smoothing_factor)
+            xf, yf = self.canvas_to_pict_xy_f(event.x, event.y)
+            self.point_history.add_point(BhPoint(x=xf, y=yf, pressure=1.0))
+            s_point = point_history.get_smoothing_point(
+                self.brush_smoothing_factor,
+                self.brush_smoothing_quality,
+            )
+            if s_point is not None:
+                x = int(s_point.x)
+                y = int(s_point.y)
+            else:
+                x, y = self.canvas_to_pict_xy(event.x, event.y)
+
+        if self.prev_x is not None and prev_y is not None:
+            self.draw_line(prev_x, prev_y, x, y)
+        else:
+            self.draw_line(x, y, x, y)
+
+        prev_x, prev_y = x, y
+
+        self.update_canvas()
+        draw_brush_halo(x, y)
 
 
 class PaintTools:
@@ -31,32 +74,7 @@ class PaintTools:
         def paint(event):
             nonlocal prev_x, prev_y, point_history
 
-            if self.is_brush_smoothing is False:
-                x, y = self.canvas_to_pict_xy(event.x, event.y)
-            else:
-                if point_history is None:
-                    point_history = BhHistory(limit_length=self.brush_smoothing_factor)
-                xf, yf = self.canvas_to_pict_xy_f(event.x, event.y)
-                point_history.add_point(BhPoint(x=xf, y=yf, pressure=1.0))
-                s_point = point_history.get_smoothing_point(
-                    self.brush_smoothing_factor,
-                    self.brush_smoothing_quality,
-                )
-                if s_point is not None:
-                    x = int(s_point.x)
-                    y = int(s_point.y)
-                else:
-                    x, y = self.canvas_to_pict_xy(event.x, event.y)
-
-            if prev_x is not None and prev_y is not None:
-                self.draw_line(prev_x, prev_y, x, y)
-            else:
-                self.draw_line(x, y, x, y)
-
-            prev_x, prev_y = x, y
-
-            self.update_canvas()
-            draw_brush_halo(x, y)
+            
 
         def stop_paint(event):
             nonlocal prev_x, prev_y, point_history
