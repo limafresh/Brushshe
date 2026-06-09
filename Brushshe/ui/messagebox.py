@@ -536,8 +536,9 @@ class Messagebox(ctk.CTkToplevel):
 """Ready-made messages"""
 
 
-def leave_brushshe():
+def leave_brushshe(master: ctk.CTk):
     leave_brushshe_msg = Messagebox(
+        master,
         title=_("You are leaving Brushshe"),
         message=_("There are unsaved changes. Exit?"),
         option_1=_("Save"),
