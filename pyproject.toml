@@ -1,0 +1,40 @@
+[build-system]
+# Specifies the tools needed to build your package
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "brushshe"
+version = "2.7.1"
+description = "simple and user-friendly raster graphics editor"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name="limafresh", email="your.email@example.com" }
+]
+# List your project's runtime dependencies here
+dependencies = [
+    "customtkinter",
+    "Pillow",
+]
+
+[project.optional-dependencies]
+# Extra dependencies for development or testing
+dev = [
+    "pytest",
+    "ruff",
+]
+
+[project.scripts]
+brushshe = "Brushshe.main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["Brushshe*"]
+exclude = ["*.tests", "*.testing"]
+
+[tool.setuptools]
+include-package-data = true  # Required to enable custom data parsing
+
+[tool.setuptools.package-data]
+"Brushshe" = ["assets/**/*.png", "assets/**/*.json", "assets/palettes/*.hex", "fonts/**/*.ttf"]

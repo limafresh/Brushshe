@@ -13,10 +13,11 @@ import time
 import webbrowser
 from typing import Literal
 
+from PIL import Image
 import customtkinter as ctk
-from constants import Constants
-from PIL import Image, ImageTk
-from utils.translator import _
+
+from ..constants import Constants
+from ..utils.translator import _
 
 
 class Messagebox(ctk.CTkToplevel):
@@ -51,13 +52,13 @@ class Messagebox(ctk.CTkToplevel):
         icon_size: tuple = (100, 100),
         corner_radius: int = 15,
         justify: str = "right",
-        font: tuple = None,
+        font: tuple | None = None,
         header: bool = False,
         topmost: bool = True,
         fade_in_duration: int = 0,
         sound: bool = True,
         wraplength: int = 0,
-        option_focus: Literal[1, 2, 3] = None,
+        option_focus: Literal[1, 2, 3] | None = None,
     ):
         super().__init__()
 

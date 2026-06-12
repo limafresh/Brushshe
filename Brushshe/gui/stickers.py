@@ -4,11 +4,11 @@
 
 
 import customtkinter as ctk
-from constants import Constants
+from ..constants import Constants
 from PIL import Image
-from ui.scroll import scroll
-from utils.common import resource
-from utils.translator import _
+from ..ui.scroll import scroll
+from ..utils.common import resource
+from ..utils.translator import _
 
 
 class Stickers:

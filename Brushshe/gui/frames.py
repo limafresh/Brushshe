@@ -4,10 +4,11 @@
 
 
 import customtkinter as ctk
-from constants import Constants
 from PIL import Image
-from utils.common import resource
-from utils.translator import _
+
+from ..constants import Constants
+from ..utils.common import resource
+from ..utils.translator import _
 
 
 class Frames:

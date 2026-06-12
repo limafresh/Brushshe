@@ -27,7 +27,7 @@
 
 **or**
 
-### Run via Python
+### Run via Python without installing
 
 1. Install [Python 3](https://www.python.org/downloads/), if not installed;
 2. Download the code and unpack downloaded archive:
@@ -38,7 +38,21 @@
 ```bash
 pip install customtkinter Pillow
 ```
-4. Run file `Brushshe/main.py`.
+4. Run module `python3 -m Brushshe.main`.
+
+**or**
+
+### Install with pip 
+
+1. Install Brushshe
+	```bash
+	pip install git+https://github.com/limafresh/Brushshe.git
+	```
+2. Run Brushshe
+	```bash
+	brushshe
+	```
+
 
 ## 🚀 Features
 

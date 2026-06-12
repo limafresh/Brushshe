@@ -1,8 +1,12 @@
 services:
   python:
-    build: ./docker/python
+    build: 
+      context: ..
+      dockerfile: dev_tools/docker/python/Dockerfile
     working_dir: '/app'
     user: "$UID:$GID"
+    env_file:
+      - .env
     tty: true
     volumes:
       - ${SRC_PATH}:/app
@@ -12,7 +16,7 @@ services:
     environment:
       - DISPLAY=$DISPLAY
     #command: ["bash"]
-    command: ["python3", "./brushshe.py"]
+    command: ["brushshe"]
     network_mode: none
     # privileged: true      # It needs for access to /dev/input/events* (but not enough for the tablet work)
 

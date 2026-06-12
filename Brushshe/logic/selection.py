@@ -5,7 +5,7 @@
 import time
 
 from PIL import Image, ImageDraw, ImageOps
-from utils import common
+from ..utils import common
 
 
 class Selection:

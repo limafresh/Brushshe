@@ -5,14 +5,17 @@
 import sys
 
 import customtkinter as ctk
-from constants import Constants
-from logic import BrushsheLogic
+
 from PIL import Image, ImageTk
-from ui.brush_palette import BrushPalette
-from ui.tooltip import Tooltip
-from utils.common import resource
-from utils.config_loader import config
-from utils.translator import _
+
+from ..constants import Constants
+from ..logic import BrushsheLogic
+from ..ui.brush_palette import BrushPalette
+from ..ui.tooltip import Tooltip
+from ..utils.common import resource
+from ..utils.config_loader import config
+from ..utils.translator import _
+
 
 from .addon_manager import AddonManager
 from .change_size import ChangeSize

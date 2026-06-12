@@ -2,15 +2,21 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+from dataclasses import dataclass, field
 import math
 import random
 
-from core.bhbrush import bh_draw_recoloring_line
-from core.bhhistory import BhHistory, BhPoint
 from PIL import Image, ImageChops, ImageColor, ImageDraw, ImageFont
-from utils import common
-from utils.translator import _
 
+from Brushshe.logic.canvas import CanvasOperations
+from ..core.bhbrush import bh_draw_recoloring_line
+from ..core.bhhistory import BhHistory, BhPoint
+from ..utils import common
+
+from ..core.bhbrush import bh_draw_recoloring_line
+from ..core.bhhistory import BhHistory, BhPoint
+
+from ..utils.translator import _
 
 class PaintTools:
     """Brush"""

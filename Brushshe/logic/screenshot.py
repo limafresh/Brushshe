@@ -4,7 +4,7 @@
 
 import customtkinter as ctk
 from PIL import Image, ImageGrab, ImageTk
-from utils.translator import _
+from ..utils.translator import _
 
 
 class Screenshot:
