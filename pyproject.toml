@@ -28,6 +28,13 @@ dev = [
 [project.scripts]
 brushshe = "Brushshe.main:main"
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["Brushshe*"]
+exclude = ["*.tests", "*.testing"]
+
 [tool.setuptools]
-# Automatically find your source code packages
-packages = ["Brushshe"]
+include-package-data = true  # Required to enable custom data parsing
+
+[tool.setuptools.package-data]
+"Brushshe" = ["assets/**/*.png", "assets/**/*.json", "assets/palettes/*.hex", "fonts/**/*.ttf"]
