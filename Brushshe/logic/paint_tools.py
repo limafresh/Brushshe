@@ -6,10 +6,11 @@ from dataclasses import dataclass, field
 import math
 import random
 
-from Brushshe.logic.canvas import CanvasOperations
-from core.bhbrush import bh_draw_recoloring_line
-from core.bhhistory import BhHistory, BhPoint
 from PIL import Image, ImageChops, ImageColor, ImageDraw, ImageFont
+
+from Brushshe.logic.canvas import CanvasOperations
+from ..core.bhbrush import bh_draw_recoloring_line
+from ..core.bhhistory import BhHistory, BhPoint
 from ..utils import common
 
 from ..core.bhbrush import bh_draw_recoloring_line
