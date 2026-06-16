@@ -482,9 +482,13 @@ class Messagebox(ctk.CTkToplevel):
             else:
                 size = (self.height / 4, self.height / 4)
             self.ICONS[icon] = ctk.CTkImage(Image.open(image_path), size=size)
-            self.ICON_BITMAP[icon] = ImageTk.PhotoImage(file=image_path)
+            try:
+                self.ICON_BITMAP[icon] = ImageTk.PhotoImage(file=image_path)
+            except Exception:
+                self.ICON_BITMAP[icon] = None
         if not sys.platform.startswith("darwin"):
-            self.after(200, lambda: self.iconphoto(False, self.ICON_BITMAP[icon]))
+            if self.ICON_BITMAP.get(icon):
+                self.after(200, lambda: self.iconphoto(False, self.ICON_BITMAP.get(icon)))
         return self.ICONS[icon]
 
     def fade_in(self):
