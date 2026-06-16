@@ -171,35 +171,37 @@ class Gallery:
         filename_entry.grid(row=1, column=0)
         filename_entry.insert(0, text)
 
-        def on_return(event):
-            new_text = filename_entry.get()
-            new_path = os.path.join(os.path.dirname(img_path), new_text + extension)
-
-            if not os.path.exists(new_path):
-                os.rename(img_path, new_path)
-                label_text = new_text
-            else:
-                msg = messagebox.overwrite_file()
-                if msg.get() == _("Yes"):
-                    os.replace(img_path, new_path)
-                    self.load_gallery_buttons()
-                    return
-                else:
-                    label_text = text
-
-            label_content = shorten_filename(label_text)
-
-            filename_entry.destroy()
-
-            new_filename_label = ctk.CTkLabel(parent, text=label_content, cursor="xterm")
-            new_filename_label.grid(row=1, column=0)
-
-            new_filename_label.bind(
-                "<Button-1>", lambda e: self.on_gallery_filename_label_click(e, parent, label_text, new_path, extension)
-            )
-
-        filename_entry.bind("<Return>", on_return)
+        filename_entry.bind(
+            "<Return>", lambda event: self.on_gallery_entry_return(filename_entry, parent, text, img_path, extension)
+        )
         filename_entry.focus()
+
+    def on_gallery_entry_return(self, filename_entry, parent, text, img_path, extension):
+        new_text = filename_entry.get()
+        new_path = os.path.join(os.path.dirname(img_path), new_text + extension)
+
+        if not os.path.exists(new_path):
+            os.rename(img_path, new_path)
+            label_text = new_text
+        else:
+            msg = messagebox.overwrite_file()
+            if msg.get() == _("Yes"):
+                os.replace(img_path, new_path)
+                self.load_gallery_buttons()
+                return
+            else:
+                label_text = text
+
+        label_content = shorten_filename(label_text)
+
+        filename_entry.destroy()
+
+        new_filename_label = ctk.CTkLabel(parent, text=label_content, cursor="xterm")
+        new_filename_label.grid(row=1, column=0)
+
+        new_filename_label.bind(
+            "<Button-1>", lambda e: self.on_gallery_filename_label_click(e, parent, label_text, new_path, extension)
+        )
 
     def delete_gallery_image(self, img_path):
         msg = messagebox.confirm_delete()

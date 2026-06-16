@@ -8,6 +8,94 @@ from PIL import Image, ImageChops, ImageDraw, ImageTk
 
 
 class EditTools:
+    """Common"""
+
+    def edit_selecting(self, event, screenshot=False):
+        if screenshot:
+            image = self.screenshot
+            draw_tool = self.screenshot_draw_tool
+        else:
+            image = self.image
+            draw_tool = self.edit_draw_tool
+
+        x, y = self.canvas_to_pict_xy(event.x, event.y)
+
+        if self.x_begin is None or self.y_begin is None:
+            self.x_begin = x
+            self.y_begin = y
+
+        self.x_end = x
+        self.y_end = y
+
+        x_max = image.width - 1
+        y_max = image.height - 1
+
+        if self.x_begin < 0:
+            self.x_begin = 0
+        if self.x_begin > x_max:
+            self.x_begin = x_max
+        if self.y_begin < 0:
+            self.y_begin = 0
+        if self.y_begin > y_max:
+            self.y_begin = y_max
+        if self.x_end < 0:
+            self.x_end = 0
+        if self.x_end > x_max:
+            self.x_end = x_max
+        if self.y_end < 0:
+            self.y_end = 0
+        if self.y_end > y_max:
+            self.y_end = y_max
+
+        x1 = min(self.x_begin, self.x_end)
+        x2 = max(self.x_begin, self.x_end)
+        y1 = min(self.y_begin, self.y_end)
+        y2 = max(self.y_begin, self.y_end)
+
+        draw_tool(x1, y1, x2, y2)
+
+    def edit_draw_tool(self, x1, y1, x2, y2):
+        self.ui.canvas.delete("tools")
+
+        self.ui.canvas.create_rectangle(
+            int(x1 * self.zoom),
+            int(y1 * self.zoom),
+            int((x2 + 1) * self.zoom - 1),
+            int((y2 + 1) * self.zoom - 1),
+            outline="white",
+            width=1,
+            tag="tools",
+        )
+        self.ui.canvas.create_rectangle(
+            int(x1 * self.zoom),
+            int(y1 * self.zoom),
+            int((x2 + 1) * self.zoom - 1),
+            int((y2 + 1) * self.zoom - 1),
+            outline="black",
+            width=1,
+            tag="tools",
+            dash=(5, 5),
+        )
+
+    def edit_end(self, screenshot=False):
+        if self.x_begin is None or self.y_begin is None:
+            return
+
+        x1 = min(self.x_begin, self.x_end)
+        x2 = max(self.x_begin, self.x_end)
+        y1 = min(self.y_begin, self.y_end)
+        y2 = max(self.y_begin, self.y_end)
+
+        if not screenshot:
+            self.ui.canvas.delete("tools")
+
+        self.x_begin = None
+        self.y_begin = None
+        self.x_end = None
+        self.y_end = None
+
+        return x1, y1, x2, y2
+
     """Copy and cut"""
 
     def copy_tool(self, deleted=False):
@@ -55,115 +143,41 @@ class EditTools:
         else:
             self.set_tool("cut", "Cut", None, None, None, "cross")
 
-        x_begin = None
-        y_begin = None
-        x_end = None
-        y_end = None
+        self.x_begin = None
+        self.y_begin = None
+        self.x_end = None
+        self.y_end = None
 
-        def selecting(event):
-            nonlocal x_begin, y_begin, x_end, y_end
+        self.ui.canvas.bind("<Button-1>", self.edit_selecting)
+        self.ui.canvas.bind("<B1-Motion>", self.edit_selecting)
+        self.ui.canvas.bind("<ButtonRelease-1>", lambda event: self.copy_select_end(deleted))
 
-            x, y = self.canvas_to_pict_xy(event.x, event.y)
+    def copy_select_end(self, deleted):
+        result = self.edit_end()
+        if result is None:
+            return
+        x1, y1, x2, y2 = result
 
-            if x_begin is None or y_begin is None:
-                x_begin = x
-                y_begin = y
+        # INFO: Float. From begin first pixel to end last pixel (begin last+1 pixel).
+        #       One first pixel look like (0, 0, 1, 1).
+        self.buffer_local = self.image.crop((x1, y1, x2 + 1, y2 + 1))
 
-            x_end = x
-            y_end = y
+        if deleted is not False:
+            if self.image.mode != "RGBA":
+                ImageDraw.Draw(self.image).rectangle(
+                    (x1, y1, x2, y2),
+                    fill=self.bg_color,
+                    outline=self.bg_color,
+                )
+            else:
+                ImageDraw.Draw(self.image).rectangle(
+                    (x1, y1, x2, y2),
+                    fill="#00000000",
+                    outline="#00000000",
+                )
+            self.record_action()  # Need only for cut.
 
-            x_max = self.image.width - 1
-            y_max = self.image.height - 1
-
-            if x_begin < 0:
-                x_begin = 0
-            if x_begin > x_max:
-                x_begin = x_max
-            if y_begin < 0:
-                y_begin = 0
-            if y_begin > y_max:
-                y_begin = y_max
-            if x_end < 0:
-                x_end = 0
-            if x_end > x_max:
-                x_end = x_max
-            if y_end < 0:
-                y_end = 0
-            if y_end > y_max:
-                y_end = y_max
-
-            x1 = min(x_begin, x_end)
-            x2 = max(x_begin, x_end)
-            y1 = min(y_begin, y_end)
-            y2 = max(y_begin, y_end)
-
-            draw_tool(x1, y1, x2, y2)
-
-        def select_end(event):
-            nonlocal x_begin, y_begin, x_end, y_end
-
-            if x_begin is None or y_begin is None:
-                return
-
-            x1 = min(x_begin, x_end)
-            x2 = max(x_begin, x_end)
-            y1 = min(y_begin, y_end)
-            y2 = max(y_begin, y_end)
-
-            self.ui.canvas.delete("tools")
-
-            x_begin = None
-            y_begin = None
-            x_end = None
-            y_end = None
-
-            # INFO: Float. From begin first pixel to end last pixel (begin last+1 pixel).
-            #       One first pixel look like (0, 0, 1, 1).
-            self.buffer_local = self.image.crop((x1, y1, x2 + 1, y2 + 1))
-
-            if deleted is not False:
-                if self.image.mode != "RGBA":
-                    ImageDraw.Draw(self.image).rectangle(
-                        (x1, y1, x2, y2),
-                        fill=self.bg_color,
-                        outline=self.bg_color,
-                    )
-                else:
-                    ImageDraw.Draw(self.image).rectangle(
-                        (x1, y1, x2, y2),
-                        fill="#00000000",
-                        outline="#00000000",
-                    )
-                self.record_action()  # Need only for cut.
-
-            self.update_canvas()
-
-        def draw_tool(x1, y1, x2, y2):
-            self.ui.canvas.delete("tools")
-
-            self.ui.canvas.create_rectangle(
-                int(x1 * self.zoom),
-                int(y1 * self.zoom),
-                int((x2 + 1) * self.zoom - 1),
-                int((y2 + 1) * self.zoom - 1),
-                outline="white",
-                width=1,
-                tag="tools",
-            )
-            self.ui.canvas.create_rectangle(
-                int(x1 * self.zoom),
-                int(y1 * self.zoom),
-                int((x2 + 1) * self.zoom - 1),
-                int((y2 + 1) * self.zoom - 1),
-                outline="black",
-                width=1,
-                tag="tools",
-                dash=(5, 5),
-            )
-
-        self.ui.canvas.bind("<Button-1>", selecting)
-        self.ui.canvas.bind("<B1-Motion>", selecting)
-        self.ui.canvas.bind("<ButtonRelease-1>", select_end)
+        self.update_canvas()
 
     """Insert"""
 
@@ -174,194 +188,112 @@ class EditTools:
         self.insert_simple(self.buffer_local)
 
     def insert_simple(self, insert_image=None):
-        image_tmp = insert_image
-        current_zoom = None
-        image_tmp_view = None
-        image_tk = None
-        x1, y1 = None, None
+        self.image_tmp = insert_image
+        self.current_zoom = None
+        self.image_tmp_view = None
+        self.image_tk = None
+        self.x1, self.y1 = None, None
 
-        def move(event):
-            nonlocal image_tmp, image_tmp_view, image_tk, current_zoom, x1, y1
+        self.ui.canvas.bind("<ButtonRelease-1>", self.insert_end)
+        self.ui.canvas.bind("<Motion>", lambda e: self.insert_move(e, insert_image))
+        self.ui.canvas.bind("<Leave>", lambda e: self.ui.canvas.delete("tools"))
 
-            if self.current_tool == "sticker":
-                it_width = self.tool_size
-                it_height = int(insert_image.height * self.tool_size / insert_image.width)
+    def insert_move(self, event, insert_image):
+        if self.current_tool == "sticker":
+            it_width = self.tool_size
+            it_height = int(insert_image.height * self.tool_size / insert_image.width)
+            resampling = Image.BICUBIC
+        else:
+            it_width = int(insert_image.width / 100 * self.tool_size)
+            it_height = int(insert_image.height / 100 * self.tool_size)
+            if it_width <= 1 or it_height <= 1:
+                it_width, it_height = (1, 1)
+            if self.is_insert_smoothing.get():
+                resampling = Image.NEAREST
+            else:
                 resampling = Image.BICUBIC
-            else:
-                it_width = int(insert_image.width / 100 * self.tool_size)
-                it_height = int(insert_image.height / 100 * self.tool_size)
-                if it_width <= 1 or it_height <= 1:
-                    it_width, it_height = (1, 1)
-                if self.is_insert_smoothing.get():
-                    resampling = Image.NEAREST
-                else:
-                    resampling = Image.BICUBIC
-            image_tmp = insert_image.resize((it_width, it_height), resampling)
+        self.image_tmp = insert_image.resize((it_width, it_height), resampling)
 
-            x, y = self.canvas_to_pict_xy(event.x, event.y)
+        x, y = self.canvas_to_pict_xy(event.x, event.y)
 
-            x1 = int(x - (it_width - 1) / 2)
-            y1 = int(y - (it_height - 1) / 2)
-            x2 = int(x1 + it_width - 1)
-            y2 = int(y1 + it_height - 1)
+        self.x1 = int(x - (it_width - 1) / 2)
+        self.y1 = int(y - (it_height - 1) / 2)
+        x2 = int(self.x1 + it_width - 1)
+        y2 = int(self.y1 + it_height - 1)
 
-            image_tmp_view = image_tmp.resize((int(it_width * self.zoom), int(it_height * self.zoom)), Image.BOX)
-            image_tk = ImageTk.PhotoImage(image_tmp_view)
-            current_zoom = self.zoom
+        self.image_tmp_view = self.image_tmp.resize((int(it_width * self.zoom), int(it_height * self.zoom)), Image.BOX)
+        self.image_tk = ImageTk.PhotoImage(self.image_tmp_view)
+        self.current_zoom = self.zoom
 
-            draw_tool(x1, y1, x2, y2)
+        self.insert_draw_tool(self.x1, self.y1, x2, y2)
 
-        def insert_end(event):
-            nonlocal image_tmp, x1, y1
+    def insert_end(self, event):
+        if self.x1 is None or self.y1 is None:
+            return
 
-            if x1 is None or y1 is None:
-                return
+        if self.image_tmp.mode == "RGBA":
+            self.image.paste(self.image_tmp, (self.x1, self.y1), self.image_tmp)
+        else:
+            self.image.paste(self.image_tmp, (self.x1, self.y1))
 
-            if image_tmp.mode == "RGBA":
-                self.image.paste(image_tmp, (x1, y1), image_tmp)
-            else:
-                self.image.paste(image_tmp, (x1, y1))
+        self.update_canvas()
+        self.record_action()
 
-            self.update_canvas()
-            self.record_action()
+    def insert_draw_tool(self, x1, y1, x2, y2):
+        self.ui.canvas.delete("tools")
 
-        def leave(event):
-            self.ui.canvas.delete("tools")
+        self.ui.canvas.create_image(
+            int(x1 * self.zoom),
+            int(y1 * self.zoom),
+            image=self.image_tk,
+            tag="tools",
+            anchor="nw",
+        )
 
-        def draw_tool(x1, y1, x2, y2):
-            nonlocal image_tk
-
-            self.ui.canvas.delete("tools")
-
-            self.ui.canvas.create_image(
-                int(x1 * self.zoom),
-                int(y1 * self.zoom),
-                image=image_tk,
-                tag="tools",
-                anchor="nw",
-            )
-
-            self.ui.canvas.create_rectangle(
-                int(x1 * self.zoom),
-                int(y1 * self.zoom),
-                int((x2 + 1) * self.zoom - 1),
-                int((y2 + 1) * self.zoom - 1),
-                outline="white",
-                width=1,
-                tag="tools",
-            )
-            self.ui.canvas.create_rectangle(
-                int(x1 * self.zoom),
-                int(y1 * self.zoom),
-                int((x2 + 1) * self.zoom - 1),
-                int((y2 + 1) * self.zoom - 1),
-                outline="black",
-                width=1,
-                tag="tools",
-                dash=(5, 5),
-            )
-
-        self.ui.canvas.bind("<ButtonRelease-1>", insert_end)
-        self.ui.canvas.bind("<Motion>", move)
-        self.ui.canvas.bind("<Leave>", leave)
+        self.ui.canvas.create_rectangle(
+            int(x1 * self.zoom),
+            int(y1 * self.zoom),
+            int((x2 + 1) * self.zoom - 1),
+            int((y2 + 1) * self.zoom - 1),
+            outline="white",
+            width=1,
+            tag="tools",
+        )
+        self.ui.canvas.create_rectangle(
+            int(x1 * self.zoom),
+            int(y1 * self.zoom),
+            int((x2 + 1) * self.zoom - 1),
+            int((y2 + 1) * self.zoom - 1),
+            outline="black",
+            width=1,
+            tag="tools",
+            dash=(5, 5),
+        )
 
     """Crop"""
 
     def crop_simple(self):
         self.set_tool("crop", "Crop", None, None, None, "cross")
 
-        x_begin = None
-        y_begin = None
-        x_end = None
-        y_end = None
+        self.x_begin = None
+        self.y_begin = None
+        self.x_end = None
+        self.y_end = None
 
-        def cropping(event):
-            nonlocal x_begin, y_begin, x_end, y_end
+        self.ui.canvas.bind("<Button-1>", self.edit_selecting)
+        self.ui.canvas.bind("<B1-Motion>", self.edit_selecting)
+        self.ui.canvas.bind("<ButtonRelease-1>", self.crop_end)
 
-            x, y = self.canvas_to_pict_xy(event.x, event.y)
+    def crop_end(self, event):
+        result = self.edit_end()
+        if result is None:
+            return
+        x1, y1, x2, y2 = result
 
-            if x_begin is None or y_begin is None:
-                x_begin = x
-                y_begin = y
+        self.crop_picture(math.floor(x1), math.floor(y1), math.ceil(x2) + 1, math.ceil(y2) + 1)
 
-            x_end = x
-            y_end = y
-            x_max = self.image.width - 1
-            y_max = self.image.height - 1
+        # Remove mask if exist.
+        # TODO: Continue...
+        self.selected_mask_img = None
 
-            if x_begin < 0:
-                x_begin = 0
-            if x_begin > x_max:
-                x_begin = x_max
-            if y_begin < 0:
-                y_begin = 0
-            if y_begin > y_max:
-                y_begin = y_max
-            if x_end < 0:
-                x_end = 0
-            if x_end > x_max:
-                x_end = x_max
-            if y_end < 0:
-                y_end = 0
-            if y_end > y_max:
-                y_end = y_max
-
-            x1 = min(x_begin, x_end)
-            x2 = max(x_begin, x_end)
-            y1 = min(y_begin, y_end)
-            y2 = max(y_begin, y_end)
-
-            draw_tool(x1, y1, x2, y2)
-
-        def crop_end(event):
-            nonlocal x_begin, y_begin, x_end, y_end
-
-            if x_begin is None or y_begin is None:
-                return
-
-            x1 = min(x_begin, x_end)
-            x2 = max(x_begin, x_end)
-            y1 = min(y_begin, y_end)
-            y2 = max(y_begin, y_end)
-
-            self.ui.canvas.delete("tools")
-
-            x_begin = None
-            y_begin = None
-            x_end = None
-            y_end = None
-
-            self.crop_picture(math.floor(x1), math.floor(y1), math.ceil(x2) + 1, math.ceil(y2) + 1)
-
-            # Remove mask if exist.
-            # TODO: Continue...
-            self.selected_mask_img = None
-
-            self.update_canvas()
-
-        def draw_tool(x1, y1, x2, y2):
-            self.ui.canvas.delete("tools")
-
-            self.ui.canvas.create_rectangle(
-                int(x1 * self.zoom),
-                int(y1 * self.zoom),
-                int((x2 + 1) * self.zoom - 1),
-                int((y2 + 1) * self.zoom - 1),
-                outline="white",
-                width=1,
-                tag="tools",
-            )
-            self.ui.canvas.create_rectangle(
-                int(x1 * self.zoom),
-                int(y1 * self.zoom),
-                int((x2 + 1) * self.zoom - 1),
-                int((y2 + 1) * self.zoom - 1),
-                outline="black",
-                width=1,
-                tag="tools",
-                dash=(5, 5),
-            )
-
-        self.ui.canvas.bind("<Button-1>", cropping)
-        self.ui.canvas.bind("<B1-Motion>", cropping)
-        self.ui.canvas.bind("<ButtonRelease-1>", crop_end)
+        self.update_canvas()

@@ -390,15 +390,6 @@ class Common:
         self.set_tool("effects", "Effects", 10, 1, 20, "circle")
 
     def apply_effect(self):
-        def post_actions():
-            if self.selected_mask_img is None:
-                self.image = result
-                self.draw = ImageDraw.Draw(self.image)
-            else:
-                self.image.paste(result, (0, 0), self.selected_mask_img)
-            self.update_canvas()
-            self.record_action()
-
         effect_value = self.effects_optionmenu.get()
 
         if effect_value == _("Blur"):
@@ -419,4 +410,15 @@ class Common:
             result = ImageEnhance.Brightness(self.image.copy()).enhance(self.tool_size / 10)
         elif effect_value == _("Contrast"):
             result = ImageEnhance.Contrast(self.image.copy()).enhance(self.tool_size / 10)
-        post_actions()
+
+        self.effects_post_actions(result)
+
+    def effects_post_actions(self, result):
+        if self.selected_mask_img is None:
+            self.image = result
+            self.draw = ImageDraw.Draw(self.image)
+        else:
+            self.image.paste(result, (0, 0), self.selected_mask_img)
+
+        self.update_canvas()
+        self.record_action()

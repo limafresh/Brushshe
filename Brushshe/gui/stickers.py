@@ -13,27 +13,20 @@ from utils.translator import _
 
 class Stickers:
     def show_stickers_choice(self):
-        def tabview_callback():
-            if tabview.get() == _("From file"):
-                self.logic.sticker_from_file(sticker_choose)
-            elif tabview.get() == _("From URL"):
-                self.logic.sticker_from_url()
-            tabview.set(_("From set"))
+        self.sticker_choose = ctk.CTkToplevel(self)
+        self.sticker_choose.geometry("370x500")
+        self.sticker_choose.title(_("Choose a sticker"))
+        self.sticker_choose.wm_iconbitmap()
+        self.sticker_choose.after(300, lambda: self.sticker_choose.iconphoto(False, self.iconpath))
 
-        sticker_choose = ctk.CTkToplevel(self)
-        sticker_choose.geometry("370x500")
-        sticker_choose.title(_("Choose a sticker"))
-        sticker_choose.wm_iconbitmap()
-        sticker_choose.after(300, lambda: sticker_choose.iconphoto(False, self.iconpath))
+        self.stickers_tabview = ctk.CTkTabview(self.sticker_choose, command=self.stickers_tabview_callback)
+        self.stickers_tabview.add(_("From set"))
+        self.stickers_tabview.add(_("From file"))
+        self.stickers_tabview.add(_("From URL"))
+        self.stickers_tabview.set(_("From set"))
+        self.stickers_tabview.pack(fill=ctk.BOTH, expand=True, padx=10, pady=10)
 
-        tabview = ctk.CTkTabview(sticker_choose, command=tabview_callback)
-        tabview.add(_("From set"))
-        tabview.add(_("From file"))
-        tabview.add(_("From URL"))
-        tabview.set(_("From set"))
-        tabview.pack(fill=ctk.BOTH, expand=True, padx=10, pady=10)
-
-        stickers_scrollable_frame = ctk.CTkScrollableFrame(tabview.tab(_("From set")))
+        stickers_scrollable_frame = ctk.CTkScrollableFrame(self.stickers_tabview.tab(_("From set")))
         stickers_scrollable_frame.pack(fill=ctk.BOTH, expand=True)
         scroll(stickers_scrollable_frame)
 
@@ -55,3 +48,10 @@ class Stickers:
             if column == 2:
                 column = 0
                 row += 1
+
+    def stickers_tabview_callback(self):
+        if self.stickers_tabview.get() == _("From file"):
+            self.logic.sticker_from_file(self.sticker_choose)
+        elif self.stickers_tabview.get() == _("From URL"):
+            self.logic.sticker_from_url()
+        self.stickers_tabview.set(_("From set"))
