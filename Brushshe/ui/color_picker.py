@@ -11,6 +11,7 @@ import random
 
 import customtkinter as ctk
 from PIL import Image, ImageTk
+
 from ..utils.common import resource
 from ..utils.translator import _
 

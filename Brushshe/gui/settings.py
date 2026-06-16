@@ -6,6 +6,7 @@ import webbrowser
 from collections import deque
 
 import customtkinter as ctk
+
 from ..constants import Constants
 from ..ui.scroll import scroll
 from ..ui.spinbox import IntSpinbox

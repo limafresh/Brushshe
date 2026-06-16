@@ -8,6 +8,7 @@ from tkinter import filedialog
 
 import customtkinter as ctk
 from PIL import Image
+
 from ..ui.tooltip import Tooltip
 from ..utils.common import resource
 from ..utils.config_loader import config, write_config

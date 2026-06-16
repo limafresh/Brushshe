@@ -6,6 +6,7 @@ import webbrowser
 
 import customtkinter as ctk
 from PIL import Image
+
 from ..ui import messagebox
 from ..ui.CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from ..utils.common import resource

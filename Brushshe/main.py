@@ -3,10 +3,11 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import customtkinter as ctk
+
+from .gui import BrushsheGui
 from .utils.common import resource
 from .utils.config_loader import config
 
-from .gui import BrushsheGui
 
 def main():
     ctk.set_appearance_mode(config.get("Brushshe", "theme"))

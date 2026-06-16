@@ -26,11 +26,11 @@ dev = [
 ]
 
 [project.scripts]
-brushshe = "Brushshe.main:main"
+brushshe = "brushshe.main:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["Brushshe*"]
+include = ["brushshe*"]
 exclude = ["*.tests", "*.testing"]
 
 [tool.setuptools]
@@ -38,3 +38,13 @@ include-package-data = true  # Required to enable custom data parsing
 
 [tool.setuptools.package-data]
 "Brushshe" = ["assets/**/*.png", "assets/**/*.json", "assets/palettes/*.hex", "fonts/**/*.ttf"]
+
+[tool.ruff]
+line-length = 120
+exclude = ["brushshe/ui/CTkMenuBar/*.py"]
+
+[tool.ruff.lint]
+extend-select = ["F", "E", "W", "I", "N"]
+
+[tool.ruff.format]
+quote-style = "double"

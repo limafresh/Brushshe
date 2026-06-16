@@ -13,8 +13,8 @@ import time
 import webbrowser
 from typing import Literal
 
-from PIL import Image
 import customtkinter as ctk
+from PIL import Image, ImageTk
 
 from ..constants import Constants
 from ..utils.translator import _

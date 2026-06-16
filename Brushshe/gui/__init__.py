@@ -5,7 +5,6 @@
 import sys
 
 import customtkinter as ctk
-
 from PIL import Image, ImageTk
 
 from ..constants import Constants
@@ -15,8 +14,6 @@ from ..ui.tooltip import Tooltip
 from ..utils.common import resource
 from ..utils.config_loader import config
 from ..utils.translator import _
-
-
 from .addon_manager import AddonManager
 from .change_size import ChangeSize
 from .frames import Frames

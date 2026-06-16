@@ -8,6 +8,7 @@ import shutil
 from tkinter import filedialog
 
 import customtkinter as ctk
+
 from ..constants import Constants
 from ..ui.addon_manager_item import AddonManagerItem
 from ..utils.translator import _

@@ -90,17 +90,9 @@ class ToolOperations:
             self.ui.tool_size_label.pack(side=ctk.LEFT, padx=5)
             self.ui.tool_size_tooltip.configure(message=self.tool_size)
 
-        def brush_shape_btn_callback(value):
-            self.brush_shape = {"●": "circle", "■": "square"}[value]
-
-        def font_optionmenu_callback(value):
-            self.current_font = value
-            self.font_path = resource(Constants.FONTS_DICT.get(value))
-            self.imagefont = ImageFont.truetype(self.font_path, self.tool_size)
-
         if self.current_tool in ["brush", "eraser"]:
             brush_shape_btn = ctk.CTkSegmentedButton(
-                self.ui.tool_config_docker, values=["●", "■"], command=brush_shape_btn_callback
+                self.ui.tool_config_docker, values=["●", "■"], command=self.brush_shape_btn_callback
             )
             brush_shape_btn.set({"circle": "●", "square": "■"}[self.brush_shape])
             brush_shape_btn.pack(side=ctk.LEFT, padx=5)
@@ -124,7 +116,7 @@ class ToolOperations:
                 self.ui.tool_config_docker,
                 values=Constants.FONTS,
                 dynamic_resizing=False,
-                command=font_optionmenu_callback,
+                command=self.font_optionmenu_callback,
             )
             font_optionmenu.set(self.current_font)
             font_optionmenu.pack(side=ctk.LEFT, padx=1)
@@ -152,3 +144,11 @@ class ToolOperations:
 
         self.ui.canvas.configure(cursor=cursor)
         self.ui.canvas.delete("tools")
+
+    def brush_shape_btn_callback(self, value):
+        self.brush_shape = {"●": "circle", "■": "square"}[value]
+
+    def font_optionmenu_callback(self, value):
+        self.current_font = value
+        self.font_path = resource(Constants.FONTS_DICT.get(value))
+        self.imagefont = ImageFont.truetype(self.font_path, self.tool_size)
