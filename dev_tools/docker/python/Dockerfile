@@ -9,13 +9,13 @@ RUN apt update \
   && apt -y autoclean \
   && apt clean
 
+# pyglet
 
 RUN mkdir /home/user \
   && useradd user --uid=1000  \
   && mkdir -p /home/user/.cache \
   && chown -R 1000:1000 /home/user
 
-COPY .. .
-RUN pip3 install .
+#COPY . .
 
-CMD [ "Brushshe" ]
+#CMD [ "python3", "./test_app.py" ]

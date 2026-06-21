@@ -5,271 +5,353 @@
 import time
 
 from PIL import Image, ImageDraw, ImageOps
-
-from ..utils import common
+from utils import common
 
 
 class Selection:
     def select_by_shape(self, shape="rectangle"):
         self.set_tool("select", "Select", None, None, None, "cross")
 
-        self.x_begin = None
-        self.y_begin = None
-        self.x_end = None
-        self.y_end = None
-        self._mode = "replace"
+        x_begin = None
+        y_begin = None
+        x_end = None
+        y_end = None
+        _mode = "replace"
 
-        self.ui.canvas.bind("<Button-1>", lambda e: self.select_by_shape_selecting(e, "replace"))
-        self.ui.canvas.bind("<Shift-Button-1>", lambda e: self.select_by_shape_selecting(e, "add"))
-        self.ui.canvas.bind("<Control-Button-1>", lambda e: self.select_by_shape_selecting(e, "subtract"))
-        self.ui.canvas.bind("<B1-Motion>", lambda e: self.select_by_shape_selecting(e, None))
-        self.ui.canvas.bind("<ButtonRelease-1>", self.select_by_shape_select_end)
+        def selecting(event, mode):
+            nonlocal x_begin, y_begin, x_end, y_end, _mode
 
-    def select_by_shape_selecting(self, event, mode):
-        if mode is not None:
-            self._mode = mode
-        self.select_init_mask()
-
-        self.edit_selecting(event)
-
-    def select_by_shape_select_end(self, event):
-        result = self.edit_end()
-        if result is None:
-            return
-        x1, y1, x2, y2 = result
-
-        x_max = self.image.width - 1
-        y_max = self.image.height - 1
-
-        draw = ImageDraw.Draw(self.selected_mask_img)
-
-        if self._mode == "replace":
-            draw.rectangle([0, 0, x_max, y_max], fill="black")
-
-        if self._mode == "subtract":
-            draw.rectangle([x1, y1, x2, y2], fill="black")
-        else:  # add or replace
-            draw.rectangle([x1, y1, x2, y2], fill="white")
-
-        self.composer.set_force_update_mask()
-        self.update_canvas()
-
-    def select_by_polygon(self):
-        self.set_tool("select", "Select", None, None, None, "cross")
-
-        self.xy_list = None
-        self._mode = "replace"
-        self.delta = 5
-
-        self.ui.canvas.bind("<Button-1>", lambda e: self.select_by_polygon_selecting(e, "replace"))
-        self.ui.canvas.bind("<Shift-Button-1>", lambda e: self.select_by_polygon_selecting(e, "add"))
-        self.ui.canvas.bind("<Control-Button-1>", lambda e: self.select_by_polygon_selecting(e, "subtract"))
-        self.ui.canvas.bind("<B1-Motion>", lambda e: self.select_by_polygon_selecting(e, None, "moving"))
-        self.ui.canvas.bind("<Motion>", lambda e: self.select_by_polygon_selecting(e, None, "moving"))
-        self.ui.canvas.bind("<ButtonRelease-1>", lambda e: self.select_by_polygon_selecting(e, None, "unclick"))
-        self.ui.canvas.bind("<BackSpace>", self.select_by_polygon_key_backspace)
-        self.ui.canvas.bind("<Return>", self.select_by_polygon_key_enter)
-
-    def select_by_polygon_selecting(self, event, mode, type="click"):
-        self.ui.canvas.focus_set()  # For the key binding.
-
-        if mode is not None:
-            self._mode = mode
-        if type == "click":
+            if mode is not None:
+                _mode = mode
             self.select_init_mask()
 
-        x, y = self.canvas_to_pict_xy(event.x, event.y)
-        x = int(x)
-        y = int(y)
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
 
-        x_max = self.image.width - 1
-        y_max = self.image.height - 1
+            if x_begin is None or y_begin is None:
+                x_begin = x
+                y_begin = y
 
-        if x < 0:
-            x = 0
-        if x > x_max:
-            x = x_max
-        if y < 0:
-            y = 0
-        if y > y_max:
-            y = y_max
+            x_end = x
+            y_end = y
 
-        if type == "unclick":
-            if self.xy_list is None:
-                self.xy_list = []
+            x_max = self.image.width - 1
+            y_max = self.image.height - 1
 
-            xy_len = len(self.xy_list)
-            if (
-                xy_len >= 4
-                and self.xy_list[0] - self.delta < x < self.xy_list[0] + self.delta
-                and self.xy_list[1] - self.delta < y < self.xy_list[1] + self.delta
-            ):
-                self.xy_list.append(self.xy_list[0])
-                self.xy_list.append(self.xy_list[1])
-                self.select_by_polygon_select_end(event)
+            if x_begin < 0:
+                x_begin = 0
+            if x_begin > x_max:
+                x_begin = x_max
+            if y_begin < 0:
+                y_begin = 0
+            if y_begin > y_max:
+                y_begin = y_max
+            if x_end < 0:
+                x_end = 0
+            if x_end > x_max:
+                x_end = x_max
+            if y_end < 0:
+                y_end = 0
+            if y_end > y_max:
+                y_end = y_max
+
+            x1 = min(x_begin, x_end)
+            x2 = max(x_begin, x_end)
+            y1 = min(y_begin, y_end)
+            y2 = max(y_begin, y_end)
+
+            draw_tool(x1, y1, x2, y2)
+
+        def select_end(event):
+            nonlocal x_begin, y_begin, x_end, y_end, _mode
+
+            if x_begin is None or y_begin is None:
                 return
 
-            self.xy_list.append(x)
-            self.xy_list.append(y)
+            x1 = min(x_begin, x_end)
+            x2 = max(x_begin, x_end)
+            y1 = min(y_begin, y_end)
+            y2 = max(y_begin, y_end)
 
-        self.select_by_polygon_draw_tool(x, y)
+            self.ui.canvas.delete("tools")
 
-    def select_by_polygon_select_end(self, event):
-        if self.xy_list is None:
-            return
+            x_begin = None
+            y_begin = None
+            x_end = None
+            y_end = None
 
-        self.ui.canvas.delete("tools")
+            x_max = self.image.width - 1
+            y_max = self.image.height - 1
 
-        x_max = self.image.width - 1
-        y_max = self.image.height - 1
+            draw = ImageDraw.Draw(self.selected_mask_img)
 
-        draw = ImageDraw.Draw(self.selected_mask_img)
+            if _mode == "replace":
+                draw.rectangle([0, 0, x_max, y_max], fill="black")
 
-        if self._mode == "replace":
-            draw.rectangle([0, 0, x_max, y_max], fill="black")
+            if _mode == "subtract":
+                draw.rectangle([x1, y1, x2, y2], fill="black")
+            else:  # add or replace
+                draw.rectangle([x1, y1, x2, y2], fill="white")
 
-        if self._mode == "subtract":
-            draw.polygon(self.xy_list, fill="black")
-        else:  # add or replace
-            draw.polygon(self.xy_list, fill="white")
+            self.composer.set_force_update_mask()
+            self.update_canvas()
 
-        self.xy_list = None
+        def draw_tool(x1, y1, x2, y2):
+            self.ui.canvas.delete("tools")
 
-        self.composer.set_force_update_mask()
-        self.update_canvas()
-
-    def select_by_polygon_key_backspace(self, event):
-        if self.xy_list is None:
-            return
-
-        xy_len = len(self.xy_list)
-        if xy_len >= 4:
-            del self.xy_list[-1]
-            del self.xy_list[-1]
-
-            xy_len = len(self.xy_list)
-            self.select_by_polygon_draw_tool(self.xy_list[xy_len - 2], self.xy_list[xy_len - 1])
-
-    def select_by_polygon_key_enter(self, event):
-        if self.xy_list is None:
-            return
-
-        if len(self.xy_list) >= 4:
-            self.select_by_polygon_select_end(event)
-
-    def select_by_polygon_draw_tool(self, x, y):
-        self.ui.canvas.delete("tools")
-
-        if self.xy_list is None or 0 == len(self.xy_list):
-            x_begin = x
-            y_begin = y
-        else:
-            xy_len = len(self.xy_list)
-            x_begin = self.xy_list[0]
-            y_begin = self.xy_list[1]
-            self.ui.canvas.create_line(
-                int(self.xy_list[xy_len - 2] * self.zoom),
-                int(self.xy_list[xy_len - 1] * self.zoom),
-                int(x * self.zoom),
-                int(y * self.zoom),
-                fill="black",
+            self.ui.canvas.create_rectangle(
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
+                outline="white",
                 width=1,
                 tag="tools",
             )
-            self.ui.canvas.create_line(
-                int(self.xy_list[xy_len - 2] * self.zoom),
-                int(self.xy_list[xy_len - 1] * self.zoom),
-                int(x * self.zoom),
-                int(y * self.zoom),
-                fill="white",
+            self.ui.canvas.create_rectangle(
+                int(x1 * self.zoom),
+                int(y1 * self.zoom),
+                int((x2 + 1) * self.zoom - 1),
+                int((y2 + 1) * self.zoom - 1),
+                outline="black",
                 width=1,
                 tag="tools",
                 dash=(5, 5),
             )
-            if xy_len >= 4:
-                tmp_xy_list = [int(x * self.zoom) for x in self.xy_list]
-                self.ui.canvas.create_line(tmp_xy_list, fill="black", width=1, tag="tools")
-                self.ui.canvas.create_line(tmp_xy_list, fill="white", width=1, tag="tools", dash=(5, 5))
 
-        self.ui.canvas.create_rectangle(
-            int(x_begin * self.zoom + self.delta),
-            int(y_begin * self.zoom + self.delta),
-            int(x_begin * self.zoom - self.delta),
-            int(y_begin * self.zoom - self.delta),
-            outline="black",
-            fill="white",
-            width=1,
-            tag="tools",
-        )
+        self.ui.canvas.bind("<Button-1>", lambda e: selecting(e, "replace"))
+        self.ui.canvas.bind("<Shift-Button-1>", lambda e: selecting(e, "add"))
+        self.ui.canvas.bind("<Control-Button-1>", lambda e: selecting(e, "subtract"))
+        self.ui.canvas.bind("<B1-Motion>", lambda e: selecting(e, None))
+        self.ui.canvas.bind("<ButtonRelease-1>", select_end)
+
+    def select_by_polygon(self):
+        self.set_tool("select", "Select", None, None, None, "cross")
+
+        xy_list = None
+        _mode = "replace"
+        delta = 5
+
+        def selecting(event, mode, type="click"):
+            nonlocal xy_list, _mode
+
+            self.ui.canvas.focus_set()  # For the key binding.
+
+            if mode is not None:
+                _mode = mode
+            if type == "click":
+                self.select_init_mask()
+
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+            x = int(x)
+            y = int(y)
+
+            x_max = self.image.width - 1
+            y_max = self.image.height - 1
+
+            if x < 0:
+                x = 0
+            if x > x_max:
+                x = x_max
+            if y < 0:
+                y = 0
+            if y > y_max:
+                y = y_max
+
+            if type == "unclick":
+                if xy_list is None:
+                    xy_list = []
+
+                xy_len = len(xy_list)
+                if (
+                    xy_len >= 4
+                    and xy_list[0] - delta < x < xy_list[0] + delta
+                    and xy_list[1] - delta < y < xy_list[1] + delta
+                ):
+                    xy_list.append(xy_list[0])
+                    xy_list.append(xy_list[1])
+                    select_end(event)
+                    return
+
+                xy_list.append(x)
+                xy_list.append(y)
+
+            draw_tool(x, y)
+
+        def select_end(event):
+            nonlocal xy_list, _mode
+
+            if xy_list is None:
+                return
+
+            self.ui.canvas.delete("tools")
+
+            x_max = self.image.width - 1
+            y_max = self.image.height - 1
+
+            draw = ImageDraw.Draw(self.selected_mask_img)
+
+            if _mode == "replace":
+                draw.rectangle([0, 0, x_max, y_max], fill="black")
+
+            if _mode == "subtract":
+                draw.polygon(xy_list, fill="black")
+            else:  # add or replace
+                draw.polygon(xy_list, fill="white")
+
+            xy_list = None
+
+            self.composer.set_force_update_mask()
+            self.update_canvas()
+
+        def key_backspace(event):
+            nonlocal xy_list
+
+            if xy_list is None:
+                return
+
+            xy_len = len(xy_list)
+            if xy_len >= 4:
+                del xy_list[-1]
+                del xy_list[-1]
+
+                xy_len = len(xy_list)
+                draw_tool(xy_list[xy_len - 2], xy_list[xy_len - 1])
+
+        def key_enter(event):
+            nonlocal xy_list
+
+            if xy_list is None:
+                return
+
+            if len(xy_list) >= 4:
+                select_end(event)
+
+        def draw_tool(x, y):
+            nonlocal xy_list, _mode
+
+            self.ui.canvas.delete("tools")
+
+            if xy_list is None or 0 == len(xy_list):
+                x_begin = x
+                y_begin = y
+            else:
+                xy_len = len(xy_list)
+                x_begin = xy_list[0]
+                y_begin = xy_list[1]
+                self.ui.canvas.create_line(
+                    int(xy_list[xy_len - 2] * self.zoom),
+                    int(xy_list[xy_len - 1] * self.zoom),
+                    int(x * self.zoom),
+                    int(y * self.zoom),
+                    fill="black",
+                    width=1,
+                    tag="tools",
+                )
+                self.ui.canvas.create_line(
+                    int(xy_list[xy_len - 2] * self.zoom),
+                    int(xy_list[xy_len - 1] * self.zoom),
+                    int(x * self.zoom),
+                    int(y * self.zoom),
+                    fill="white",
+                    width=1,
+                    tag="tools",
+                    dash=(5, 5),
+                )
+                if xy_len >= 4:
+                    tmp_xy_list = [int(x * self.zoom) for x in xy_list]
+                    self.ui.canvas.create_line(tmp_xy_list, fill="black", width=1, tag="tools")
+                    self.ui.canvas.create_line(tmp_xy_list, fill="white", width=1, tag="tools", dash=(5, 5))
+
+            self.ui.canvas.create_rectangle(
+                int(x_begin * self.zoom + delta),
+                int(y_begin * self.zoom + delta),
+                int(x_begin * self.zoom - delta),
+                int(y_begin * self.zoom - delta),
+                outline="black",
+                fill="white",
+                width=1,
+                tag="tools",
+            )
+
+        self.ui.canvas.bind("<Button-1>", lambda e: selecting(e, "replace"))
+        self.ui.canvas.bind("<Shift-Button-1>", lambda e: selecting(e, "add"))
+        self.ui.canvas.bind("<Control-Button-1>", lambda e: selecting(e, "subtract"))
+        self.ui.canvas.bind("<B1-Motion>", lambda e: selecting(e, None, "moving"))
+        self.ui.canvas.bind("<Motion>", lambda e: selecting(e, None, "moving"))
+        self.ui.canvas.bind("<ButtonRelease-1>", lambda e: selecting(e, None, "unclick"))
+        self.ui.canvas.bind("<BackSpace>", key_backspace)
+        self.ui.canvas.bind("<Return>", key_enter)
 
     def select_by_color(self, fill_limit=False):
         self.set_tool("select_by_color", "Select by color", None, None, None, "dotbox")
 
-        self._mode = "replace"
-        self.thresh = 1
+        _mode = "replace"
+        thresh = 1
 
-        self.ui.canvas.bind("<Button-1>", lambda e: self.select_by_color_selecting(e, "replace", fill_limit))
-        self.ui.canvas.bind("<Shift-Button-1>", lambda e: self.select_by_color_selecting(e, "add", fill_limit))
-        self.ui.canvas.bind("<Control-Button-1>", lambda e: self.select_by_color_selecting(e, "subtract", fill_limit))
+        def selecting(event, mode):
+            nonlocal _mode
 
-    def select_by_color_selecting(self, event, mode, fill_limit):
-        self.ui.canvas.focus_set()
+            self.ui.canvas.focus_set()
 
-        if mode is not None:
-            self._mode = mode
+            if mode is not None:
+                _mode = mode
 
-        self.select_init_mask()
+            self.select_init_mask()
 
-        x, y = self.canvas_to_pict_xy(event.x, event.y)
-        x = int(x)
-        y = int(y)
+            x, y = self.canvas_to_pict_xy(event.x, event.y)
+            x = int(x)
+            y = int(y)
 
-        x_max = self.image.width - 1
-        y_max = self.image.height - 1
+            x_max = self.image.width - 1
+            y_max = self.image.height - 1
 
-        if x < 0:
-            x = 0
-        if x > x_max:
-            x = x_max
-        if y < 0:
-            y = 0
-        if y > y_max:
-            y = y_max
+            if x < 0:
+                x = 0
+            if x > x_max:
+                x = x_max
+            if y < 0:
+                y = 0
+            if y > y_max:
+                y = y_max
 
-        draw = ImageDraw.Draw(self.selected_mask_img)
+            draw = ImageDraw.Draw(self.selected_mask_img)
 
-        if self._mode == "replace":
-            draw.rectangle([0, 0, x_max, y_max], fill=0)
+            if _mode == "replace":
+                draw.rectangle([0, 0, x_max, y_max], fill=0)
 
-        if self._mode == "subtract":
-            fill_color = 0
-        else:  # add or replace
-            fill_color = 255
+            if _mode == "subtract":
+                fill_color = 0
+            else:  # add or replace
+                fill_color = 255
 
-        if not fill_limit:
-            pixels_mask = self.selected_mask_img.load()
-            pixels_image = self.image.load()
+            if not fill_limit:
+                pixels_mask = self.selected_mask_img.load()
+                pixels_image = self.image.load()
 
-            assert pixels_image is not None
+                assert pixels_image is not None
 
-            try:
-                background = pixels_image[x, y]
-            except (ValueError, IndexError):
-                return
+                try:
+                    background = pixels_image[x, y]
+                except (ValueError, IndexError):
+                    return
 
-            for ii in range(x_max + 1):
-                for jj in range(y_max + 1):
-                    try:
-                        p = pixels_image[ii, jj]
-                        if common.color_diff(p, background) <= self.thresh:
-                            pixels_mask[ii, jj] = fill_color
-                    except (ValueError, IndexError):
-                        pass
-        else:
-            self._floodfill_mask(self.image, self.selected_mask_img, (x, y), fill_color)
+                for ii in range(x_max + 1):
+                    for jj in range(y_max + 1):
+                        try:
+                            p = pixels_image[ii, jj]
+                            if common.color_diff(p, background) <= thresh:
+                                pixels_mask[ii, jj] = fill_color
+                        except (ValueError, IndexError):
+                            pass
+            else:
+                self._floodfill_mask(self.image, self.selected_mask_img, (x, y), fill_color)
 
-        self.composer.set_force_update_mask()
-        self.update_canvas()
+            self.composer.set_force_update_mask()
+            self.update_canvas()
+
+        self.ui.canvas.bind("<Button-1>", lambda e: selecting(e, "replace"))
+        self.ui.canvas.bind("<Shift-Button-1>", lambda e: selecting(e, "add"))
+        self.ui.canvas.bind("<Control-Button-1>", lambda e: selecting(e, "subtract"))
 
     def invert_mask(self):
         self.select_init_mask()

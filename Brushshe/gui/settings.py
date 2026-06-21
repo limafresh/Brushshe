@@ -6,13 +6,12 @@ import webbrowser
 from collections import deque
 
 import customtkinter as ctk
-
-from ..constants import Constants
-from ..ui.scroll import scroll
-from ..ui.spinbox import IntSpinbox
-from ..utils.common import resource
-from ..utils.config_loader import config, write_config
-from ..utils.translator import _
+from constants import Constants
+from ui.scroll import scroll
+from ui.spinbox import IntSpinbox
+from utils.common import resource
+from utils.config_loader import config, write_config
+from utils.translator import _
 
 
 class Settings:

@@ -6,11 +6,11 @@ from collections import deque
 from pathlib import Path
 
 import customtkinter as ctk
+from constants import Constants
+from core.bhcomposer import BhComposer
+from utils.common import resource
+from utils.config_loader import config
 
-from ..constants import Constants
-from ..core.bhcomposer import BhComposer
-from ..utils.common import resource
-from ..utils.config_loader import config
 from .addons import Addons
 from .canvas import CanvasOperations
 from .common import Common

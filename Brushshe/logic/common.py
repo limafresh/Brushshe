@@ -11,15 +11,14 @@ from urllib.request import urlopen
 from uuid import uuid4
 
 import customtkinter as ctk
+from constants import Constants
+from core.bhbrush import bh_draw_line
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter, ImageGrab, ImageOps, ImageStat, ImageTk
-
-from ..constants import Constants
-from ..core.bhbrush import bh_draw_line
-from ..ui import messagebox
-from ..ui.color_picker import AskColor
-from ..utils import common
-from ..utils.config_loader import config_file_path
-from ..utils.translator import _
+from ui import messagebox
+from ui.color_picker import AskColor
+from utils import common
+from utils.config_loader import config_file_path
+from utils.translator import _
 
 
 class Common:
@@ -53,7 +52,7 @@ class Common:
             or self.saved_copy.size != self.image.size
             or ImageChops.difference(self.saved_copy, self.image).getbbox()
         ):
-            msg = messagebox.leave_brushshe(self.ui)
+            msg = messagebox.leave_brushshe()
             if msg.get() == _("Save"):
                 self.save_current()
             elif msg.get() == _("Yes"):
@@ -391,6 +390,15 @@ class Common:
         self.set_tool("effects", "Effects", 10, 1, 20, "circle")
 
     def apply_effect(self):
+        def post_actions():
+            if self.selected_mask_img is None:
+                self.image = result
+                self.draw = ImageDraw.Draw(self.image)
+            else:
+                self.image.paste(result, (0, 0), self.selected_mask_img)
+            self.update_canvas()
+            self.record_action()
+
         effect_value = self.effects_optionmenu.get()
 
         if effect_value == _("Blur"):
@@ -411,15 +419,4 @@ class Common:
             result = ImageEnhance.Brightness(self.image.copy()).enhance(self.tool_size / 10)
         elif effect_value == _("Contrast"):
             result = ImageEnhance.Contrast(self.image.copy()).enhance(self.tool_size / 10)
-
-        self.effects_post_actions(result)
-
-    def effects_post_actions(self, result):
-        if self.selected_mask_img is None:
-            self.image = result
-            self.draw = ImageDraw.Draw(self.image)
-        else:
-            self.image.paste(result, (0, 0), self.selected_mask_img)
-
-        self.update_canvas()
-        self.record_action()
+        post_actions()

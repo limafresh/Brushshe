@@ -14,10 +14,9 @@ import webbrowser
 from typing import Literal
 
 import customtkinter as ctk
+from constants import Constants
 from PIL import Image, ImageTk
-
-from ..constants import Constants
-from ..utils.translator import _
+from utils.translator import _
 
 
 class Messagebox(ctk.CTkToplevel):
@@ -52,13 +51,13 @@ class Messagebox(ctk.CTkToplevel):
         icon_size: tuple = (100, 100),
         corner_radius: int = 15,
         justify: str = "right",
-        font: tuple | None = None,
+        font: tuple = None,
         header: bool = False,
         topmost: bool = True,
         fade_in_duration: int = 0,
         sound: bool = True,
         wraplength: int = 0,
-        option_focus: Literal[1, 2, 3] | None = None,
+        option_focus: Literal[1, 2, 3] = None,
     ):
         super().__init__()
 
@@ -482,13 +481,9 @@ class Messagebox(ctk.CTkToplevel):
             else:
                 size = (self.height / 4, self.height / 4)
             self.ICONS[icon] = ctk.CTkImage(Image.open(image_path), size=size)
-            try:
-                self.ICON_BITMAP[icon] = ImageTk.PhotoImage(file=image_path)
-            except Exception:
-                self.ICON_BITMAP[icon] = None
+            self.ICON_BITMAP[icon] = ImageTk.PhotoImage(file=image_path)
         if not sys.platform.startswith("darwin"):
-            if self.ICON_BITMAP.get(icon):
-                self.after(200, lambda: self.iconphoto(False, self.ICON_BITMAP.get(icon)))
+            self.after(200, lambda: self.iconphoto(False, self.ICON_BITMAP[icon]))
         return self.ICONS[icon]
 
     def fade_in(self):
@@ -541,9 +536,8 @@ class Messagebox(ctk.CTkToplevel):
 """Ready-made messages"""
 
 
-def leave_brushshe(master: ctk.CTk):
+def leave_brushshe():
     leave_brushshe_msg = Messagebox(
-        master,
         title=_("You are leaving Brushshe"),
         message=_("There are unsaved changes. Exit?"),
         option_1=_("Save"),
