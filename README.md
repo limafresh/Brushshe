@@ -124,7 +124,7 @@ The goal of the project is to provide a open-source, convenient, beautiful and m
 
 ### Translations
 
-The internationalization of this program has a simple principle - it determines what the computer's localization is (for example, *en*, *ru*, etc.), and then applies the `brushshe/assets/locales/{localization}.json` file, where *localization* is the computer's localization.
+The internationalization of this program has a simple principle - it determines what the computer's localization is (for example, *en*, *ru*, etc.), and then applies the `Brushshe/assets/locales/{localization}.json` file, where *localization* is the computer's localization.
 
 ### Linter
 
