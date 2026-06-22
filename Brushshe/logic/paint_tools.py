@@ -12,7 +12,6 @@ from utils import common
 from utils.translator import _
 
 
-
 class PaintTools:
     """Brush"""
 
