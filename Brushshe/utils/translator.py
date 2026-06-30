@@ -8,9 +8,12 @@ from locale import getlocale
 from utils.common import resource
 from utils.config_loader import config, write_config
 
+is_english = True
+translations = {}
+
 
 def load_language(language_code):
-    global translations
+    global translations, is_english
     if language_code == "en":
         pass
     else:
@@ -21,6 +24,7 @@ def load_language(language_code):
                 encoding="utf-8",
             ) as f:
                 translations = json.load(f)
+                is_english = False
         except FileNotFoundError:
             print(f"File for language '{language_code}' not found.")
         except json.JSONDecodeError:
@@ -28,7 +32,12 @@ def load_language(language_code):
 
 
 def _(key):
-    return translations.get(key, key)
+    if not is_english and key in translations:
+        return translations[key]
+    else:
+        if not is_english:
+            print(f"Translation for '{key}' not found!")
+        return key
 
 
 if config.get("Brushshe", "language") == "None":
@@ -47,5 +56,4 @@ if config.get("Brushshe", "language") == "None":
 else:
     language_code = config.get("Brushshe", "language")
 
-translations = {}
 load_language(language_code)
