@@ -88,7 +88,8 @@
 	"Light": "Светлая",
 	"Dark": "Тёмная",
 	"Cancel": "Отмена",
-	"Import palette from file": "Импортировать палитру из файла",
+	"Import palette": "Импортировать палитру",
+	"Export palette": "Экспортировать палитру",
 	"Smoothing for brush/eraser": "Сглаживание для кисти/ластика",
 	"Palette": "Палитра",
 	"Default": "По умолчанию",
@@ -170,7 +171,7 @@
 	"Run": "Запустить",
 	"Uninstall add-on": "Удалить дополнение",
 	"Installed add-ons": "Установленные дополнения",
-	"Import left toolbar config from file": "Импортировать конфиг левой панели инструментов из файла",
+	"Import left toolbar config": "Импортировать конфиг левой панели инструментов",
 	"Wiki": "Вики",
 	"by": "от",
 	"Reset left toolbar config": "Сбросить конфиг левой панели инструментов"

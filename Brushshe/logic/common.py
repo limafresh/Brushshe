@@ -255,7 +255,7 @@ class Common:
             self.second_brush_color = self.obtained_color
             self.ui.brush_palette.second_color = self.obtained_color
 
-    def color_choice_bth(self, event, btn):
+    def color_choice_btn(self, event, btn, index):
         askcolor = AskColor(title=_("Color select"), initial_color=btn.cget("fg_color"))
         self.obtained_color = askcolor.get()
         if self.obtained_color:
@@ -265,6 +265,7 @@ class Common:
                 command=lambda c=self.obtained_color: self.change_color(c),
             )
             self.change_color(self.obtained_color)
+            self.palette[index] = self.obtained_color
 
     def flip_brush_colors(self):
         self.brush_color = self.ui.brush_palette.second_color

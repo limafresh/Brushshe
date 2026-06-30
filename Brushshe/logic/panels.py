@@ -20,7 +20,7 @@ class Panels:
     def set_left_toolbar(self, need_choose_file=True):
         if need_choose_file:
             file_path = filedialog.askopenfilename(
-                title=_("Import left toolbar config from file"), filetypes=[("JSON", "*.json")]
+                title=_("Import left toolbar config"), filetypes=[("JSON", "*.json")]
             )
             if file_path:
                 json_path = file_path
@@ -114,7 +114,7 @@ class Panels:
 
     def import_palette(self, value=None):
         if value is None:
-            file_path = filedialog.askopenfilename(title=_("Import palette from file"), filetypes=[("HEX", "*.hex")])
+            file_path = filedialog.askopenfilename(title=_("Import palette"), filetypes=[("HEX", "*.hex")])
 
             if not file_path:
                 return
@@ -149,7 +149,17 @@ class Panels:
             print("Incorrect file format?")
             return
 
+        self.palette = colors
         self.make_color_palette(colors)
+
+    def export_palette(self):
+        path = filedialog.asksaveasfilename(
+            title=_("Export palette"), filetypes=([("HEX", "*.hex")]), defaultextension=".hex"
+        )
+        if path:
+            with open(path, "w") as f:
+                for color in self.palette:
+                    f.write(color.lstrip("#") + "\n")
 
     def make_color_palette(self, colors):
         max_columns_in_row = 16
@@ -190,7 +200,7 @@ class Panels:
             )
             # tmp_btn.pack(side=ctk.LEFT, padx=1, pady=1)
             tmp_btn.grid(row=row, column=column, padx=1, pady=1)
-            tmp_btn.bind("<Button-3>", lambda event, obj=tmp_btn: self.color_choice_bth(event, obj))
-            tmp_btn.bind("<Double-Button-1>", lambda event, obj=tmp_btn: self.color_choice_bth(event, obj))
+            tmp_btn.bind("<Button-3>", lambda event, obj=tmp_btn, i=ii: self.color_choice_btn(event, obj, i))
+            tmp_btn.bind("<Double-Button-1>", lambda event, obj=tmp_btn, i=ii: self.color_choice_btn(event, obj, i))
 
             ii += 1
