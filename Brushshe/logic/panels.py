@@ -9,7 +9,7 @@ from tkinter import filedialog
 import customtkinter as ctk
 from PIL import Image
 from ui.tooltip import Tooltip
-from utils.common import resource
+from utils.common import generate_inverted_icon, resource
 from utils.config_loader import config, write_config
 from utils.translator import _
 
@@ -77,25 +77,25 @@ class Panels:
             try:
                 if config.get("Brushshe", "color_theme") != "brushshe_theme":
                     tool_icon = ctk.CTkImage(
-                        light_image=Image.open(resource(f"assets/icons/toolbar/{tool_icon_name}_dark.png")),
+                        light_image=generate_inverted_icon(f"assets/icons/toolbar/{tool_icon_name}.png"),
                         size=(22, 22),
                     )
                 else:
                     tool_icon = ctk.CTkImage(
-                        light_image=Image.open(resource(f"assets/icons/toolbar/{tool_icon_name}_light.png")),
-                        dark_image=Image.open(resource(f"assets/icons/toolbar/{tool_icon_name}_dark.png")),
+                        light_image=Image.open(resource(f"assets/icons/toolbar/{tool_icon_name}.png")),
+                        dark_image=generate_inverted_icon(f"assets/icons/toolbar/{tool_icon_name}.png"),
                         size=(22, 22),
                     )
             except Exception:
                 if config.get("Brushshe", "color_theme") != "brushshe_theme":
                     tool_icon = ctk.CTkImage(
-                        dark_image=Image.open(resource("assets/icons/toolbar/not_found_dark.png")),
+                        dark_image=generate_inverted_icon("assets/icons/toolbar/not_found.png"),
                         size=(22, 22),
                     )
                 else:
                     tool_icon = ctk.CTkImage(
-                        light_image=Image.open(resource("assets/icons/toolbar/not_found_light.png")),
-                        dark_image=Image.open(resource("assets/icons/toolbar/not_found_dark.png")),
+                        light_image=Image.open(resource("assets/icons/toolbar/not_found.png")),
+                        dark_image=generate_inverted_icon("assets/icons/toolbar/not_found.png"),
                         size=(22, 22),
                     )
 
