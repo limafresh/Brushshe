@@ -208,13 +208,14 @@ class CanvasOperations:
         step = max(4, int(self.grid_step * self.zoom))
         cw_full = math.ceil(self.image.width * self.zoom)
         ch_full = math.ceil(self.image.height * self.zoom)
-        grid_color = "#888888"
         dash_pattern = (2, 2)
 
         for x in range(0, cw_full, step):
-            self.ui.canvas.create_line(x, 0, x, ch_full, fill=grid_color, width=1, dash=dash_pattern, tags=("grid",))
+            self.ui.canvas.create_line(x, 0, x, ch_full, fill="white", width=1, dash=dash_pattern, tags="grid")
+            self.ui.canvas.create_line(x + 1, 0, x + 1, ch_full, fill="black", width=1, dash=dash_pattern, tags="grid")
         for y in range(0, ch_full, step):
-            self.ui.canvas.create_line(0, y, cw_full, y, fill=grid_color, width=1, dash=dash_pattern, tags=("grid",))
+            self.ui.canvas.create_line(0, y, cw_full, y, fill="white", width=1, dash=dash_pattern, tags="grid")
+            self.ui.canvas.create_line(0, y + 1, cw_full, y + 1, fill="black", width=1, dash=dash_pattern, tags="grid")
 
     def toggle_grid(self):
         self.is_grid_visible = not getattr(self, "is_grid_visible", False)
