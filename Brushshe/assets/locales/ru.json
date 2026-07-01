@@ -174,5 +174,6 @@
 	"Import left toolbar config": "Импортировать конфиг левой панели инструментов",
 	"Wiki": "Вики",
 	"by": "от",
-	"Reset left toolbar config": "Сбросить конфиг левой панели инструментов"
+	"Reset left toolbar config": "Сбросить конфиг левой панели инструментов",
+	"Toggle grid": "Вкл/выкл сетку"
 }

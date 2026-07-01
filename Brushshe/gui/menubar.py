@@ -55,6 +55,8 @@ class MenuBar:
         view_dropdown.add_option(option=_("Zoom Out"), command=self.logic.zoom_out)
         view_dropdown.add_separator()
         view_dropdown.add_option(option=_("Reset"), command=self.logic.reset_zoom)
+        view_dropdown.add_separator()
+        view_dropdown.add_option(option=_("Toggle grid"), command=self.logic.toggle_grid)
 
         """Tools menu"""
         tools_menu = menu.add_cascade(_("Tools"))

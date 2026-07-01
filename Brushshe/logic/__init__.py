@@ -50,6 +50,8 @@ class BrushsheLogic(
         self.is_sticker_use_real_size = ctk.BooleanVar(value=False)
         self.is_insert_smoothing = ctk.BooleanVar(value=False)
         self.is_reset_settings_after_exiting = ctk.BooleanVar(value=False)
+        self.is_grid_visible = False
+        self.grid_step = 32
 
         # Max tail can not be more 4 MB = 1024 (width) x 1024 (height) x 4 (rgba).
         # canvas_tail_size: Max = 1024. Default = 128. Min = 16.

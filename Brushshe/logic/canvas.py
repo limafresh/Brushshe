@@ -94,6 +94,7 @@ class CanvasOperations:
 
         # self._update_canvas()
         self._tailing_update_canvas()
+        self.draw_grid()
 
         # Debug
         # t2 = time.perf_counter(), time.process_time()
@@ -198,6 +199,26 @@ class CanvasOperations:
             self.canvas_tails_area = tails_area
 
             return
+
+    def draw_grid(self):
+        self.ui.canvas.delete("grid")
+        if not getattr(self, "is_grid_visible", False) or self.image is None:
+            return
+
+        step = max(4, int(self.grid_step * self.zoom))
+        cw_full = math.ceil(self.image.width * self.zoom)
+        ch_full = math.ceil(self.image.height * self.zoom)
+        grid_color = "#888888"
+        dash_pattern = (2, 2)
+
+        for x in range(0, cw_full, step):
+            self.ui.canvas.create_line(x, 0, x, ch_full, fill=grid_color, width=1, dash=dash_pattern, tags=("grid",))
+        for y in range(0, ch_full, step):
+            self.ui.canvas.create_line(0, y, cw_full, y, fill=grid_color, width=1, dash=dash_pattern, tags=("grid",))
+
+    def toggle_grid(self):
+        self.is_grid_visible = not getattr(self, "is_grid_visible", False)
+        self.update_canvas()
 
     def get_canvas_tails_area(self):
         cw_full = int(self.image.width * self.zoom)
