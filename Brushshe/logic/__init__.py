@@ -41,6 +41,7 @@ class BrushsheLogic(
         """From config"""
         self.undo_stack = deque(maxlen=config.getint("Brushshe", "undo_levels"))
         self.redo_stack = deque(maxlen=config.getint("Brushshe", "undo_levels"))
+        self.grid_step = config.getint("Brushshe", "grid_step")
         self.is_brush_smoothing = config.getboolean("Brushshe", "smoothing")
         self.brush_smoothing_factor = config.getint("Brushshe", "brush_smoothing_factor")  # Between: 3..64
         self.brush_smoothing_quality = config.getint("Brushshe", "brush_smoothing_quality")  # Between: 1..64
@@ -50,8 +51,6 @@ class BrushsheLogic(
         self.is_sticker_use_real_size = ctk.BooleanVar(value=False)
         self.is_insert_smoothing = ctk.BooleanVar(value=False)
         self.is_reset_settings_after_exiting = ctk.BooleanVar(value=False)
-        self.is_grid_visible = False
-        self.grid_step = 32
 
         # Max tail can not be more 4 MB = 1024 (width) x 1024 (height) x 4 (rgba).
         # canvas_tail_size: Max = 1024. Default = 128. Min = 16.
@@ -90,6 +89,7 @@ class BrushsheLogic(
         self.prev_x, self.prev_y = None, None
         self.current_font = "Open Sans"
         self.font_path = resource("assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
+        self.is_grid_visible = False
 
         self.timer_mask_time_for_update = 200  # ms
         self.timer_mask_last_update = 0

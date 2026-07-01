@@ -18,6 +18,7 @@ def load_config():
     default_options = {
         "theme": "System",
         "undo_levels": "10",
+        "grid_step": "32",
         "smoothing": "False",
         "brush_smoothing_factor": "10",
         "brush_smoothing_quality": "20",

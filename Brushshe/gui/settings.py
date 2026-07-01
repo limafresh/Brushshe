@@ -28,6 +28,12 @@ class Settings:
             config.set("Brushshe", "undo_levels", str(undo_levels_spinbox.get()))
             write_config()
 
+        def change_grid_step():
+            self.logic.grid_step = grid_step_spinbox.get()
+            self.logic.update_canvas()
+            config.set("Brushshe", "grid_step", str(grid_step_spinbox.get()))
+            write_config()
+
         def smooth_switch_event():
             self.logic.is_brush_smoothing = smooth_var.get()
             config.set("Brushshe", "smoothing", str(self.logic.is_brush_smoothing))
@@ -104,6 +110,17 @@ class Settings:
         undo_levels_spinbox.set(self.logic.undo_stack.maxlen)
 
         ctk.CTkButton(undo_levels_frame, text=_("Apply"), command=change_undo_levels).pack(padx=10, pady=10)
+
+        grid_step_frame = ctk.CTkFrame(settings_frame)
+        grid_step_frame.pack(padx=10, pady=10, fill="x")
+
+        ctk.CTkLabel(grid_step_frame, text=_("Grid step")).pack(padx=10, pady=10)
+
+        grid_step_spinbox = IntSpinbox(grid_step_frame, width=150)
+        grid_step_spinbox.pack(padx=10, pady=10)
+        grid_step_spinbox.set(self.logic.grid_step)
+
+        ctk.CTkButton(grid_step_frame, text=_("Apply"), command=change_grid_step).pack(padx=10, pady=10)
 
         smooth_frame = ctk.CTkFrame(settings_frame)
         smooth_frame.pack(padx=10, pady=10, fill="x")
