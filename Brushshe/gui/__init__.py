@@ -10,7 +10,7 @@ from logic import BrushsheLogic
 from PIL import Image, ImageTk
 from ui.brush_palette import BrushPalette
 from ui.tooltip import Tooltip
-from utils.common import resource
+from utils.common import generate_inverted_icon, resource
 from utils.config_loader import config
 from utils.translator import _
 
@@ -48,8 +48,8 @@ class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Stickers, Frames, Gall
         # Width and height of all icons - 512 px
 
         undo_icon = ctk.CTkImage(
-            light_image=Image.open(resource("assets/icons/undo_light.png")),
-            dark_image=Image.open(resource("assets/icons/undo_dark.png")),
+            light_image=Image.open(resource("assets/icons/undo.png")),
+            dark_image=generate_inverted_icon("assets/icons/undo.png"),
             size=(22, 22),
         )
         undo_button = ctk.CTkButton(
@@ -65,8 +65,8 @@ class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Stickers, Frames, Gall
         Tooltip(undo_button, message=_("Undo") + " (Ctrl+Z)")
 
         redo_icon = ctk.CTkImage(
-            light_image=Image.open(resource("assets/icons/redo_light.png")),
-            dark_image=Image.open(resource("assets/icons/redo_dark.png")),
+            light_image=Image.open(resource("assets/icons/redo.png")),
+            dark_image=generate_inverted_icon("assets/icons/redo.png"),
             size=(22, 22),
         )
 
