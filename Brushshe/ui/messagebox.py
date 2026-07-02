@@ -671,3 +671,12 @@ def addon_error(error):
         icon="error",
     )
     return addon_error_msg
+
+
+def export_palette():
+    export_palette_msg = Messagebox(
+        title=_("Exported"),
+        message=_("Palette exported successfully!"),
+        icon="success",
+    )
+    return export_palette_msg

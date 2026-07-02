@@ -176,5 +176,7 @@
 	"by": "от",
 	"Reset left toolbar config": "Сбросить конфиг левой панели инструментов",
 	"Toggle grid": "Вкл/выкл сетку",
-	"Grid step": "Шаг сетки"
+	"Grid step": "Шаг сетки",
+	"Exported": "Экспортировано",
+	"Palette exported successfully!": "Палитра успешно экспортирована!"
 }

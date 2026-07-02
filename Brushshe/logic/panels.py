@@ -8,6 +8,7 @@ from tkinter import filedialog
 
 import customtkinter as ctk
 from PIL import Image
+from ui import messagebox
 from ui.tooltip import Tooltip
 from utils.common import generate_inverted_icon, resource
 from utils.config_loader import config, write_config
@@ -160,6 +161,8 @@ class Panels:
             with open(path, "w") as f:
                 for color in self.palette:
                     f.write(color.lstrip("#") + "\n")
+
+        messagebox.export_palette()
 
     def make_color_palette(self, colors):
         max_columns_in_row = 16

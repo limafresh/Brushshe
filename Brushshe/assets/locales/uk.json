@@ -177,5 +177,7 @@
 	"by": "від",
 	"Reset left toolbar config": "Скинути конфіг лівої панелі інструментів",
 	"Toggle grid": "Увімкнути/вимкнути сітку",
-	"Grid step": "Крок сітки"
+	"Grid step": "Крок сітки",
+	"Exported": "Експортовано",
+	"Palette exported successfully!": "Палітра успішно експортована!"
 }
