@@ -150,7 +150,7 @@ class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Stickers, Frames, Gall
         else:
             self.logic.import_palette(resource(config.get("Brushshe", "palette")))
 
-        self.size_button = ctk.CTkButton(self.bottom_docker, text="640x480", command=self.change_size)
+        self.size_button = ctk.CTkButton(self.bottom_docker, text="640x480", command=self.open_change_size_toplevel)
         self.size_button.pack(side="right", padx=1)
 
         """Initialization"""

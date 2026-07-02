@@ -11,11 +11,11 @@ from utils.translator import _
 
 
 class Frames:
-    def show_frame_choice(self):
-        frames_win = ctk.CTkToplevel(self)
-        frames_win.title(_("Frames"))
-        frames_win.wm_iconbitmap()
-        frames_win.after(300, lambda: frames_win.iconphoto(False, self.iconpath))
+    def open_frames_toplevel(self):
+        toplevel = ctk.CTkToplevel(self)
+        toplevel.title(_("Frames"))
+        toplevel.wm_iconbitmap()
+        toplevel.after(300, lambda: toplevel.iconphoto(False, self.iconpath))
 
         self.frames = [Image.open(resource(f"assets/frames/{name}.png")) for name in Constants.FRAMES_NAMES]
         frames_thumbnails = [
@@ -30,7 +30,7 @@ class Frames:
         column = 0
 
         for i, image in enumerate(frames_thumbnails):
-            ctk.CTkButton(frames_win, text=None, image=image, command=lambda i=i: self.on_frames_click(i)).grid(
+            ctk.CTkButton(toplevel, text=None, image=image, command=lambda i=i: self.on_frames_click(i)).grid(
                 column=column, row=row, padx=10, pady=10
             )
             column += 1

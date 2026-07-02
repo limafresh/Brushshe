@@ -11,20 +11,18 @@ from utils.translator import _
 
 
 class ChangeSize:
-    def change_size(self):
-        change_size_toplevel = ctk.CTkToplevel(self)
-        change_size_toplevel.title(_("Change size..."))
-        change_size_toplevel.wm_iconbitmap()
-        change_size_toplevel.after(300, lambda: change_size_toplevel.iconphoto(False, self.iconpath))
-        change_size_toplevel.transient(self)
+    def open_change_size_toplevel(self):
+        toplevel = ctk.CTkToplevel(self)
+        toplevel.title(_("Change size..."))
+        toplevel.wm_iconbitmap()
+        toplevel.after(300, lambda: toplevel.iconphoto(False, self.iconpath))
+        toplevel.transient(self)
 
-        size_sb = ctk.CTkSegmentedButton(
-            change_size_toplevel, values=[_("Crop"), _("Scale")], command=self.size_sb_callback
-        )
+        size_sb = ctk.CTkSegmentedButton(toplevel, values=[_("Crop"), _("Scale")], command=self.size_sb_callback)
         size_sb.pack(padx=10, pady=10)
         size_sb.set(_("Crop"))
 
-        width_height_frame = ctk.CTkFrame(change_size_toplevel)
+        width_height_frame = ctk.CTkFrame(toplevel)
         width_height_frame.pack(padx=10, pady=10)
 
         ctk.CTkLabel(width_height_frame, text=_("Width")).grid(row=1, column=1, padx=10, pady=10)
@@ -39,12 +37,12 @@ class ChangeSize:
 
         self.aspect_ratio_var = ctk.BooleanVar(value=True)
         ctk.CTkCheckBox(
-            change_size_toplevel,
+            toplevel,
             text=_("Maintain aspect ratio"),
             variable=self.aspect_ratio_var,
         ).pack(padx=10, pady=10)
 
-        self.ready_size_button = ctk.CTkButton(change_size_toplevel, text="OK", command=self.crop)
+        self.ready_size_button = ctk.CTkButton(toplevel, text="OK", command=self.crop)
         self.ready_size_button.pack(padx=10, pady=10)
 
     def size_sb_callback(self, value):

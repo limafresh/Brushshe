@@ -76,18 +76,18 @@ class Settings:
             write_config()
             self.logic.set_left_toolbar(False)
 
-        settings_tl = ctk.CTkToplevel(self)
-        settings_tl.geometry("400x650")
-        settings_tl.title(_("Settings"))
-        settings_tl.wm_iconbitmap()
-        settings_tl.after(300, lambda: settings_tl.iconphoto(False, self.iconpath))
-        settings_tl.transient(self)
+        settings = ctk.CTkToplevel(self)
+        settings.geometry("400x650")
+        settings.title(_("Settings"))
+        settings.wm_iconbitmap()
+        settings.after(300, lambda: settings.iconphoto(False, self.iconpath))
+        settings.transient(self)
 
-        settings_frame = ctk.CTkScrollableFrame(settings_tl, fg_color="transparent")
-        settings_frame.pack(padx=10, pady=10, fill="both", expand=True)
-        scroll(settings_frame)
+        scrollable_frame = ctk.CTkScrollableFrame(settings, fg_color="transparent")
+        scrollable_frame.pack(padx=10, pady=10, fill="both", expand=True)
+        scroll(scrollable_frame)
 
-        theme_frame = ctk.CTkFrame(settings_frame)
+        theme_frame = ctk.CTkFrame(scrollable_frame)
         theme_frame.pack(padx=10, pady=10, fill="x")
 
         ctk.CTkLabel(theme_frame, text=_("Theme")).pack(padx=10, pady=10)
@@ -100,7 +100,7 @@ class Settings:
         theme_btn.set(_(config.get("Brushshe", "theme").capitalize()))
         theme_btn.pack(padx=10, pady=10)
 
-        undo_levels_frame = ctk.CTkFrame(settings_frame)
+        undo_levels_frame = ctk.CTkFrame(scrollable_frame)
         undo_levels_frame.pack(padx=10, pady=10, fill="x")
 
         ctk.CTkLabel(undo_levels_frame, text=_("Maximum undo/redo levels")).pack(padx=10, pady=10)
@@ -111,7 +111,7 @@ class Settings:
 
         ctk.CTkButton(undo_levels_frame, text=_("Apply"), command=change_undo_levels).pack(padx=10, pady=10)
 
-        grid_step_frame = ctk.CTkFrame(settings_frame)
+        grid_step_frame = ctk.CTkFrame(scrollable_frame)
         grid_step_frame.pack(padx=10, pady=10, fill="x")
 
         ctk.CTkLabel(grid_step_frame, text=_("Grid step")).pack(padx=10, pady=10)
@@ -122,7 +122,7 @@ class Settings:
 
         ctk.CTkButton(grid_step_frame, text=_("Apply"), command=change_grid_step).pack(padx=10, pady=10)
 
-        smooth_frame = ctk.CTkFrame(settings_frame)
+        smooth_frame = ctk.CTkFrame(scrollable_frame)
         smooth_frame.pack(padx=10, pady=10, fill="x")
 
         smooth_var = ctk.BooleanVar(value=self.logic.is_brush_smoothing)
@@ -145,7 +145,7 @@ class Settings:
         bsf_slider.set(self.logic.brush_smoothing_factor)
         bsf_slider.pack(padx=10, pady=10)
 
-        mask_frame = ctk.CTkFrame(settings_frame)
+        mask_frame = ctk.CTkFrame(scrollable_frame)
         mask_frame.pack(padx=10, pady=10, fill="x")
 
         ctk.CTkLabel(mask_frame, text=_("Mask")).pack(padx=10, pady=10)
@@ -161,7 +161,7 @@ class Settings:
                 command=mask_radiobutton_callback,
             ).pack(padx=10, pady=10)
 
-        palette_frame = ctk.CTkFrame(settings_frame)
+        palette_frame = ctk.CTkFrame(scrollable_frame)
         palette_frame.pack(padx=10, pady=10, fill="x")
 
         ctk.CTkLabel(palette_frame, text=_("Palette")).pack(padx=10, pady=10)
@@ -176,7 +176,7 @@ class Settings:
                 command=palette_radiobutton_callback,
             ).pack(padx=10, pady=10)
 
-        autosave_frame = ctk.CTkFrame(settings_frame)
+        autosave_frame = ctk.CTkFrame(scrollable_frame)
         autosave_frame.pack(padx=10, pady=10, fill="x")
 
         ctk.CTkSwitch(
@@ -186,7 +186,7 @@ class Settings:
             command=autosave_switch_event,
         ).pack(padx=10, pady=10)
 
-        color_theme_frame = ctk.CTkFrame(settings_frame)
+        color_theme_frame = ctk.CTkFrame(scrollable_frame)
         color_theme_frame.pack(padx=10, pady=10, fill="x")
 
         ctk.CTkLabel(color_theme_frame, text=_("Color theme")).pack(padx=10, pady=10)
@@ -199,7 +199,7 @@ class Settings:
 
         ctk.CTkLabel(color_theme_frame, text=_("A restart is required")).pack(padx=10, pady=10)
 
-        language_frame = ctk.CTkFrame(settings_frame)
+        language_frame = ctk.CTkFrame(scrollable_frame)
         language_frame.pack(padx=10, pady=10, fill="x")
 
         ctk.CTkLabel(language_frame, text=_("Language")).pack(padx=10, pady=10)
@@ -215,7 +215,7 @@ class Settings:
 
         ctk.CTkLabel(language_frame, text=_("A restart is required")).pack(padx=10, pady=10)
 
-        last_frame = ctk.CTkFrame(settings_frame)
+        last_frame = ctk.CTkFrame(scrollable_frame)
         last_frame.pack(padx=10, pady=10, fill="x")
 
         reset_left_toolbar_config_button = ctk.CTkButton(
