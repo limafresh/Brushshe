@@ -42,18 +42,28 @@ class Panels:
         try:
             with open(json_path, "r", encoding="utf-8") as f:
                 config_data = json.load(f)
+                self.make_left_toolbar(config_data)
         except (FileNotFoundError, json.JSONDecodeError):
             print("Warning: Left toolbar configuration file is invalid or missing.")
             return
 
+    def make_left_toolbar(self, config_data: dict):
         columns = config_data.get("columns", 4)
-        tools_list = config_data.get("tools", [])
+        items_list = config_data.get("items", [])
 
         row = 0
         column = 0
 
-        for tool in tools_list:
-            if tool["type"] == "separator":
+        for item in items_list:
+            if not item.get("item"):
+                print("No 'item' key in item!")
+                continue
+
+            if not self.tools_dict.get(item["item"]) and item["item"] != "separator":
+                print(f"Invalid 'item' value: {item['item']}!")
+                continue
+
+            if item["item"] == "separator":
                 column = 0
                 row += 1
                 s = ctk.CTkFrame(
@@ -65,38 +75,54 @@ class Panels:
                 row += 1
                 continue
 
-            tool_command = eval(tool["action"], {"self": self})
-            tool_icon_name = tool["icon_name"]
-
-            if tool.get("helper"):
-                tooltip_text = _(tool["helper"])
-            elif tool.get("hotkey"):
-                tooltip_text = f"{_(tool['name'])} {tool['hotkey']}"
+            if isinstance(self.tools_dict[item["item"]], dict):
+                tool_command = self.tools_dict[item["item"]]["command"]
             else:
-                tooltip_text = _(tool["name"])
+                tool_command = self.tools_dict[item["item"]]
+
+            if item.get("name"):
+                if item["name"].get("translate"):
+                    tool_name = _(item["name"]["text"])
+                else:
+                    tool_name = item["name"]["text"]
+
+                if (
+                    isinstance(self.tools_dict[item["item"]], dict)
+                    and self.tools_dict[item["item"]].get("hotkey")
+                    and not item.get("notShowHotkey")
+                ):
+                    tooltip_text = f"{tool_name} ({self.tools_dict[item['item']]['hotkey']})"
+                else:
+                    tooltip_text = tool_name
+            else:
+                tooltip_text = None
 
             try:
+                icon_path = f"assets/icons/toolbar/{item['item']}.png"
+
                 if config.get("Brushshe", "color_theme") != "brushshe_theme":
                     tool_icon = ctk.CTkImage(
-                        light_image=generate_inverted_icon(f"assets/icons/toolbar/{tool_icon_name}.png"),
+                        light_image=generate_inverted_icon(icon_path),
                         size=(22, 22),
                     )
                 else:
                     tool_icon = ctk.CTkImage(
-                        light_image=Image.open(resource(f"assets/icons/toolbar/{tool_icon_name}.png")),
-                        dark_image=generate_inverted_icon(f"assets/icons/toolbar/{tool_icon_name}.png"),
+                        light_image=Image.open(resource(icon_path)),
+                        dark_image=generate_inverted_icon(icon_path),
                         size=(22, 22),
                     )
             except Exception:
+                not_found_path = "assets/icons/toolbar/not_found.png"
+
                 if config.get("Brushshe", "color_theme") != "brushshe_theme":
                     tool_icon = ctk.CTkImage(
-                        dark_image=generate_inverted_icon("assets/icons/toolbar/not_found.png"),
+                        dark_image=generate_inverted_icon(not_found_path),
                         size=(22, 22),
                     )
                 else:
                     tool_icon = ctk.CTkImage(
-                        light_image=Image.open(resource("assets/icons/toolbar/not_found.png")),
-                        dark_image=generate_inverted_icon("assets/icons/toolbar/not_found.png"),
+                        light_image=Image.open(resource(not_found_path)),
+                        dark_image=generate_inverted_icon(not_found_path),
                         size=(22, 22),
                     )
 
@@ -104,7 +130,9 @@ class Panels:
                 self.ui.tools_frame, text=None, width=30, height=30, image=tool_icon, command=tool_command
             )
             tool_button.grid(column=column, row=row, pady=1, padx=1)
-            Tooltip(tool_button, message=tooltip_text)
+
+            if tooltip_text:
+                Tooltip(tool_button, message=tooltip_text)
 
             column += 1
             if column >= columns:
@@ -141,7 +169,7 @@ class Panels:
                     try:
                         self.ui.winfo_rgb(color)
                     except Exception:
-                        print("Warning: String `{}` is not correct color.".format(color))
+                        print(f"Warning: String `{color}` is not correct color.")
                         continue
                     colors.append(color)
         except FileNotFoundError:
@@ -159,8 +187,7 @@ class Panels:
         )
         if path:
             with open(path, "w") as f:
-                for color in self.palette:
-                    f.write(color.lstrip("#") + "\n")
+                f.writelines(color.lstrip("#") + "\n" for color in self.palette)
 
         messagebox.export_palette()
 
@@ -182,13 +209,13 @@ class Panels:
                 g = math.floor(rgb[1] / 256)
                 b = math.floor(rgb[2] / 256)
             except Exception:
-                print("Warning: String `{}` is not correct color.".format(color))
+                print(f"Warning: String `{color}` is not correct color.")
                 continue
 
             row = ii // max_columns_in_row
             column = ii % max_columns_in_row
 
-            color_checked = "#{:02x}{:02x}{:02x}".format(r, g, b)
+            color_checked = f"#{r:02x}{g:02x}{b:02x}"
 
             tmp_btn = ctk.CTkButton(
                 self.ui.palette_widget,

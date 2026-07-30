@@ -104,3 +104,28 @@ class BrushsheLogic(
         for folder in [Constants.GALLERY_FOLDER, Constants.ADDONS_FOLDER]:
             if not folder.exists():
                 folder.mkdir(parents=True)
+
+        self.tools_dict = {
+            "brush": {"command": self.brush, "hotkey": "Ctrl+B"},
+            "eraser": {"command": self.eraser, "hotkey": "Ctrl+E"},
+            "fill": self.start_fill,
+            "recoloring_brush": self.recoloring_brush,
+            "spray": self.spray,
+            "text": self.text_tool,
+            "rectangle": lambda: self.create_shape("Rectangle"),
+            "oval": lambda: self.create_shape("Oval"),
+            "fill_rectangle": lambda: self.create_shape("Fill rectangle"),
+            "fill_oval": lambda: self.create_shape("Fill oval"),
+            "line": lambda: self.create_shape("Line"),
+            "bezier": self.bezier_shape,
+            "cut": {"command": lambda: self.copy_tool(deleted=True), "hotkey": "Ctrl+X"},
+            "copy": {"command": self.copy_tool, "hotkey": "Ctrl+C"},
+            "insert": {"command": self.start_insert, "hotkey": "Ctrl+V"},
+            "crop": self.crop_simple,
+            "rectangle_select": lambda: self.select_by_shape(shape="rectangle"),
+            "polygon_select": self.select_by_polygon,
+            "fuzzy_select": lambda: self.select_by_color(fill_limit=True),
+            "select_by_color": self.select_by_color,
+            "deselect_all": self.remove_mask,
+            "effects": self.effects,
+        }
