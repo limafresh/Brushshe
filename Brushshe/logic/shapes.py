@@ -198,8 +198,7 @@ class Shapes:
                         abs(self.image_points[ii][1] - self.image_points[ii + 1][1]),
                     )
             max_segments = max_segments // 3
-            if max_segments < 32:
-                max_segments = 32
+            max_segments = max(max_segments, 32)
 
             # Draw on picture.
             ts = [t / max_segments for t in range(int(max_segments + 1))]
@@ -220,8 +219,8 @@ class Shapes:
                 if it < points_len - 1:
                     bh_draw_line(
                         tmp_draw,
-                        int(points[it][0]),
-                        int(points[it][1]),
+                        int(tt[0]),
+                        int(tt[1]),
                         int(points[it + 1][0]),
                         int(points[it + 1][1]),
                         color,

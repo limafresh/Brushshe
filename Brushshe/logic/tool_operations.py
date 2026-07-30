@@ -24,10 +24,8 @@ class ToolOperations:
             "insert": 500,
             "real size sticker": 500,
         }
-        if new_size < 1:
-            new_size = 1
-        if new_size > max_sizes[self.current_tool]:
-            new_size = max_sizes[self.current_tool]
+        new_size = max(new_size, 1)
+        new_size = min(new_size, max_sizes[self.current_tool])
         self.change_tool_size(new_size)
         self.ui.tool_size_slider.set(int(new_size))
 

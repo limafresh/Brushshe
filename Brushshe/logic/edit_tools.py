@@ -30,22 +30,14 @@ class EditTools:
         x_max = image.width - 1
         y_max = image.height - 1
 
-        if self.x_begin < 0:
-            self.x_begin = 0
-        if self.x_begin > x_max:
-            self.x_begin = x_max
-        if self.y_begin < 0:
-            self.y_begin = 0
-        if self.y_begin > y_max:
-            self.y_begin = y_max
-        if self.x_end < 0:
-            self.x_end = 0
-        if self.x_end > x_max:
-            self.x_end = x_max
-        if self.y_end < 0:
-            self.y_end = 0
-        if self.y_end > y_max:
-            self.y_end = y_max
+        self.x_begin = max(self.x_begin, 0)
+        self.x_begin = min(self.x_begin, x_max)
+        self.y_begin = max(self.y_begin, 0)
+        self.y_begin = min(self.y_begin, y_max)
+        self.x_end = max(self.x_end, 0)
+        self.x_end = min(self.x_end, x_max)
+        self.y_end = max(self.y_end, 0)
+        self.y_end = min(self.y_end, y_max)
 
         x1 = min(self.x_begin, self.x_end)
         x2 = max(self.x_begin, self.x_end)

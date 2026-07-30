@@ -30,8 +30,7 @@ class BhHistory:
         max_length = 256
         self.history = []
         self.limit_length = limit_length
-        if self.limit_length > max_length:
-            self.limit_length = max_length
+        self.limit_length = min(self.limit_length, max_length)
 
     def add_point(self, point: BhPoint):
         if len(self.history) < self.limit_length:

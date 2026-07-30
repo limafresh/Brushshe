@@ -88,8 +88,7 @@ class Gallery:
                         image_tmp = Image.open(img_path)
                         rate = image_tmp.width / image_tmp.height
                         max_wh = max(image_tmp.width, image_tmp.height)
-                        if max_wh > preview_size:
-                            max_wh = preview_size
+                        max_wh = min(max_wh, preview_size)
                         if rate > 1:
                             w = int(max_wh)
                             h = int(max_wh / rate)

@@ -84,14 +84,10 @@ class Selection:
         x_max = self.image.width - 1
         y_max = self.image.height - 1
 
-        if x < 0:
-            x = 0
-        if x > x_max:
-            x = x_max
-        if y < 0:
-            y = 0
-        if y > y_max:
-            y = y_max
+        x = max(x, 0)
+        x = min(x, x_max)
+        y = max(y, 0)
+        y = min(y, y_max)
 
         if type == "unclick":
             if self.xy_list is None:
@@ -226,14 +222,10 @@ class Selection:
         x_max = self.image.width - 1
         y_max = self.image.height - 1
 
-        if x < 0:
-            x = 0
-        if x > x_max:
-            x = x_max
-        if y < 0:
-            y = 0
-        if y > y_max:
-            y = y_max
+        x = max(x, 0)
+        x = min(x, x_max)
+        y = max(y, 0)
+        y = min(y, y_max)
 
         draw = ImageDraw.Draw(self.selected_mask_img)
 

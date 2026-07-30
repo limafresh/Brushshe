@@ -112,7 +112,7 @@ class AskColor(ctk.CTkToplevel):
 
     def random_color_choice(self):
         self.entry.delete(0, ctk.END)
-        self.entry.insert(0, "#{:06x}".format(random.randint(0, 0xFFFFFF)))
+        self.entry.insert(0, f"#{random.randint(0, 0xFFFFFF):06x}")
         self._ok_event()
 
     def _ok_event(self, event=None):
@@ -142,10 +142,8 @@ class AskColor(ctk.CTkToplevel):
         del self.target
 
     def get_real_circuit(self, img, brightness):
-        if brightness > 255:
-            brightness = 255
-        if brightness < 0:
-            brightness = 0
+        brightness = min(brightness, 255)
+        brightness = max(brightness, 0)
         source = img.split()
         r = source[0].point(lambda i: i * brightness / 255)
         g = source[1].point(lambda i: i * brightness / 255)
@@ -269,7 +267,7 @@ class AskColor(ctk.CTkToplevel):
                 self.entry.configure(fg_color="red")
                 return
 
-            self.default_hex_color = "#{:02x}{:02x}{:02x}".format(r, g, b)
+            self.default_hex_color = f"#{r:02x}{g:02x}{b:02x}"
 
             h, s, v = rgb_to_hsv(r, g, b)
 

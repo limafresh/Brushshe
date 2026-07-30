@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-from typing import Callable, Union
+from collections.abc import Callable
 
 import customtkinter as ctk
 
@@ -55,7 +55,7 @@ class IntSpinbox(ctk.CTkFrame):
         except ValueError:
             return
 
-    def get(self) -> Union[int, None]:
+    def get(self) -> int | None:
         try:
             return int(self.entry.get())
         except ValueError:

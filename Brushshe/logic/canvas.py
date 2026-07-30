@@ -175,10 +175,8 @@ class CanvasOperations:
 
             r_w = math.floor(tmp_canvas_image.width * self.zoom)
             r_h = math.floor(tmp_canvas_image.height * self.zoom)
-            if r_w < 1:
-                r_w = 1
-            if r_h < 1:
-                r_h = 1
+            r_w = max(r_w, 1)
+            r_h = max(r_h, 1)
 
             canvas_image = tmp_canvas_image.resize((r_w, r_h), Image.NEAREST)
             if tmp_mask_image is None:
@@ -237,10 +235,8 @@ class CanvasOperations:
         y1 = math.floor(cy_frame_1 * ch_full / self.canvas_tail_size) * self.canvas_tail_size
         x2 = math.ceil(cx_frame_2 * cw_full / self.canvas_tail_size) * self.canvas_tail_size - 1
         y2 = math.ceil(cy_frame_2 * ch_full / self.canvas_tail_size) * self.canvas_tail_size - 1
-        if x2 > cw_full - 1:
-            x2 = cw_full - 1
-        if y2 > ch_full - 1:
-            y2 = ch_full - 1
+        x2 = min(x2, cw_full - 1)
+        y2 = min(y2, ch_full - 1)
 
         return (x1, y1, x2, y2)
 

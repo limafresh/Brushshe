@@ -73,7 +73,7 @@ def user_cache_dir(app_name=None, app_author=None, opinion=True):
 
 
 def get_cache_name(name, size, mtime):
-    s_name = "{0}_{1}_{2}".format(name, size, mtime)
+    s_name = f"{name}_{size}_{mtime}"
     return hashlib.sha1(s_name.encode("utf-8")).hexdigest()
 
 
