@@ -4,6 +4,7 @@
 
 import webbrowser
 from collections import deque
+from tkinter import filedialog
 
 import customtkinter as ctk
 from constants import Constants
@@ -70,6 +71,14 @@ class Settings:
         def language_optionmenu_callback(value):
             config.set("Brushshe", "language", Constants.LANGUAGES.get(value))
             write_config()
+
+        def set_language_from_file():
+            file_path = filedialog.askopenfilename(
+                title=_("Set custom language from file"), filetypes=([("JSON", "*.json")])
+            )
+            if file_path:
+                config.set("Brushshe", "language", file_path)
+                write_config()
 
         def reset_left_toolbar_config():
             config.set("Brushshe", "left_toolbar_config", "default")
@@ -212,6 +221,10 @@ class Settings:
             (k for k, v in Constants.LANGUAGES.items() if v == config.get("Brushshe", "language")), None
         )
         language_optionmenu.set(language_key)
+
+        ctk.CTkButton(language_frame, text=_("Set custom language from file"), command=set_language_from_file).pack(
+            padx=10, pady=10
+        )
 
         ctk.CTkLabel(language_frame, text=_("A restart is required")).pack(padx=10, pady=10)
 

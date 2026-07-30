@@ -179,5 +179,6 @@
 	"Toggle grid": "Увімкнути/вимкнути сітку",
 	"Grid step": "Крок сітки",
 	"Exported": "Експортовано",
-	"Palette exported successfully!": "Палітра успішно експортована!"
+	"Palette exported successfully!": "Палітра успішно експортована!",
+	"Set custom language from file": "Встановити користувацьку мову з файлу"
 }

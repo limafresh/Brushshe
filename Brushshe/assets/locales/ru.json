@@ -178,5 +178,6 @@
 	"Toggle grid": "Вкл/выкл сетку",
 	"Grid step": "Шаг сетки",
 	"Exported": "Экспортировано",
-	"Palette exported successfully!": "Палитра успешно экспортирована!"
+	"Palette exported successfully!": "Палитра успешно экспортирована!",
+	"Set custom language from file": "Установить пользовательский язык из файла"
 }
