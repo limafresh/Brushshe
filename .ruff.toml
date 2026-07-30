@@ -3,6 +3,7 @@ exclude = ["Brushshe/ui/CTkMenuBar/*.py"]
 
 [lint]
 extend-select = ["F", "E", "W", "I", "N"]
+ignore = ["PLW1510", "BLE001", "RUF012"]
 
 [format]
 quote-style = "double"

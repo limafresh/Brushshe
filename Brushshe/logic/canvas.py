@@ -226,7 +226,7 @@ class CanvasOperations:
         # Set param canvas with real image size. Not use bbox in this place.
         self.ui.canvas.config(scrollregion=(0, 0, cw_full, ch_full), width=cw_full, height=ch_full)
 
-        iw, ih = self.image.size
+        _iw, _ih = self.image.size
         cx_frame_1, cx_frame_2 = self.ui.canvas.xview()
         cy_frame_1, cy_frame_2 = self.ui.canvas.yview()
 

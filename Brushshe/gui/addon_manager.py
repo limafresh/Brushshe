@@ -61,16 +61,19 @@ class AddonManager:
             for node in tree.body:
                 if isinstance(node, ast.Assign):
                     for target in node.targets:
-                        if isinstance(target, ast.Name) and target.id == "metadata":
-                            if isinstance(node.value, ast.Dict):
-                                metadata = {}
-                                for key, value in zip(node.value.keys, node.value.values):
-                                    if isinstance(key, ast.Constant):
-                                        k = key.value
-                                        if isinstance(value, ast.Constant):
-                                            v = value.value
-                                            metadata[k] = v
-                                return metadata
+                        if (
+                            isinstance(target, ast.Name)
+                            and target.id == "metadata"
+                            and isinstance(node.value, ast.Dict)
+                        ):
+                            metadata = {}
+                            for key, value in zip(node.value.keys, node.value.values):
+                                if isinstance(key, ast.Constant):
+                                    k = key.value
+                                    if isinstance(value, ast.Constant):
+                                        v = value.value
+                                        metadata[k] = v
+                            return metadata
         except Exception as e:
             print(e)
         return {}

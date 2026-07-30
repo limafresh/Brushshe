@@ -16,7 +16,7 @@ from utils.translator import _
 
 
 class AskColor(ctk.CTkToplevel):
-    def __init__(self, title: str = "Choose Color", initial_color: str = None):
+    def __init__(self, title: str = "Choose Color", initial_color: str | None = None):
         super().__init__()
 
         self.title(title)

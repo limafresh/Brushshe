@@ -25,15 +25,15 @@ class Messagebox(ctk.CTkToplevel):
 
     def __init__(
         self,
-        master: any = None,
+        master: any | None = None,
         width: int = 400,
         height: int = 200,
         title: str = "Messagebox",
         message: str = "This is a Messagebox!",
         option_1: str = "OK",
-        option_2: str = None,
-        option_3: str = None,
-        options: list = [],
+        option_2: str | None = None,
+        option_3: str | None = None,
+        options: list | None = None,
         border_width: int = 1,
         border_color: str = "default",
         button_color: str = "default",
@@ -42,23 +42,25 @@ class Messagebox(ctk.CTkToplevel):
         text_color: str = "default",
         title_color: str = "default",
         button_text_color: str = "default",
-        button_width: int = None,
-        button_height: int = None,
-        cancel_button_color: str = None,
-        cancel_button: str = None,  # types: circle, cross or none
+        button_width: int | None = None,
+        button_height: int | None = None,
+        cancel_button_color: str | None = None,
+        cancel_button: str | None = None,  # types: circle, cross or none
         button_hover_color: str = "default",
         icon: str = "success",
         icon_size: tuple = (100, 100),
         corner_radius: int = 15,
         justify: str = "right",
-        font: tuple = None,
+        font: tuple | None = None,
         header: bool = False,
         topmost: bool = True,
         fade_in_duration: int = 0,
         sound: bool = True,
         wraplength: int = 0,
-        option_focus: Literal[1, 2, 3] = None,
+        option_focus: Literal[1, 2, 3] | None = None,
     ):
+        if options is None:
+            options = []
         super().__init__()
 
         self.master_window = master
@@ -143,7 +145,7 @@ class Messagebox(ctk.CTkToplevel):
                 option_2 = options[-2]
                 option_3 = options[-3]
             except IndexError:
-                None
+                pass
 
         if bg_color == "default":
             self.bg_color = self._apply_appearance_mode(ctk.ThemeManager.theme["CTkFrame"]["fg_color"])
@@ -445,9 +447,8 @@ class Messagebox(ctk.CTkToplevel):
             if self.option_text_2:
                 self.option_focus = 2
 
-        elif self.option_focus == 2:
-            if self.option_text_3:
-                self.option_focus = 3
+        elif self.option_focus == 2 and self.option_text_3:
+            self.option_focus = 3
 
         self.focus_button(self.option_focus)
 

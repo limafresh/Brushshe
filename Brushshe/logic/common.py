@@ -30,11 +30,11 @@ class Common:
             # Debug
             # print(event.char, event.keycode, event.state)
 
-            shift = True if event.state & 0x0001 else False
-            ctrl = True if event.state & 0x0004 else False
-            alt_l = True if event.state & 0x0008 else False
-            alt_r = True if event.state & 0x0080 else False
-            alt = True if (alt_l or alt_r) else False
+            shift = bool(event.state & 1)
+            ctrl = bool(event.state & 4)
+            alt_l = bool(event.state & 8)
+            alt_r = bool(event.state & 128)
+            alt = bool(alt_l or alt_r)
             # All else modifiers was ignored.
 
             if shift is False and ctrl is False and alt is False and event.keycode == 53:  # Key-x

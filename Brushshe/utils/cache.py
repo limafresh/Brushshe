@@ -36,7 +36,7 @@ def _get_win_folder_from_registry(csidl_name):
     key = _winreg.OpenKey(
         _winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
     )
-    dir, type = _winreg.QueryValueEx(key, shell_folder_name)
+    dir, _type = _winreg.QueryValueEx(key, shell_folder_name)
     return dir
 
 

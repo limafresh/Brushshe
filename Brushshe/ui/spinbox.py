@@ -9,7 +9,7 @@ import customtkinter as ctk
 
 class IntSpinbox(ctk.CTkFrame):
     def __init__(
-        self, *args, width: int = 100, height: int = 32, step_size: int = 1, command: Callable = None, **kwargs
+        self, *args, width: int = 100, height: int = 32, step_size: int = 1, command: Callable | None = None, **kwargs
     ):
         super().__init__(*args, width=width, height=height, **kwargs)
 

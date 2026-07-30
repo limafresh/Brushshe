@@ -12,8 +12,8 @@ from customtkinter import CTkFrame, CTkLabel, CTkToplevel, StringVar
 class Tooltip(CTkToplevel):
     def __init__(
         self,
-        widget: any = None,
-        message: str = None,
+        widget: any | None = None,
+        message: str | None = None,
         delay: float = 0.2,
         follow: bool = True,
         x_offset: int = +20,
@@ -104,7 +104,7 @@ class Tooltip(CTkToplevel):
     def get(self) -> None:
         return self.messageVar.get()
 
-    def configure(self, message: str = None, delay: float = None, **kwargs):
+    def configure(self, message: str | None = None, delay: float | None = None, **kwargs):
         if delay:
             self.delay = delay
 

@@ -52,9 +52,8 @@ class BhComposer:
         image_bg = Image.new("RGB", (self.background_size, self.background_size), self.background_color_1)
         draw = ImageDraw.Draw(image_bg)
 
-        d = 0
         dr = self.background_size // self.background_tile_size
-        for i_ in range(dr):
+        for d, i_ in enumerate(range(dr)):
             for j_ in range(d % 2, dr, 2):
                 draw.rectangle(
                     (
@@ -66,7 +65,6 @@ class BhComposer:
                     fill=self.background_color_2,
                     outline=None,
                 )
-            d += 1
 
         return image_bg
 
