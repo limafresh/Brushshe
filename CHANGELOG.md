@@ -4,6 +4,7 @@
 - Added grid feature
 - The left toolbar config files have become more user-friendly
 - Added support for loading custom languages ​​from JSON
+- Added support for loading custom themes ​​from JSON
 
 ## 2.7.0 codename "Zviahel" (current version)
 - Fixed bugs

@@ -179,5 +179,6 @@
 	"Grid step": "Шаг сетки",
 	"Exported": "Экспортировано",
 	"Palette exported successfully!": "Палитра успешно экспортирована!",
-	"Set custom language from file": "Установить пользовательский язык из файла"
+	"Set custom language from file": "Установить пользовательский язык из файла",
+	"Set custom theme from file": "Установить пользовательскую тему из файла"
 }

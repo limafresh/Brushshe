@@ -68,6 +68,14 @@ class Settings:
             config.set("Brushshe", "color_theme", choice)
             write_config()
 
+        def set_theme_from_file():
+            file_path = filedialog.askopenfilename(
+                title=_("Set custom theme from file"), filetypes=([("JSON", "*.json")])
+            )
+            if file_path:
+                config.set("Brushshe", "color_theme", file_path)
+                write_config()
+
         def language_optionmenu_callback(value):
             config.set("Brushshe", "language", Constants.LANGUAGES.get(value))
             write_config()
@@ -205,6 +213,10 @@ class Settings:
         )
         color_theme_optionmenu.pack(padx=10, pady=10)
         color_theme_optionmenu.set(config.get("Brushshe", "color_theme"))
+
+        ctk.CTkButton(color_theme_frame, text=_("Set custom theme from file"), command=set_theme_from_file).pack(
+            padx=10, pady=10
+        )
 
         ctk.CTkLabel(color_theme_frame, text=_("A restart is required")).pack(padx=10, pady=10)
 

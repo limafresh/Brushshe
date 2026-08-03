@@ -99,19 +99,20 @@ class Panels:
 
             try:
                 icon_path = f"assets/icons/toolbar/{item['item']}.png"
+                text_color = ctk.ThemeManager.theme["CTkButton"]["text_color"]
+                is_white_0 = sum(self.ui.winfo_rgb(text_color[0])) / 3 > 32767
+                is_white_1 = sum(self.ui.winfo_rgb(text_color[1])) / 3 > 32767
 
-                if config.get("Brushshe", "color_theme") != "brushshe_theme":
-                    tool_icon = ctk.CTkImage(
-                        light_image=generate_inverted_icon(icon_path),
-                        size=(22, 22),
-                    )
-                else:
-                    tool_icon = ctk.CTkImage(
-                        light_image=Image.open(resource(icon_path)),
-                        dark_image=generate_inverted_icon(icon_path),
-                        size=(22, 22),
-                    )
-            except Exception:
+                tool_icon = ctk.CTkImage(
+                    light_image=Image.open(resource(icon_path))
+                    if not is_white_0
+                    else generate_inverted_icon(icon_path),
+                    dark_image=Image.open(resource(icon_path)) if not is_white_1 else generate_inverted_icon(icon_path),
+                    size=(22, 22),
+                )
+            except Exception as e:
+                print(f"Icon error: {e}")
+
                 not_found_path = "assets/icons/toolbar/not_found.png"
 
                 if config.get("Brushshe", "color_theme") != "brushshe_theme":
