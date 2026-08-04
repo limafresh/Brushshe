@@ -99,7 +99,7 @@ class BrushsheLogic(
         themes_folder = Path(resource("assets/themes"))
         self.color_themes = [
             str(path.relative_to(themes_folder).with_suffix("")) for path in themes_folder.rglob("*.json")
-        ] + ["blue", "green", "dark-blue"]
+        ] + Constants.DEFAULT_CTK_THEMES
 
         for folder in [Constants.GALLERY_FOLDER, Constants.ADDONS_FOLDER]:
             if not folder.exists():
