@@ -55,20 +55,22 @@ Description: Raster graphical editor
 
 def install_customtkinter_to_dir(target_dir):
     print("Installing customtkinter...")
-    subprocess.run(["pip", "install", "customtkinter", f"--target={target_dir}"])
-    subprocess.run(r'find . | grep -E "(__pycache__|\.pyc$)" | xargs rm -rf', shell=True)
+    subprocess.run(["pip", "install", "customtkinter", f"--target={target_dir}"], check=True)
+    subprocess.run(r'find . | grep -E "(__pycache__|\.pyc$)" | xargs rm -rf', shell=True, check=True)
 
 
 def windows_prepare():
     global venv_python, windows_python_license_path
 
     print("Creating a virtual environment...")
-    subprocess.run(["python", "-m", "venv", "brenv"])
+    subprocess.run(["python", "-m", "venv", "brenv"], check=True)
     venv_dir = "brenv"
     venv_python = os.path.join(venv_dir, "Scripts", "python.exe")
 
     print("Installing dependencies...")
-    subprocess.run([venv_python, "-m", "pip", "install", "pyinstaller", "pip-licenses", "pillow", "customtkinter"])
+    subprocess.run(
+        [venv_python, "-m", "pip", "install", "pyinstaller", "pip-licenses", "pillow", "customtkinter"], check=True
+    )
 
     print("Creating a file with licenses...")
     subprocess.run(
@@ -83,7 +85,8 @@ def windows_prepare():
             "--from=mixed",
             "--with-system",
             "--output-file=dependencies-licenses.txt",
-        ]
+        ],
+        check=True,
     )
     with open("dependencies-licenses.txt", "a", encoding="utf8") as f:
         f.write(
@@ -145,7 +148,7 @@ if args.deb:
     install_customtkinter_to_dir("brushshe/opt/Brushshe")
 
     print("Creating a .deb package...")
-    subprocess.run(["dpkg-deb", "--build", "./brushshe"])
+    subprocess.run(["dpkg-deb", "--build", "./brushshe"], check=True)
 
     print("Removing the package folder and moving the .deb file from the project folder...")
     shutil.rmtree("brushshe")
@@ -238,7 +241,7 @@ cp LICENSE LICENSE-CC0 README.md %{{buildroot}}/usr/share/doc/brushshe
         tar.add("brushshe")
 
     print("Creating .rpm package...")
-    subprocess.run(["rpmbuild", "-tb", "brushshe.tar", "--define", "_topdir " + os.getcwd()])
+    subprocess.run(["rpmbuild", "-tb", "brushshe.tar", "--define", "_topdir " + os.getcwd()], check=True)
 
     print("Cleaning and moving the .rpm package from the project folder...")
     for f in glob.glob("RPMS/noarch/*"):
@@ -285,11 +288,12 @@ elif args.exe:
             "--add-data",
             r"..\Brushshe\assets;assets/",
             r"..\Brushshe\main.py",
-        ]
+        ],
+        check=True,
     )
 
     print("Creating an installer using Inno Setup...")
-    subprocess.run(["iscc", "inno-setup-script.iss"])
+    subprocess.run(["iscc", "inno-setup-script.iss"], check=True)
 
     print("Cleaning...")
     windows_common_cleaning()
@@ -329,7 +333,8 @@ elif args.portable_exe:
             "--add-data",
             r"..\Brushshe\assets;assets/",
             r"..\Brushshe\main.py",
-        ]
+        ],
+        check=True,
     )
 
     print("Cleaning...")
