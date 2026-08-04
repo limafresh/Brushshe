@@ -124,7 +124,10 @@ class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Stickers, Frames, Gall
         self.h_scrollbar.pack(side="bottom", fill="x")
 
         self.canvas = ctk.CTkCanvas(
-            self.canvas_frame_main, yscrollcommand=self.v_scrollbar.set, xscrollcommand=self.h_scrollbar.set
+            self.canvas_frame_main,
+            yscrollcommand=self.v_scrollbar.set,
+            xscrollcommand=self.h_scrollbar.set,
+            highlightcolor="SystemButtonFace",
         )
         self.canvas.pack(side="top", anchor="center", expand=True)
 
