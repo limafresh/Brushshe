@@ -127,9 +127,9 @@ class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Stickers, Frames, Gall
             self.canvas_frame_main,
             yscrollcommand=self.v_scrollbar.set,
             xscrollcommand=self.h_scrollbar.set,
-            highlightcolor="SystemButtonFace",
         )
         self.canvas.pack(side="top", anchor="center", expand=True)
+        self.canvas.configure(highlightcolor=self.canvas.cget("highlightbackground"))
 
         """Bottom bar"""
         self.bottom_docker = ctk.CTkFrame(self, corner_radius=0)
