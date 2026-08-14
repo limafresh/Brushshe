@@ -28,6 +28,7 @@ def load_config():
         "color_theme": "brushshe_theme",
         "language": "None",
         "left_toolbar_config": "default",
+        "use_title_menu": "False",
     }
 
     if not config.has_section("Brushshe"):

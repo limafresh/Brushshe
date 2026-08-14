@@ -7,6 +7,7 @@
 - Added support for loading custom languages ​​from JSON
 - Added support for loading custom themes ​​from JSON
 - Migrated to CustomTkinter 6
+- Added optional support for using CTkTitleMenu instead of CTkMenuBar on Windows
 
 ## 2.7.0 codename "Zviahel"
 - Fixed bugs

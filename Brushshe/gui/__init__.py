@@ -208,4 +208,4 @@ class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Stickers, Frames, Gall
         self.canvas.bind("<Shift-Button-5>", self.logic.scroll_on_canvasx)
 
         # Resize window (and canvas)
-        self.bind("<Configure>", self.logic.on_window_resize)
+        self.bind("<Configure>", self.logic.on_window_resize, add="+")

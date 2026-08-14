@@ -46,6 +46,7 @@ class BrushsheLogic(
         self.brush_smoothing_factor = config.getint("Brushshe", "brush_smoothing_factor")  # Between: 3..64
         self.brush_smoothing_quality = config.getint("Brushshe", "brush_smoothing_quality")  # Between: 1..64
         self.autosave_var = ctk.BooleanVar(value=config.getboolean("Brushshe", "autosave"))
+        self.use_title_menu = ctk.BooleanVar(value=config.getboolean("Brushshe", "use_title_menu"))
 
         self.is_gradient_fill = ctk.BooleanVar(value=False)
         self.is_sticker_use_real_size = ctk.BooleanVar(value=False)

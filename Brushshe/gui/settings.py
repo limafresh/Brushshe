@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+import platform
 import webbrowser
 from collections import deque
 from tkinter import filedialog
@@ -87,6 +88,10 @@ class Settings:
             if file_path:
                 config.set("Brushshe", "language", file_path)
                 write_config()
+
+        def title_menu_event():
+            config.set("Brushshe", "use_title_menu", str(self.logic.use_title_menu.get()))
+            write_config()
 
         def reset_left_toolbar_config():
             config.set("Brushshe", "left_toolbar_config", "default")
@@ -239,6 +244,16 @@ class Settings:
         )
 
         ctk.CTkLabel(language_frame, text=_("A restart is required")).pack(padx=10, pady=10)
+
+        title_menu_frame = ctk.CTkFrame(scrollable_frame)
+
+        ctk.CTkCheckBox(
+            title_menu_frame, text=_("Use title menu"), variable=self.logic.use_title_menu, command=title_menu_event
+        ).pack(padx=10, pady=10)
+        ctk.CTkLabel(title_menu_frame, text=_("A restart is required")).pack(padx=10, pady=10)
+
+        if platform.system() == "Windows":
+            title_menu_frame.pack(padx=10, pady=10, fill="x")
 
         last_frame = ctk.CTkFrame(scrollable_frame)
         last_frame.pack(padx=10, pady=10, fill="x")

@@ -5,6 +5,7 @@
 """Fork of Akascape's CTkToolTip"""
 
 import time
+from typing import Any
 
 from customtkinter import CTkFrame, CTkLabel, CTkToplevel, StringVar
 
@@ -12,7 +13,7 @@ from customtkinter import CTkFrame, CTkLabel, CTkToplevel, StringVar
 class Tooltip(CTkToplevel):
     def __init__(
         self,
-        widget: any | None = None,
+        widget: Any | None = None,
         message: str | None = None,
         delay: float = 0.2,
         follow: bool = True,

@@ -2,19 +2,28 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+import platform
 import webbrowser
+from unittest.mock import patch
 
 import customtkinter as ctk
 from PIL import Image
 from ui import messagebox
-from ui.CTkMenuBar import CTkMenuBar, CustomDropdownMenu
+from ui.CTkMenuBar import CTkMenuBar, CTkTitleMenu, CustomDropdownMenu
 from utils.common import resource
 from utils.translator import _
 
 
 class MenuBar:
     def create_menubar(self):
-        menu = CTkMenuBar(self)
+        menu = None
+        if self.logic.use_title_menu.get() and platform.system() == "Windows":
+            # hack
+            # winfo_name() returns "brushshe", and CTkTitleMenu does not allow this
+            with patch.object(self, "winfo_name", return_value="tk"):
+                menu = CTkTitleMenu(self)
+        else:
+            menu = CTkMenuBar(self)
 
         """File menu"""
         file_menu = menu.add_cascade(_("File"))

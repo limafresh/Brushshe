@@ -11,7 +11,7 @@ import os
 import sys
 import time
 import webbrowser
-from typing import Literal
+from typing import Any, Literal
 
 import customtkinter as ctk
 from constants import Constants
@@ -25,7 +25,7 @@ class Messagebox(ctk.CTkToplevel):
 
     def __init__(
         self,
-        master: any | None = None,
+        master: Any | None = None,
         width: int = 400,
         height: int = 200,
         title: str = "Messagebox",
