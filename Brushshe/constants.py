@@ -103,5 +103,3 @@ class Constants:
         else Path(os.environ.get("XDG_PICTURES_DIR", str(Path.home())))
     ) / "Brushshe Images"
     ADDONS_FOLDER = Path.home() / ".brushshe" / "addons"
-
-    DEFAULT_CTK_THEMES = ["blue", "green", "dark-blue", "gold"]

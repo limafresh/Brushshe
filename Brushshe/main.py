@@ -5,7 +5,6 @@
 from pathlib import PurePath
 
 import customtkinter as ctk
-from constants import Constants
 from gui import BrushsheGui
 from utils.common import resource
 from utils.config_loader import config
@@ -13,7 +12,7 @@ from utils.config_loader import config
 ctk.set_appearance_mode(config.get("Brushshe", "theme"))
 
 color_theme = config.get("Brushshe", "color_theme")
-if color_theme in Constants.DEFAULT_CTK_THEMES:
+if color_theme in ctk.ThemeManager._built_in_themes:
     ctk.set_default_color_theme(color_theme)
 elif not len(PurePath(color_theme).parts) > 1 or PurePath(color_theme).suffix == "":
     ctk.set_default_color_theme(resource(f"assets/themes/{config.get('Brushshe', 'color_theme')}.json"))
