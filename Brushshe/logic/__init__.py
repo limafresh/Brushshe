@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+import os
+import shutil
 from collections import deque
 from pathlib import Path
 
@@ -105,6 +107,10 @@ class BrushsheLogic(
         for folder in [Constants.GALLERY_FOLDER, Constants.ADDONS_FOLDER]:
             if not folder.exists():
                 folder.mkdir(parents=True)
+
+        """Copy Hello World Add-on to add-ons folder"""
+        if not os.path.exists(os.path.join(Constants.ADDONS_FOLDER, "hello_world_addon.py")):
+            shutil.copy(resource("assets/hello_world_addon.py"), Constants.ADDONS_FOLDER)
 
         self.tools_dict = {
             "brush": {"command": self.brush, "hotkey": "Ctrl+B"},
