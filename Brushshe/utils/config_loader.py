@@ -29,6 +29,7 @@ def load_config():
         "language": "None",
         "left_toolbar_config": "default",
         "use_title_menu": "False",
+        "hide_left_toolbar": "False",
     }
 
     if not config.has_section("Brushshe"):

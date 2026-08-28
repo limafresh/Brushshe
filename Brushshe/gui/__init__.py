@@ -96,7 +96,8 @@ class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Stickers, Frames, Gall
         self.main_frame.pack(fill="both", expand=True)
 
         self.tools_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        self.tools_frame.pack(side="left", fill="y")
+        if not self.logic.hide_left_toolbar.get():
+            self.tools_frame.pack(side="left", fill="y")
 
         """Canvas"""
         self.canvas_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")

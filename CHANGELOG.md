@@ -9,6 +9,8 @@
 - Migrated to CustomTkinter 6
 - Added optional support for using CTkTitleMenu instead of CTkMenuBar on Windows
 - Added a pre-installed Hello World Add-on that draws a simple picture on canvas
+- Added support for hiding the left toolbar
+- If there is no translation, a message about this is now displayed in the console
 
 ## 2.7.0 codename "Zviahel"
 - Fixed bugs

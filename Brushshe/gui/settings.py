@@ -93,6 +93,15 @@ class Settings:
             config.set("Brushshe", "use_title_menu", str(self.logic.use_title_menu.get()))
             write_config()
 
+        def left_toolbar_event():
+            config.set("Brushshe", "hide_left_toolbar", str(self.logic.hide_left_toolbar.get()))
+            write_config()
+            if self.logic.hide_left_toolbar.get():
+                self.tools_frame.pack_forget()
+                hide_left_toolbar_restart_label.pack_forget()
+            else:
+                hide_left_toolbar_restart_label.pack(padx=10, pady=10)
+
         def reset_left_toolbar_config():
             config.set("Brushshe", "left_toolbar_config", "default")
             write_config()
@@ -254,6 +263,18 @@ class Settings:
 
         if platform.system() == "Windows":
             title_menu_frame.pack(padx=10, pady=10, fill="x")
+
+        hide_left_toolbar_frame = ctk.CTkFrame(scrollable_frame)
+        hide_left_toolbar_frame.pack(padx=10, pady=10, fill="x")
+
+        ctk.CTkCheckBox(
+            hide_left_toolbar_frame,
+            text=_("Hide left toolbar"),
+            variable=self.logic.hide_left_toolbar,
+            command=left_toolbar_event,
+        ).pack(padx=10, pady=10)
+
+        hide_left_toolbar_restart_label = ctk.CTkLabel(hide_left_toolbar_frame, text=_("A restart is required"))
 
         last_frame = ctk.CTkFrame(scrollable_frame)
         last_frame.pack(padx=10, pady=10, fill="x")

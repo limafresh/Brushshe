@@ -182,5 +182,6 @@
 	"Palette exported successfully!": "Палітра успішно експортована!",
 	"Set custom language from file": "Встановити користувацьку мову з файлу",
 	"Set custom theme from file": "Встановити користувацьку тему з файлу",
-	"Use title menu": "Використовувати меню в рамці вікна"
+	"Use title menu": "Використовувати меню в рамці вікна",
+	"Hide left toolbar": "Сховати ліву панель інструментів"
 }
