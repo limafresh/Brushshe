@@ -19,6 +19,9 @@ class Panels:
     """Left toolbar"""
 
     def set_left_toolbar(self, need_choose_file=True):
+        if self.hide_left_toolbar.get():
+            return
+
         if need_choose_file:
             file_path = filedialog.askopenfilename(
                 title=_("Import left toolbar config"), filetypes=[("JSON", "*.json")]
