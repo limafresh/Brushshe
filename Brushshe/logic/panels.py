@@ -35,7 +35,7 @@ class Panels:
         else:
             config_entry = config.get("Brushshe", "left_toolbar_config")
             if config_entry == "default":
-                json_path = resource("assets/configs/left_toolbar.json")
+                json_path = resource("assets/left_toolbar.json")
             else:
                 json_path = config_entry
 

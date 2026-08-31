@@ -98,7 +98,7 @@ class Settings:
             write_config()
             if self.logic.hide_left_toolbar.get():
                 self.tools_frame.pack_forget()
-                hide_left_toolbar_restart_label.pack_forget()
+                hide_left_toolbar_restart_label.destroy()
             else:
                 hide_left_toolbar_restart_label.pack(padx=10, pady=10)
 
