@@ -1,0 +1,45 @@
+{
+	"app": {
+		"name": "brushshe",
+		"version": "2.8.0",
+		"entryPoint": "main.py",
+		"icon": "assets/icons/icon.png",
+		"iconSize": "512x512"
+	},
+	"desktopEntry": {
+		"Name": "Brushshe",
+		"Comment": "Painting app",
+		"Name[ru]": "Брашше",
+		"Name[uk]": "Брашше",
+		"Comment[uk]": "Програма для малювання",
+		"Comment[ru]": "Программа для рисования",
+		"Comment[de]": "Mal-App",
+		"Comment[it]": "Programma di disegno",
+		"Comment[hi]": "पेंटिंग ऐप",
+		"Categories": "Graphics;",
+		"StartupWMClass": "Brushshe",
+		"MimeType": "image/png;image/jpeg;image/gif;image/bmp;image/vnd.ms-dds;image/x-bmp;image/x-eps;image/x-icns;image/x-icon;image/im;image/mpo;image/x-pcx;image/x-portable-pixmap;image/x-sgi;image/x-tga;image/tiff;image/webp;"
+	},
+	"documentationFiles": [
+		"../LICENSE",
+		"../LICENSE-CC0",
+		"../README.md"
+	],
+	"deb": {
+		"section": "graphics",
+		"depends": "python3-pil, python3-pil.imagetk",
+		"maintainer": "limafresh <173814432+limafresh@users.noreply.github.com>",
+		"description": "Raster graphical editor"
+	},
+	"rpm": {
+		"summary": "Raster graphical editor",
+		"license": "MPL-2.0 AND CC0-1.0 AND OFL-1.1-no-RFN AND OFL-1.1-RFN AND Unlicense",
+		"url": "https://github.com/limafresh/Brushshe",
+		"description": "Brushshe is a simple and user-friendly raster graphics editor."
+	},
+	"rpmRequires": {
+		"fedora": "python3-pillow python3-pillow-tk",
+		"mageia": "python3-pillow python3-pillow-tk",
+		"openmandriva": "python-imaging"
+	}
+}
