@@ -29,7 +29,7 @@ if args.deb or args.rpm:
         print("CTkDeb is required to create DEB and RPM ('pip install ctkdeb').")
         sys.exit(1)
 
-    packager = Packager("ctkdeb.json", project_folder="../Brushshe")
+    packager = Packager("ctkdeb.json", project_folder="../Brushshe", output_folder="../../")
 
     if args.deb:
         packager.create_deb()
