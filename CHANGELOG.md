@@ -13,6 +13,7 @@
 - If there is no translation, a message about this is now displayed in the console
 - The packaging script has been simplified; the CTkDeb tool is now used for packaging into DEB and RPM
 - Added missing translations (using Google Translate)
+- Fixed a bug where canceling the palette export still resulted in a successful export message
 
 ## 2.7.0 codename "Zviahel"
 - Fixed bugs

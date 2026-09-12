@@ -193,7 +193,7 @@ class Panels:
             with open(path, "w") as f:
                 f.writelines(color.lstrip("#") + "\n" for color in self.palette)
 
-        messagebox.export_palette()
+            messagebox.export_palette()
 
     def make_color_palette(self, colors):
         max_columns_in_row = 16
