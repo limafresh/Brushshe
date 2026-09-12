@@ -25,6 +25,7 @@
 		"../LICENSE-CC0",
 		"../README.md"
 	],
+	"excluded": [],
 	"deb": {
 		"section": "graphics",
 		"depends": "python3-pil, python3-pil.imagetk",
