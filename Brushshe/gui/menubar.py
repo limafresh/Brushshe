@@ -2,19 +2,28 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+import platform
 import webbrowser
+from unittest.mock import patch
 
 import customtkinter as ctk
 from PIL import Image
 from ui import messagebox
-from ui.CTkMenuBar import CTkMenuBar, CustomDropdownMenu
+from ui.CTkMenuBar import CTkMenuBar, CTkTitleMenu, CustomDropdownMenu
 from utils.common import resource
 from utils.translator import _
 
 
 class MenuBar:
     def create_menubar(self):
-        menu = CTkMenuBar(self)
+        menu = None
+        if self.logic.use_title_menu.get() and platform.system() == "Windows":
+            # hack
+            # winfo_name() returns "brushshe", and CTkTitleMenu does not allow this
+            with patch.object(self, "winfo_name", return_value="tk"):
+                menu = CTkTitleMenu(self)
+        else:
+            menu = CTkMenuBar(self)
 
         """File menu"""
         file_menu = menu.add_cascade(_("File"))
@@ -31,8 +40,9 @@ class MenuBar:
         file_dropdown.add_option(option=_("Save changes to this picture"), command=self.logic.save_current)
         file_dropdown.add_option(option=_("Save as new picture"), command=self.logic.save_as)
         file_dropdown.add_separator()
-        file_dropdown.add_option(option=_("Import left toolbar config from file"), command=self.logic.set_left_toolbar)
-        file_dropdown.add_option(option=_("Import palette from file"), command=self.logic.import_palette)
+        file_dropdown.add_option(option=_("Import left toolbar config"), command=self.logic.set_left_toolbar)
+        file_dropdown.add_option(option=_("Import palette"), command=self.logic.import_palette)
+        file_dropdown.add_option(option=_("Export palette"), command=self.logic.export_palette)
         file_dropdown.add_separator()
         file_dropdown.add_option(option=_("Exit"), command=self.logic.when_closing)
 
@@ -42,7 +52,7 @@ class MenuBar:
         image_dropdown.add_option(option=_("Rotate right"), command=lambda: self.logic.rotate(-90))
         image_dropdown.add_option(option=_("Rotate left"), command=lambda: self.logic.rotate(90))
         image_dropdown.add_separator()
-        image_dropdown.add_option(option=_("Change size"), command=self.change_size)
+        image_dropdown.add_option(option=_("Change size"), command=self.open_change_size_toplevel)
         image_dropdown.add_separator()
         image_dropdown.add_option(option=_("Create screenshot"), command=self.logic.create_screenshot)
         image_dropdown.add_option(option=_("Paste image from clipboard"), command=self.logic.paste_image_from_clipboard)
@@ -54,6 +64,8 @@ class MenuBar:
         view_dropdown.add_option(option=_("Zoom Out"), command=self.logic.zoom_out)
         view_dropdown.add_separator()
         view_dropdown.add_option(option=_("Reset"), command=self.logic.reset_zoom)
+        view_dropdown.add_separator()
+        view_dropdown.add_option(option=_("Toggle grid"), command=self.logic.toggle_grid)
 
         """Tools menu"""
         tools_menu = menu.add_cascade(_("Tools"))
@@ -96,9 +108,9 @@ class MenuBar:
         tools_dropdown.add_separator()
         tools_icon_size = (20, 20)
         smile_icon = ctk.CTkImage(Image.open(resource("assets/icons/smile.png")), size=tools_icon_size)
-        tools_dropdown.add_option(option=_("Stickers"), image=smile_icon, command=self.show_stickers_choice)
+        tools_dropdown.add_option(option=_("Stickers"), image=smile_icon, command=self.open_stickers_toplevel)
         frame_icon = ctk.CTkImage(Image.open(resource("assets/icons/frame.png")), size=tools_icon_size)
-        tools_dropdown.add_option(option=_("Frames"), image=frame_icon, command=self.show_frame_choice)
+        tools_dropdown.add_option(option=_("Frames"), image=frame_icon, command=self.open_frames_toplevel)
         tools_dropdown.add_separator()
         tools_dropdown.add_option(option=_("Remove white background"), command=self.logic.remove_white_background)
 

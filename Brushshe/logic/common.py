@@ -30,11 +30,11 @@ class Common:
             # Debug
             # print(event.char, event.keycode, event.state)
 
-            shift = True if event.state & 0x0001 else False
-            ctrl = True if event.state & 0x0004 else False
-            alt_l = True if event.state & 0x0008 else False
-            alt_r = True if event.state & 0x0080 else False
-            alt = True if (alt_l or alt_r) else False
+            shift = bool(event.state & 1)
+            ctrl = bool(event.state & 4)
+            alt_l = bool(event.state & 8)
+            alt_r = bool(event.state & 128)
+            alt = bool(alt_l or alt_r)
             # All else modifiers was ignored.
 
             if shift is False and ctrl is False and alt is False and event.keycode == 53:  # Key-x
@@ -52,7 +52,7 @@ class Common:
             or self.saved_copy.size != self.image.size
             or ImageChops.difference(self.saved_copy, self.image).getbbox()
         ):
-            msg = messagebox.leave_brushshe()
+            msg = messagebox.leave_brushshe(self.ui)
             if msg.get() == _("Save"):
                 self.save_current()
             elif msg.get() == _("Yes"):
@@ -255,7 +255,7 @@ class Common:
             self.second_brush_color = self.obtained_color
             self.ui.brush_palette.second_color = self.obtained_color
 
-    def color_choice_bth(self, event, btn):
+    def color_choice_btn(self, event, btn, index):
         askcolor = AskColor(title=_("Color select"), initial_color=btn.cget("fg_color"))
         self.obtained_color = askcolor.get()
         if self.obtained_color:
@@ -265,6 +265,7 @@ class Common:
                 command=lambda c=self.obtained_color: self.change_color(c),
             )
             self.change_color(self.obtained_color)
+            self.palette[index] = self.obtained_color
 
     def flip_brush_colors(self):
         self.brush_color = self.ui.brush_palette.second_color
@@ -390,15 +391,6 @@ class Common:
         self.set_tool("effects", "Effects", 10, 1, 20, "circle")
 
     def apply_effect(self):
-        def post_actions():
-            if self.selected_mask_img is None:
-                self.image = result
-                self.draw = ImageDraw.Draw(self.image)
-            else:
-                self.image.paste(result, (0, 0), self.selected_mask_img)
-            self.update_canvas()
-            self.record_action()
-
         effect_value = self.effects_optionmenu.get()
 
         if effect_value == _("Blur"):
@@ -419,4 +411,15 @@ class Common:
             result = ImageEnhance.Brightness(self.image.copy()).enhance(self.tool_size / 10)
         elif effect_value == _("Contrast"):
             result = ImageEnhance.Contrast(self.image.copy()).enhance(self.tool_size / 10)
-        post_actions()
+
+        self.effects_post_actions(result)
+
+    def effects_post_actions(self, result):
+        if self.selected_mask_img is None:
+            self.image = result
+            self.draw = ImageDraw.Draw(self.image)
+        else:
+            self.image.paste(result, (0, 0), self.selected_mask_img)
+
+        self.update_canvas()
+        self.record_action()

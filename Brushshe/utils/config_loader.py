@@ -18,6 +18,7 @@ def load_config():
     default_options = {
         "theme": "System",
         "undo_levels": "10",
+        "grid_step": "32",
         "smoothing": "False",
         "brush_smoothing_factor": "10",
         "brush_smoothing_quality": "20",
@@ -27,6 +28,8 @@ def load_config():
         "color_theme": "brushshe_theme",
         "language": "None",
         "left_toolbar_config": "default",
+        "use_title_menu": "False",
+        "hide_left_toolbar": "False",
     }
 
     if not config.has_section("Brushshe"):

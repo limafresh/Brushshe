@@ -1,0 +1,2 @@
+kate: tab-width 4;
+kate-wildcard(*.json;*.md): replace-tabs off;

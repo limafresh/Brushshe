@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+import os
+import shutil
 from collections import deque
 from pathlib import Path
 
@@ -41,10 +43,13 @@ class BrushsheLogic(
         """From config"""
         self.undo_stack = deque(maxlen=config.getint("Brushshe", "undo_levels"))
         self.redo_stack = deque(maxlen=config.getint("Brushshe", "undo_levels"))
+        self.grid_step = config.getint("Brushshe", "grid_step")
         self.is_brush_smoothing = config.getboolean("Brushshe", "smoothing")
         self.brush_smoothing_factor = config.getint("Brushshe", "brush_smoothing_factor")  # Between: 3..64
         self.brush_smoothing_quality = config.getint("Brushshe", "brush_smoothing_quality")  # Between: 1..64
         self.autosave_var = ctk.BooleanVar(value=config.getboolean("Brushshe", "autosave"))
+        self.use_title_menu = ctk.BooleanVar(value=config.getboolean("Brushshe", "use_title_menu"))
+        self.hide_left_toolbar = ctk.BooleanVar(value=config.getboolean("Brushshe", "hide_left_toolbar"))
 
         self.is_gradient_fill = ctk.BooleanVar(value=False)
         self.is_sticker_use_real_size = ctk.BooleanVar(value=False)
@@ -88,6 +93,7 @@ class BrushsheLogic(
         self.prev_x, self.prev_y = None, None
         self.current_font = "Open Sans"
         self.font_path = resource("assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
+        self.is_grid_visible = False
 
         self.timer_mask_time_for_update = 200  # ms
         self.timer_mask_last_update = 0
@@ -97,8 +103,37 @@ class BrushsheLogic(
         themes_folder = Path(resource("assets/themes"))
         self.color_themes = [
             str(path.relative_to(themes_folder).with_suffix("")) for path in themes_folder.rglob("*.json")
-        ] + ["blue", "green", "dark-blue"]
+        ] + ctk.ThemeManager._built_in_themes
 
         for folder in [Constants.GALLERY_FOLDER, Constants.ADDONS_FOLDER]:
             if not folder.exists():
                 folder.mkdir(parents=True)
+
+        """Copy Hello World Add-on to add-ons folder"""
+        if not os.path.exists(os.path.join(Constants.ADDONS_FOLDER, "hello_world_addon.py")):
+            shutil.copy(resource("assets/hello_world_addon.py"), Constants.ADDONS_FOLDER)
+
+        self.tools_dict = {
+            "brush": {"command": self.brush, "hotkey": "Ctrl+B"},
+            "eraser": {"command": self.eraser, "hotkey": "Ctrl+E"},
+            "fill": self.start_fill,
+            "recoloring_brush": self.recoloring_brush,
+            "spray": self.spray,
+            "text": self.text_tool,
+            "rectangle": lambda: self.create_shape("Rectangle"),
+            "oval": lambda: self.create_shape("Oval"),
+            "fill_rectangle": lambda: self.create_shape("Fill rectangle"),
+            "fill_oval": lambda: self.create_shape("Fill oval"),
+            "line": lambda: self.create_shape("Line"),
+            "bezier": self.bezier_shape,
+            "cut": {"command": lambda: self.copy_tool(deleted=True), "hotkey": "Ctrl+X"},
+            "copy": {"command": self.copy_tool, "hotkey": "Ctrl+C"},
+            "insert": {"command": self.start_insert, "hotkey": "Ctrl+V"},
+            "crop": self.crop_simple,
+            "rectangle_select": lambda: self.select_by_shape(shape="rectangle"),
+            "polygon_select": self.select_by_polygon,
+            "fuzzy_select": lambda: self.select_by_color(fill_limit=True),
+            "select_by_color": self.select_by_color,
+            "deselect_all": self.remove_mask,
+            "effects": self.effects,
+        }

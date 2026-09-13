@@ -8,27 +8,39 @@ from locale import getlocale
 from utils.common import resource
 from utils.config_loader import config, write_config
 
+is_english = True
+translations = {}
 
-def load_language(language_code):
-    global translations
+
+def load_language(file_path, language_code: str | None):
+    global translations, is_english
     if language_code == "en":
         pass
     else:
         try:
             with open(
-                resource(f"assets/locales/{language_code}.json"),
+                resource(file_path),
                 "r",
                 encoding="utf-8",
             ) as f:
                 translations = json.load(f)
+                is_english = False
         except FileNotFoundError:
-            print(f"File for language '{language_code}' not found.")
+            if language_code:
+                print(f"File for language '{language_code}' not found.")
+            else:
+                print("File not found")
         except json.JSONDecodeError:
             print("Localization file is corrupted. Brushshe will be in English.")
 
 
 def _(key):
-    return translations.get(key, key)
+    if not is_english and key in translations:
+        return translations[key]
+    else:
+        if not is_english:
+            print(f"Translation for '{key}' not found!")
+        return key
 
 
 if config.get("Brushshe", "language") == "None":
@@ -44,8 +56,16 @@ if config.get("Brushshe", "language") == "None":
 
     config.set("Brushshe", "language", language_code)
     write_config()
-else:
-    language_code = config.get("Brushshe", "language")
 
-translations = {}
-load_language(language_code)
+    file_path = f"assets/locales/{language_code}.json"
+else:
+    language_value = config.get("Brushshe", "language")
+
+    if len(language_value) == 2:
+        file_path = f"assets/locales/{language_value}.json"
+        language_code = language_value
+    else:
+        file_path = language_value
+        language_code = None
+
+load_language(file_path, language_code)

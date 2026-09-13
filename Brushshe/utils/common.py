@@ -5,6 +5,8 @@
 import os
 import sys
 
+from PIL import Image, ImageOps
+
 
 def resource(relative_path):
     base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -31,3 +33,12 @@ def color_diff(color1: float | tuple[int, ...], color2: float | tuple[int, ...])
     first = color1 if isinstance(color1, tuple) else (color1,)
     second = color2 if isinstance(color2, tuple) else (color2,)
     return sum(abs(first[i] - second[i]) for i in range(len(second)))
+
+
+def generate_inverted_icon(path):
+    img = Image.open(resource(path)).convert("RGBA")
+    r, g, b, a = img.split()
+    rgb_image = Image.merge("RGB", (r, g, b))
+    inverted_rgb = ImageOps.invert(rgb_image)
+    inverted_image = Image.merge("RGBA", (*inverted_rgb.split(), a))
+    return inverted_image

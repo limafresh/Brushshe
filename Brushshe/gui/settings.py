@@ -2,8 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+import platform
 import webbrowser
 from collections import deque
+from tkinter import filedialog
 
 import customtkinter as ctk
 from constants import Constants
@@ -26,6 +28,12 @@ class Settings:
             self.logic.undo_stack = deque(self.logic.undo_stack, maxlen=undo_levels_spinbox.get())
             self.logic.redo_stack = deque(self.logic.redo_stack, maxlen=undo_levels_spinbox.get())
             config.set("Brushshe", "undo_levels", str(undo_levels_spinbox.get()))
+            write_config()
+
+        def change_grid_step():
+            self.logic.grid_step = grid_step_spinbox.get()
+            self.logic.update_canvas()
+            config.set("Brushshe", "grid_step", str(grid_step_spinbox.get()))
             write_config()
 
         def smooth_switch_event():
@@ -61,27 +69,56 @@ class Settings:
             config.set("Brushshe", "color_theme", choice)
             write_config()
 
+        def set_theme_from_file():
+            file_path = filedialog.askopenfilename(
+                title=_("Set custom theme from file"), filetypes=([("JSON", "*.json")])
+            )
+            if file_path:
+                config.set("Brushshe", "color_theme", file_path)
+                write_config()
+
         def language_optionmenu_callback(value):
             config.set("Brushshe", "language", Constants.LANGUAGES.get(value))
             write_config()
+
+        def set_language_from_file():
+            file_path = filedialog.askopenfilename(
+                title=_("Set custom language from file"), filetypes=([("JSON", "*.json")])
+            )
+            if file_path:
+                config.set("Brushshe", "language", file_path)
+                write_config()
+
+        def title_menu_event():
+            config.set("Brushshe", "use_title_menu", str(self.logic.use_title_menu.get()))
+            write_config()
+
+        def left_toolbar_event():
+            config.set("Brushshe", "hide_left_toolbar", str(self.logic.hide_left_toolbar.get()))
+            write_config()
+            if self.logic.hide_left_toolbar.get():
+                self.tools_frame.pack_forget()
+                hide_left_toolbar_restart_label.destroy()
+            else:
+                hide_left_toolbar_restart_label.pack(padx=10, pady=10)
 
         def reset_left_toolbar_config():
             config.set("Brushshe", "left_toolbar_config", "default")
             write_config()
             self.logic.set_left_toolbar(False)
 
-        settings_tl = ctk.CTkToplevel(self)
-        settings_tl.geometry("400x650")
-        settings_tl.title(_("Settings"))
-        settings_tl.wm_iconbitmap()
-        settings_tl.after(300, lambda: settings_tl.iconphoto(False, self.iconpath))
-        settings_tl.transient(self)
+        settings = ctk.CTkToplevel(self)
+        settings.geometry("400x650")
+        settings.title(_("Settings"))
+        settings.wm_iconbitmap()
+        settings.after(300, lambda: settings.iconphoto(False, self.iconpath))
+        settings.transient(self)
 
-        settings_frame = ctk.CTkScrollableFrame(settings_tl, fg_color="transparent")
-        settings_frame.pack(padx=10, pady=10, fill="both", expand=True)
-        scroll(settings_frame)
+        scrollable_frame = ctk.CTkScrollableFrame(settings, fg_color="transparent")
+        scrollable_frame.pack(padx=10, pady=10, fill="both", expand=True)
+        scroll(scrollable_frame)
 
-        theme_frame = ctk.CTkFrame(settings_frame)
+        theme_frame = ctk.CTkFrame(scrollable_frame)
         theme_frame.pack(padx=10, pady=10, fill="x")
 
         ctk.CTkLabel(theme_frame, text=_("Theme")).pack(padx=10, pady=10)
@@ -94,7 +131,7 @@ class Settings:
         theme_btn.set(_(config.get("Brushshe", "theme").capitalize()))
         theme_btn.pack(padx=10, pady=10)
 
-        undo_levels_frame = ctk.CTkFrame(settings_frame)
+        undo_levels_frame = ctk.CTkFrame(scrollable_frame)
         undo_levels_frame.pack(padx=10, pady=10, fill="x")
 
         ctk.CTkLabel(undo_levels_frame, text=_("Maximum undo/redo levels")).pack(padx=10, pady=10)
@@ -105,7 +142,18 @@ class Settings:
 
         ctk.CTkButton(undo_levels_frame, text=_("Apply"), command=change_undo_levels).pack(padx=10, pady=10)
 
-        smooth_frame = ctk.CTkFrame(settings_frame)
+        grid_step_frame = ctk.CTkFrame(scrollable_frame)
+        grid_step_frame.pack(padx=10, pady=10, fill="x")
+
+        ctk.CTkLabel(grid_step_frame, text=_("Grid step")).pack(padx=10, pady=10)
+
+        grid_step_spinbox = IntSpinbox(grid_step_frame, width=150)
+        grid_step_spinbox.pack(padx=10, pady=10)
+        grid_step_spinbox.set(self.logic.grid_step)
+
+        ctk.CTkButton(grid_step_frame, text=_("Apply"), command=change_grid_step).pack(padx=10, pady=10)
+
+        smooth_frame = ctk.CTkFrame(scrollable_frame)
         smooth_frame.pack(padx=10, pady=10, fill="x")
 
         smooth_var = ctk.BooleanVar(value=self.logic.is_brush_smoothing)
@@ -128,7 +176,7 @@ class Settings:
         bsf_slider.set(self.logic.brush_smoothing_factor)
         bsf_slider.pack(padx=10, pady=10)
 
-        mask_frame = ctk.CTkFrame(settings_frame)
+        mask_frame = ctk.CTkFrame(scrollable_frame)
         mask_frame.pack(padx=10, pady=10, fill="x")
 
         ctk.CTkLabel(mask_frame, text=_("Mask")).pack(padx=10, pady=10)
@@ -144,7 +192,7 @@ class Settings:
                 command=mask_radiobutton_callback,
             ).pack(padx=10, pady=10)
 
-        palette_frame = ctk.CTkFrame(settings_frame)
+        palette_frame = ctk.CTkFrame(scrollable_frame)
         palette_frame.pack(padx=10, pady=10, fill="x")
 
         ctk.CTkLabel(palette_frame, text=_("Palette")).pack(padx=10, pady=10)
@@ -159,7 +207,7 @@ class Settings:
                 command=palette_radiobutton_callback,
             ).pack(padx=10, pady=10)
 
-        autosave_frame = ctk.CTkFrame(settings_frame)
+        autosave_frame = ctk.CTkFrame(scrollable_frame)
         autosave_frame.pack(padx=10, pady=10, fill="x")
 
         ctk.CTkSwitch(
@@ -169,7 +217,7 @@ class Settings:
             command=autosave_switch_event,
         ).pack(padx=10, pady=10)
 
-        color_theme_frame = ctk.CTkFrame(settings_frame)
+        color_theme_frame = ctk.CTkFrame(scrollable_frame)
         color_theme_frame.pack(padx=10, pady=10, fill="x")
 
         ctk.CTkLabel(color_theme_frame, text=_("Color theme")).pack(padx=10, pady=10)
@@ -180,9 +228,13 @@ class Settings:
         color_theme_optionmenu.pack(padx=10, pady=10)
         color_theme_optionmenu.set(config.get("Brushshe", "color_theme"))
 
+        ctk.CTkButton(color_theme_frame, text=_("Set custom theme from file"), command=set_theme_from_file).pack(
+            padx=10, pady=10
+        )
+
         ctk.CTkLabel(color_theme_frame, text=_("A restart is required")).pack(padx=10, pady=10)
 
-        language_frame = ctk.CTkFrame(settings_frame)
+        language_frame = ctk.CTkFrame(scrollable_frame)
         language_frame.pack(padx=10, pady=10, fill="x")
 
         ctk.CTkLabel(language_frame, text=_("Language")).pack(padx=10, pady=10)
@@ -196,9 +248,35 @@ class Settings:
         )
         language_optionmenu.set(language_key)
 
+        ctk.CTkButton(language_frame, text=_("Set custom language from file"), command=set_language_from_file).pack(
+            padx=10, pady=10
+        )
+
         ctk.CTkLabel(language_frame, text=_("A restart is required")).pack(padx=10, pady=10)
 
-        last_frame = ctk.CTkFrame(settings_frame)
+        title_menu_frame = ctk.CTkFrame(scrollable_frame)
+
+        ctk.CTkCheckBox(
+            title_menu_frame, text=_("Use title menu"), variable=self.logic.use_title_menu, command=title_menu_event
+        ).pack(padx=10, pady=10)
+        ctk.CTkLabel(title_menu_frame, text=_("A restart is required")).pack(padx=10, pady=10)
+
+        if platform.system() == "Windows":
+            title_menu_frame.pack(padx=10, pady=10, fill="x")
+
+        hide_left_toolbar_frame = ctk.CTkFrame(scrollable_frame)
+        hide_left_toolbar_frame.pack(padx=10, pady=10, fill="x")
+
+        ctk.CTkCheckBox(
+            hide_left_toolbar_frame,
+            text=_("Hide left toolbar"),
+            variable=self.logic.hide_left_toolbar,
+            command=left_toolbar_event,
+        ).pack(padx=10, pady=10)
+
+        hide_left_toolbar_restart_label = ctk.CTkLabel(hide_left_toolbar_frame, text=_("A restart is required"))
+
+        last_frame = ctk.CTkFrame(scrollable_frame)
         last_frame.pack(padx=10, pady=10, fill="x")
 
         reset_left_toolbar_config_button = ctk.CTkButton(

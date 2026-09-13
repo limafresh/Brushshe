@@ -11,7 +11,7 @@ import os
 import sys
 import time
 import webbrowser
-from typing import Literal
+from typing import Any, Literal
 
 import customtkinter as ctk
 from constants import Constants
@@ -25,15 +25,15 @@ class Messagebox(ctk.CTkToplevel):
 
     def __init__(
         self,
-        master: any = None,
+        master: Any | None = None,
         width: int = 400,
         height: int = 200,
         title: str = "Messagebox",
         message: str = "This is a Messagebox!",
         option_1: str = "OK",
-        option_2: str = None,
-        option_3: str = None,
-        options: list = [],
+        option_2: str | None = None,
+        option_3: str | None = None,
+        options: list | None = None,
         border_width: int = 1,
         border_color: str = "default",
         button_color: str = "default",
@@ -42,29 +42,31 @@ class Messagebox(ctk.CTkToplevel):
         text_color: str = "default",
         title_color: str = "default",
         button_text_color: str = "default",
-        button_width: int = None,
-        button_height: int = None,
-        cancel_button_color: str = None,
-        cancel_button: str = None,  # types: circle, cross or none
+        button_width: int | None = None,
+        button_height: int | None = None,
+        cancel_button_color: str | None = None,
+        cancel_button: str | None = None,  # types: circle, cross or none
         button_hover_color: str = "default",
         icon: str = "success",
         icon_size: tuple = (100, 100),
         corner_radius: int = 15,
         justify: str = "right",
-        font: tuple = None,
+        font: tuple | None = None,
         header: bool = False,
         topmost: bool = True,
         fade_in_duration: int = 0,
         sound: bool = True,
         wraplength: int = 0,
-        option_focus: Literal[1, 2, 3] = None,
+        option_focus: Literal[1, 2, 3] | None = None,
     ):
+        if options is None:
+            options = []
         super().__init__()
 
         self.master_window = master
 
-        self.width = 250 if width < 250 else width
-        self.height = 150 if height < 150 else height
+        self.width = max(width, 250)
+        self.height = max(height, 150)
 
         if self.master_window is None:
             self.spawn_x = int((self.winfo_screenwidth() - self.width) / 2)
@@ -86,7 +88,7 @@ class Messagebox(ctk.CTkToplevel):
         self.oldy = 0
 
         if self.fade:
-            self.fade = 20 if self.fade < 20 else self.fade
+            self.fade = max(self.fade, 20)
             self.attributes("-alpha", 0)
 
         if not header:
@@ -124,7 +126,7 @@ class Messagebox(ctk.CTkToplevel):
         self.justify = justify
         self.sound = sound
         self.cancel_button = cancel_button if cancel_button else default_cancel_button
-        self.round_corners = corner_radius if corner_radius <= 30 else 30
+        self.round_corners = min(corner_radius, 30)
         self.button_width = button_width if button_width else self.width / 4
         self.button_height = button_height if button_height else 28
 
@@ -143,7 +145,7 @@ class Messagebox(ctk.CTkToplevel):
                 option_2 = options[-2]
                 option_3 = options[-3]
             except IndexError:
-                None
+                pass
 
         if bg_color == "default":
             self.bg_color = self._apply_appearance_mode(ctk.ThemeManager.theme["CTkFrame"]["fg_color"])
@@ -205,7 +207,7 @@ class Messagebox(ctk.CTkToplevel):
             self.border_color = border_color
 
         if icon_size:
-            self.size_height = icon_size[1] if icon_size[1] <= self.height - 100 else self.height - 100
+            self.size_height = min(icon_size[1], self.height - 100)
             self.size = (icon_size[0], self.size_height)
         else:
             self.size = (self.height / 4, self.height / 4)
@@ -415,8 +417,7 @@ class Messagebox(ctk.CTkToplevel):
         self.bind("<Escape>", lambda e: self.button_event())
 
     def place_widget(self, widget, x=10, y=10, **args):
-        if "master" in args:
-            del args["master"]
+        args.pop("master", None)
 
         new_widget = widget(master=self.frame_top, **args)
         new_widget.place(x=x, y=y)
@@ -446,9 +447,8 @@ class Messagebox(ctk.CTkToplevel):
             if self.option_text_2:
                 self.option_focus = 2
 
-        elif self.option_focus == 2:
-            if self.option_text_3:
-                self.option_focus = 3
+        elif self.option_focus == 2 and self.option_text_3:
+            self.option_focus = 3
 
         self.focus_button(self.option_focus)
 
@@ -476,7 +476,7 @@ class Messagebox(ctk.CTkToplevel):
             else:
                 image_path = icon
             if icon_size:
-                size_height = icon_size[1] if icon_size[1] <= self.height - 100 else self.height - 100
+                size_height = min(icon_size[1], self.height - 100)
                 size = (icon_size[0], size_height)
             else:
                 size = (self.height / 4, self.height / 4)
@@ -536,8 +536,9 @@ class Messagebox(ctk.CTkToplevel):
 """Ready-made messages"""
 
 
-def leave_brushshe():
+def leave_brushshe(master: ctk.CTk):
     leave_brushshe_msg = Messagebox(
+        master,
         title=_("You are leaving Brushshe"),
         message=_("There are unsaved changes. Exit?"),
         option_1=_("Save"),
@@ -670,3 +671,12 @@ def addon_error(error):
         icon="error",
     )
     return addon_error_msg
+
+
+def export_palette():
+    export_palette_msg = Messagebox(
+        title=_("Exported"),
+        message=_("Palette exported successfully!"),
+        icon="success",
+    )
+    return export_palette_msg

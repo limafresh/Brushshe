@@ -1,0 +1,105 @@
+{
+	"columns": 2,
+	"items": [
+		{
+			"item": "brush",
+			"name": {"text": "Brush", "translate": true}
+		},
+		{
+			"item": "eraser",
+			"name": {"text": "Eraser", "translate": true}
+		},
+		{
+			"item": "fill",
+			"name": {"text": "Fill", "translate": true}
+		},
+		{
+			"item": "recoloring_brush",
+			"name": {"text": "Recoloring Brush", "translate": true}
+		},
+		{
+			"item": "spray",
+			"name": {"text": "Spray", "translate": true}
+		},
+		{
+			"item": "text",
+			"name": {"text": "Text", "translate": true}
+		},
+		{
+			"item": "separator"
+		},
+		{
+			"item": "rectangle",
+			"name": {"text": "Rectangle", "translate": true}
+		},
+		{
+			"item": "oval",
+			"name": {"text": "Oval", "translate": true}
+		},
+		{
+			"item": "fill_rectangle",
+			"name": {"text": "Fill rectangle", "translate": true}
+		},
+		{
+			"item": "fill_oval",
+			"name": {"text": "Fill oval", "translate": true}
+		},
+		{
+			"item": "line",
+			"name": {"text": "Line", "translate": true}
+		},
+		{
+			"item": "bezier",
+			"name": {"text": "Bezier", "translate": true}
+		},
+		{
+			"item": "separator"
+		},
+		{
+			"item": "cut",
+			"name": {"text": "Cut", "translate": true}
+		},
+		{
+			"item": "copy",
+			"name": {"text": "Copy", "translate": true}
+		},
+		{
+			"item": "insert",
+			"name": {"text": "Insert", "translate": true}
+		},
+		{
+			"item": "crop",
+			"name": {"text": "Crop", "translate": true}
+		},
+		{
+			"item": "separator"
+		},
+		{
+			"item": "rectangle_select",
+			"name": {"text": "Rectangle select", "translate": true}
+		},
+		{
+			"item": "polygon_select",
+			"name": {"text": "Polygon select", "translate": true}
+		},
+		{
+			"item": "fuzzy_select",
+			"name": {"text": "Fuzzy select (limited select by color)", "translate": true}
+		},
+		{
+			"item": "select_by_color",
+			"name": {"text": "Select by color", "translate": true}
+		},
+		{
+			"item": "deselect_all",
+			"name": {"text": "Deselect all", "translate": true}
+		},
+		{
+			"item": "separator"
+		},
+		{
+			"item": "effects",
+			"name": {"text": "Effects", "translate": true}
+		}
+	]
+}

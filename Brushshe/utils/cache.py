@@ -36,7 +36,7 @@ def _get_win_folder_from_registry(csidl_name):
     key = _winreg.OpenKey(
         _winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
     )
-    dir, type = _winreg.QueryValueEx(key, shell_folder_name)
+    dir, _type = _winreg.QueryValueEx(key, shell_folder_name)
     return dir
 
 
@@ -73,7 +73,7 @@ def user_cache_dir(app_name=None, app_author=None, opinion=True):
 
 
 def get_cache_name(name, size, mtime):
-    s_name = "{0}_{1}_{2}".format(name, size, mtime)
+    s_name = f"{name}_{size}_{mtime}"
     return hashlib.sha1(s_name.encode("utf-8")).hexdigest()
 
 

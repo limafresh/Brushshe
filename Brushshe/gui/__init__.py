@@ -10,7 +10,7 @@ from logic import BrushsheLogic
 from PIL import Image, ImageTk
 from ui.brush_palette import BrushPalette
 from ui.tooltip import Tooltip
-from utils.common import resource
+from utils.common import generate_inverted_icon, resource
 from utils.config_loader import config
 from utils.translator import _
 
@@ -48,8 +48,8 @@ class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Stickers, Frames, Gall
         # Width and height of all icons - 512 px
 
         undo_icon = ctk.CTkImage(
-            light_image=Image.open(resource("assets/icons/undo_light.png")),
-            dark_image=Image.open(resource("assets/icons/undo_dark.png")),
+            light_image=Image.open(resource("assets/icons/undo.png")),
+            dark_image=generate_inverted_icon("assets/icons/undo.png"),
             size=(22, 22),
         )
         undo_button = ctk.CTkButton(
@@ -65,8 +65,8 @@ class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Stickers, Frames, Gall
         Tooltip(undo_button, message=_("Undo") + " (Ctrl+Z)")
 
         redo_icon = ctk.CTkImage(
-            light_image=Image.open(resource("assets/icons/redo_light.png")),
-            dark_image=Image.open(resource("assets/icons/redo_dark.png")),
+            light_image=Image.open(resource("assets/icons/redo.png")),
+            dark_image=generate_inverted_icon("assets/icons/redo.png"),
             size=(22, 22),
         )
 
@@ -96,7 +96,8 @@ class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Stickers, Frames, Gall
         self.main_frame.pack(fill="both", expand=True)
 
         self.tools_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        self.tools_frame.pack(side="left", fill="y")
+        if not self.logic.hide_left_toolbar.get():
+            self.tools_frame.pack(side="left", fill="y")
 
         """Canvas"""
         self.canvas_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
@@ -124,9 +125,12 @@ class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Stickers, Frames, Gall
         self.h_scrollbar.pack(side="bottom", fill="x")
 
         self.canvas = ctk.CTkCanvas(
-            self.canvas_frame_main, yscrollcommand=self.v_scrollbar.set, xscrollcommand=self.h_scrollbar.set
+            self.canvas_frame_main,
+            yscrollcommand=self.v_scrollbar.set,
+            xscrollcommand=self.h_scrollbar.set,
         )
         self.canvas.pack(side="top", anchor="center", expand=True)
+        self.canvas.configure(highlightcolor=self.canvas.cget("highlightbackground"))
 
         """Bottom bar"""
         self.bottom_docker = ctk.CTkFrame(self, corner_radius=0)
@@ -150,7 +154,7 @@ class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Stickers, Frames, Gall
         else:
             self.logic.import_palette(resource(config.get("Brushshe", "palette")))
 
-        self.size_button = ctk.CTkButton(self.bottom_docker, text="640x480", command=self.change_size)
+        self.size_button = ctk.CTkButton(self.bottom_docker, text="640x480", command=self.open_change_size_toplevel)
         self.size_button.pack(side="right", padx=1)
 
         """Initialization"""
@@ -205,4 +209,4 @@ class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Stickers, Frames, Gall
         self.canvas.bind("<Shift-Button-5>", self.logic.scroll_on_canvasx)
 
         # Resize window (and canvas)
-        self.bind("<Configure>", self.logic.on_window_resize)
+        self.bind("<Configure>", self.logic.on_window_resize, add="+")

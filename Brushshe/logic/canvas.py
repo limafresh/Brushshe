@@ -94,6 +94,7 @@ class CanvasOperations:
 
         # self._update_canvas()
         self._tailing_update_canvas()
+        self.draw_grid()
 
         # Debug
         # t2 = time.perf_counter(), time.process_time()
@@ -174,10 +175,8 @@ class CanvasOperations:
 
             r_w = math.floor(tmp_canvas_image.width * self.zoom)
             r_h = math.floor(tmp_canvas_image.height * self.zoom)
-            if r_w < 1:
-                r_w = 1
-            if r_h < 1:
-                r_h = 1
+            r_w = max(r_w, 1)
+            r_h = max(r_h, 1)
 
             canvas_image = tmp_canvas_image.resize((r_w, r_h), Image.NEAREST)
             if tmp_mask_image is None:
@@ -199,6 +198,27 @@ class CanvasOperations:
 
             return
 
+    def draw_grid(self):
+        self.ui.canvas.delete("grid")
+        if not getattr(self, "is_grid_visible", False) or self.image is None:
+            return
+
+        step = max(4, int(self.grid_step * self.zoom))
+        cw_full = math.ceil(self.image.width * self.zoom)
+        ch_full = math.ceil(self.image.height * self.zoom)
+        dash_pattern = (2, 2)
+
+        for x in range(0, cw_full, step):
+            self.ui.canvas.create_line(x, 0, x, ch_full, fill="white", width=1, dash=dash_pattern, tags="grid")
+            self.ui.canvas.create_line(x + 1, 0, x + 1, ch_full, fill="black", width=1, dash=dash_pattern, tags="grid")
+        for y in range(0, ch_full, step):
+            self.ui.canvas.create_line(0, y, cw_full, y, fill="white", width=1, dash=dash_pattern, tags="grid")
+            self.ui.canvas.create_line(0, y + 1, cw_full, y + 1, fill="black", width=1, dash=dash_pattern, tags="grid")
+
+    def toggle_grid(self):
+        self.is_grid_visible = not getattr(self, "is_grid_visible", False)
+        self.update_canvas()
+
     def get_canvas_tails_area(self):
         cw_full = int(self.image.width * self.zoom)
         ch_full = int(self.image.height * self.zoom)
@@ -206,7 +226,7 @@ class CanvasOperations:
         # Set param canvas with real image size. Not use bbox in this place.
         self.ui.canvas.config(scrollregion=(0, 0, cw_full, ch_full), width=cw_full, height=ch_full)
 
-        iw, ih = self.image.size
+        _iw, _ih = self.image.size
         cx_frame_1, cx_frame_2 = self.ui.canvas.xview()
         cy_frame_1, cy_frame_2 = self.ui.canvas.yview()
 
@@ -215,10 +235,8 @@ class CanvasOperations:
         y1 = math.floor(cy_frame_1 * ch_full / self.canvas_tail_size) * self.canvas_tail_size
         x2 = math.ceil(cx_frame_2 * cw_full / self.canvas_tail_size) * self.canvas_tail_size - 1
         y2 = math.ceil(cy_frame_2 * ch_full / self.canvas_tail_size) * self.canvas_tail_size - 1
-        if x2 > cw_full - 1:
-            x2 = cw_full - 1
-        if y2 > ch_full - 1:
-            y2 = ch_full - 1
+        x2 = min(x2, cw_full - 1)
+        y2 = min(y2, ch_full - 1)
 
         return (x1, y1, x2, y2)
 

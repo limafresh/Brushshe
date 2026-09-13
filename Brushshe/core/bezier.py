@@ -22,8 +22,10 @@ def make_bezier(xys):
     return bezier
 
 
-def pascal_row(n, memo={}):
+def pascal_row(n, memo=None):
     # This returns the nth row of Pascal's Triangle
+    if memo is None:
+        memo = {}
     if n in memo:
         return memo[n]
     result = [1]
