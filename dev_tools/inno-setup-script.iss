@@ -2,8 +2,8 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Brushshe"
-#define MyAppVersion "2.8.0"
-#define MyAppCodename "Astana"
+#define MyAppVersion "2.9.0"
+#define MyAppCodename "Bucharest"
 #define MyAppPublisher "Brushshe developers"
 #define MyAppURL "https://github.com/limafresh/Brushshe"
 #define MyAppExeName "brushshe.exe"

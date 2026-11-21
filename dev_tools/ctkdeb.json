@@ -1,7 +1,8 @@
 {
 	"app": {
 		"name": "brushshe",
-		"version": "2.8.0",
+		"projectType": "CustomTkinter",
+		"version": "2.9.0",
 		"entryPoint": "main.py",
 		"icon": "assets/icons/icon.png",
 		"iconSize": "512x512"

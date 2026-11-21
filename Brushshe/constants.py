@@ -10,9 +10,9 @@ class Constants:
     """Version"""
 
     VERSION_MAJOR = "2"
-    VERSION_MINOR = "8"
+    VERSION_MINOR = "9"
     VERSION_PATCH = "0"
-    CODENAME = "Astana"
+    CODENAME = "Bucharest"
     VERSION = f'{VERSION_MAJOR}.{VERSION_MINOR}.{VERSION_PATCH} "{CODENAME}"'
 
     STANDART_PALETTES = ["default", "4bit", "vintage", "seven"]
