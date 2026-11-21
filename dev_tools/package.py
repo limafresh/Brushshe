@@ -126,6 +126,8 @@ elif args.exe or args.portable_exe:
             "python-licenses.html;.",
             "--add-data",
             r"..\Brushshe\assets;assets/",
+            "--add-data",
+            r"..\Brushshe\addons;addons/",
             r"..\Brushshe\main.py",
         ],
         check=True,

@@ -350,10 +350,12 @@ class Common:
             return (0, 0, 0)
         return (r, g, b)
 
-    def get_contrast_color(self):
+    def get_contrast_color(self) -> str:
         stat = ImageStat.Stat(self.image)
         r, g, b = stat.mean[:3]
         self.contrast_color = "#232323" if (r + g + b) / 3 > 127 else "#e8e8e8"
+
+        return self.contrast_color
 
     def sticker_from_file(self, parent):
         file_path = filedialog.askopenfilename(title=_("Sticker from file"), filetypes=Constants.OPEN_IMG_FILETYPES)

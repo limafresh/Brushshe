@@ -10,6 +10,7 @@ from tkinter import filedialog
 import customtkinter as ctk
 from constants import Constants
 from ui.addon_manager_item import AddonManagerItem
+from utils.common import resource
 from utils.translator import _
 
 
@@ -34,13 +35,20 @@ class AddonManager:
         for widget in self.installed_addons_frame.winfo_children():
             widget.destroy()
 
-        files = os.listdir(Constants.ADDONS_FOLDER)
+        addons_number = self.load_addons_from_folder(resource("addons")) + self.load_addons_from_folder(
+            Constants.ADDONS_FOLDER
+        )
+
+        self.installed_addons_frame.configure(label_text=f"{_('Installed add-ons')} ({addons_number})")
+
+    def load_addons_from_folder(self, folder) -> int:
+        files = os.listdir(folder)
         addons_number = 0
 
         for f in files:
             if f.endswith(".py"):
                 addons_number += 1
-                full_path = os.path.join(Constants.ADDONS_FOLDER, f)
+                full_path = os.path.join(folder, f)
                 metadata = self.get_addon_metadata(full_path)
                 AddonManagerItem(
                     self.installed_addons_frame,
@@ -48,11 +56,10 @@ class AddonManager:
                     author=metadata.get("author"),
                     version=metadata.get("version"),
                     description=metadata.get("description"),
-                    delete_button_command=lambda fp=full_path: self.uninstall_addon(fp),
                     run_button_command=lambda fp=full_path: self.logic.run_addon(fp),
                 )
 
-        self.installed_addons_frame.configure(label_text=f"{_('Installed add-ons')} ({addons_number})")
+        return addons_number
 
     def get_addon_metadata(self, path: str) -> dict:
         try:

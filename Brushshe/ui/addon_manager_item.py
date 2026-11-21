@@ -38,17 +38,18 @@ class AddonManagerItem(ctk.CTkFrame):
             self._title_label.configure(cursor="hand2")
             Tooltip(self._title_label, description)
 
-        self._delete_button = ctk.CTkButton(
-            self,
-            text="X",
-            width=30,
-            fg_color="red",
-            hover_color="#cc0000",
-            text_color="white",
-            command=delete_button_command,
-        )
-        self._delete_button.pack(padx=10, pady=10, side="right")
-        Tooltip(self._delete_button, _("Uninstall add-on"))
+        if delete_button_command:
+            self._delete_button = ctk.CTkButton(
+                self,
+                text="X",
+                width=30,
+                fg_color="red",
+                hover_color="#cc0000",
+                text_color="white",
+                command=delete_button_command,
+            )
+            self._delete_button.pack(padx=10, pady=10, side="right")
+            Tooltip(self._delete_button, _("Uninstall add-on"))
 
         self._run_button = ctk.CTkButton(self, text=_("Run"), command=run_button_command)
         self._run_button.pack(padx=10, pady=10, side="right")
