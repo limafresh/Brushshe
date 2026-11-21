@@ -24,7 +24,6 @@ class Shapes:
     def start_shape(self, event):
         self.shape_x, self.shape_y = self.ui.canvas.canvasx(event.x), self.ui.canvas.canvasy(event.y)
         self.x_begin, self.y_begin = self.canvas_to_pict_xy(event.x, event.y)
-        self.get_contrast_color()
 
         shape_methods = {
             "Rectangle": self.ui.canvas.create_rectangle,
@@ -38,7 +37,7 @@ class Shapes:
         if create_method:
             param = "fill" if self.shape == "Line" else "outline"
             self.shape_id = create_method(
-                self.shape_x, self.shape_y, self.shape_x, self.shape_y, **{param: self.contrast_color}
+                self.shape_x, self.shape_y, self.shape_x, self.shape_y, **{param: self.get_contrast_color()}
             )
 
     def draw_shape(self, event):
@@ -127,15 +126,13 @@ class Shapes:
 
     def start_bezier(self, event):
         if len(self.canvas_points) == 0:
-            self.get_contrast_color()
-
             cx, cy = self.ui.canvas.canvasx(event.x), self.ui.canvas.canvasy(event.y)
 
             self.canvas_points.append((cx, cy))
             self.image_points.append(self.canvas_to_pict_xy(event.x, event.y))
 
             self.bezier_id = self.ui.canvas.create_line(
-                cx, cy, cx, cy, fill=self.contrast_color, tag="tools"
+                cx, cy, cx, cy, fill=self.get_contrast_color(), tag="tools"
             )  # smooth="bezier"
 
     def draw_bezier(self, event):
