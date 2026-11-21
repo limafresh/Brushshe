@@ -1,4 +1,7 @@
 ## 2.9.0 codename "Bucharest" (current version)
+- Add-on API capabilities have been expanded
+- Removed Hello World Add-on
+- New pre-installed add-ons have been added
 
 ## 2.8.0 codename "Astana"
 - There are now fewer nested functions
