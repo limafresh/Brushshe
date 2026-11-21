@@ -7,7 +7,7 @@ import math
 metadata = {"description": "Adds a star drawing feature", "tool": ["Star", 2, 1, 50, "cross"]}
 
 app = None
-x1, y1, x2, y2 = None, None, None, None
+x1, y1 = None, None
 preview_id = None
 
 
@@ -57,7 +57,9 @@ def draw_star(event):
 
     app.canvas.delete(preview_id)
 
-    points = get_star_points(x1, y1, event.x, event.y)
+    points = get_star_points(
+        app.canvas.canvasx(x1), app.canvas.canvasy(y1), app.canvas.canvasx(event.x), app.canvas.canvasy(event.y)
+    )
 
     preview_id = app.canvas.create_line(points, fill=app.get_contrast_color(), smooth=False)
 
@@ -65,7 +67,10 @@ def draw_star(event):
 def end_star(event):
     app.canvas.delete(preview_id)
 
-    points = get_star_points(x1, y1, event.x, event.y)
+    _x1, _y1 = app.canvas_to_pict_xy(x1, y1)
+    x2, y2 = app.canvas_to_pict_xy(event.x, event.y)
+
+    points = get_star_points(_x1, _y1, x2, y2)
 
     for i in range(0, len(points) - 2, 2):
         app.draw_line(int(points[i]), int(points[i + 1]), int(points[i + 2]), int(points[i + 3]))

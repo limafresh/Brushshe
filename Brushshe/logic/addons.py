@@ -27,6 +27,7 @@ class AddonAPI:
         self.update_canvas = app.update_canvas
         self.record_action = app.record_action
         self.get_contrast_color = app.get_contrast_color
+        self.canvas_to_pict_xy = app.canvas_to_pict_xy
 
         # Variables
         self.tool_config_docker = app.ui.tool_config_docker
