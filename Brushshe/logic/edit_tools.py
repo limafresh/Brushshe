@@ -5,6 +5,7 @@
 import math
 
 from PIL import Image, ImageChops, ImageDraw, ImageTk
+from utils.translator import _
 
 
 class EditTools:
@@ -131,9 +132,9 @@ class EditTools:
 
     def copy_simple(self, deleted=False):
         if deleted is False:
-            self.set_tool("copy", "Copy", None, None, None, "cross")
+            self.set_tool("copy", _("Copy"), None, None, None, "cross")
         else:
-            self.set_tool("cut", "Cut", None, None, None, "cross")
+            self.set_tool("cut", _("Cut"), None, None, None, "cross")
 
         self.x_begin = None
         self.y_begin = None
@@ -176,7 +177,7 @@ class EditTools:
     def start_insert(self):
         if hasattr(self, "buffer_local") is False or self.buffer_local is None:
             return
-        self.set_tool("insert", "Insert", 100, 1, 500, "cross")
+        self.set_tool("insert", _("Insert"), 100, 1, 500, "cross")
         self.insert_simple(self.buffer_local)
 
     def insert_simple(self, insert_image=None):
@@ -265,7 +266,7 @@ class EditTools:
     """Crop"""
 
     def crop_simple(self):
-        self.set_tool("crop", "Crop", None, None, None, "cross")
+        self.set_tool("crop", _("Crop"), None, None, None, "cross")
 
         self.x_begin = None
         self.y_begin = None

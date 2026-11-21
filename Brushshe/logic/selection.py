@@ -6,11 +6,12 @@ import time
 
 from PIL import Image, ImageDraw, ImageOps
 from utils import common
+from utils.translator import _
 
 
 class Selection:
     def select_by_shape(self, shape="rectangle"):
-        self.set_tool("select", "Select", None, None, None, "cross")
+        self.set_tool("select", _("Select"), None, None, None, "cross")
 
         self.x_begin = None
         self.y_begin = None
@@ -54,7 +55,7 @@ class Selection:
         self.update_canvas()
 
     def select_by_polygon(self):
-        self.set_tool("select", "Select", None, None, None, "cross")
+        self.set_tool("select", _("Select"), None, None, None, "cross")
 
         self.xy_list = None
         self._mode = "replace"
@@ -198,7 +199,7 @@ class Selection:
         )
 
     def select_by_color(self, fill_limit=False):
-        self.set_tool("select_by_color", "Select by color", None, None, None, "dotbox")
+        self.set_tool("select_by_color", _("Select by color"), None, None, None, "dotbox")
 
         self._mode = "replace"
         self.thresh = 1

@@ -383,14 +383,14 @@ class Common:
             self.last_sticker_image = sticker_image
 
         if not self.is_sticker_use_real_size.get():
-            self.set_tool("sticker", "Stickers", self.sticker_size, 10, 250, "cross")
+            self.set_tool("sticker", _("Stickers"), self.sticker_size, 10, 250, "cross")
             self.insert_simple(self.last_sticker_image)
         else:
-            self.set_tool("real size sticker", "Stickers", 100, 1, 500, "cross")
+            self.set_tool("real size sticker", _("Stickers"), 100, 1, 500, "cross")
             self.insert_simple(self.last_sticker_image)
 
     def effects(self):
-        self.set_tool("effects", "Effects", 10, 1, 20, "circle")
+        self.set_tool("effects", _("Effects"), 10, 1, 20, "circle")
 
     def apply_effect(self):
         effect_value = self.effects_optionmenu.get()

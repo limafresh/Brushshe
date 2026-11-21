@@ -5,6 +5,7 @@
 from core.bezier import make_bezier
 from core.bhbrush import bh_draw_line
 from PIL import ImageDraw
+from utils.translator import _
 
 
 class Shapes:
@@ -13,9 +14,9 @@ class Shapes:
         self.shape = shape
 
         if shape == "Fill rectangle" or shape == "Fill oval":
-            self.set_tool("shape", shape, None, None, None, "cross")
+            self.set_tool("shape", _(shape), None, None, None, "cross")
         else:
-            self.set_tool("shape", shape, self.shape_size, 1, 50, "cross")
+            self.set_tool("shape", _(shape), self.shape_size, 1, 50, "cross")
 
         self.ui.canvas.bind("<ButtonPress-1>", self.start_shape)
         self.ui.canvas.bind("<B1-Motion>", self.draw_shape)
@@ -117,7 +118,7 @@ class Shapes:
         # Clear canvas.
         self.update_canvas()
 
-        self.set_tool("shape", "Bezier", self.shape_size, 1, 50, "cross")
+        self.set_tool("shape", _("Bezier"), self.shape_size, 1, 50, "cross")
 
         self.ui.canvas.bind("<ButtonPress-1>", self.start_bezier)
         self.ui.canvas.bind("<B1-Motion>", self.draw_bezier)

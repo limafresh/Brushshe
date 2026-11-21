@@ -71,11 +71,11 @@ class ToolOperations:
         self.ui.tool_size_label.pack(side=ctk.LEFT, padx=5)
 
         if tool_size is None and from_ is None and to is None:
-            self.ui.tool_label.configure(text=_(tool_name))
+            self.ui.tool_label.configure(text=tool_name)
             self.ui.tool_size_slider.pack_forget()
             self.ui.tool_size_label.pack_forget()
         else:
-            self.ui.tool_label.configure(text=_(tool_name) + ":")
+            self.ui.tool_label.configure(text=tool_name + ":")
             self.tool_size = tool_size
             self.ui.tool_size_slider.configure(from_=from_, to=to)
             self.ui.tool_size_slider.set(self.tool_size)
