@@ -5,6 +5,7 @@
 import ast
 import os
 import shutil
+from collections.abc import Callable
 from tkinter import filedialog
 
 import customtkinter as ctk
@@ -14,19 +15,21 @@ from utils.common import resource
 from utils.translator import _
 
 
-class AddonManager:
-    def open_addon_manager(self):
-        addon_manager = ctk.CTkToplevel(self)
-        addon_manager.title(_("Add-on Manager"))
-        addon_manager.geometry("600x400")
-        addon_manager.wm_iconbitmap()
-        addon_manager.after(300, lambda: addon_manager.iconphoto(False, self.iconpath))
+class AddonManager(ctk.CTkToplevel):
+    def __init__(self, icon, run_addon: Callable):
+        super().__init__()
+        self.title(_("Add-on Manager"))
+        self.geometry("600x400")
+        self.wm_iconbitmap()
+        self.after(300, lambda: self.iconphoto(False, icon))
 
-        ctk.CTkButton(addon_manager, text=_("Install add-on from file"), command=self.install_addon).pack(
+        self.run_addon = run_addon
+
+        ctk.CTkButton(self, text=_("Install add-on from file"), command=self.install_addon).pack(
             padx=10, pady=10, fill="x"
         )
 
-        self.installed_addons_frame = ctk.CTkScrollableFrame(addon_manager)
+        self.installed_addons_frame = ctk.CTkScrollableFrame(self)
         self.installed_addons_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
         self.load_installed_addons()
@@ -56,7 +59,7 @@ class AddonManager:
                     author=metadata.get("author"),
                     version=metadata.get("version"),
                     description=metadata.get("description"),
-                    run_button_command=lambda fp=full_path: self.logic.run_addon(fp),
+                    run_button_command=lambda fp=full_path: self.run_addon(fp),
                 )
 
         return addons_number

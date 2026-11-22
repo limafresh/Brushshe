@@ -14,7 +14,6 @@ from utils.common import generate_inverted_icon, resource
 from utils.config_loader import config
 from utils.translator import _
 
-from .addon_manager import AddonManager
 from .change_size import ChangeSize
 from .frames import Frames
 from .gallery import Gallery
@@ -23,7 +22,7 @@ from .settings import Settings
 from .stickers import Stickers
 
 
-class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Stickers, Frames, Gallery, AddonManager):
+class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Stickers, Frames, Gallery):
     def __init__(self):
         super().__init__(className="Brushshe")
         self.logic = BrushsheLogic(self)
