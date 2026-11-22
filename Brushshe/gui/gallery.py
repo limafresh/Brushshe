@@ -3,6 +3,7 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import os
+from collections.abc import Callable
 from pathlib import Path
 
 import customtkinter as ctk
@@ -17,24 +18,26 @@ from utils.common import shorten_filename
 from utils.translator import _
 
 
-class Gallery:
-    def show_gallery(self):
-        my_gallery = ctk.CTkToplevel()
-        my_gallery.title(_("Brushshe Gallery"))
-        my_gallery.geometry("650x580")
-        my_gallery.wm_iconbitmap()
-        my_gallery.after(300, lambda: my_gallery.iconphoto(False, self.iconpath))
+class Gallery(ctk.CTkToplevel):
+    def __init__(self, icon, open_image: Callable):
+        super().__init__()
+        self.title(_("Brushshe Gallery"))
+        self.geometry("650x580")
+        self.wm_iconbitmap()
+        self.after(300, lambda: self.iconphoto(False, icon))
 
-        menu = CTkMenuBar(my_gallery)
+        self.open_image = open_image
+
+        menu = CTkMenuBar(self)
         gallery_menu = menu.add_cascade(_("My Gallery"))
         g_dropdown = CustomDropdownMenu(widget=gallery_menu)
         g_dropdown.add_option(option=_("Refresh"), command=self.load_gallery_buttons)
         g_dropdown.add_option(option=_("Clear cache"), command=cache.clear_gallery_thumbs_cache)
 
-        self.gallery_progressbar = ctk.CTkProgressBar(my_gallery, mode="intermediate")
+        self.gallery_progressbar = ctk.CTkProgressBar(self, mode="intermediate")
         self.gallery_progressbar.pack(padx=10, pady=10, fill="x")
 
-        self.gallery_scrollable_frame = ctk.CTkScrollableFrame(my_gallery)
+        self.gallery_scrollable_frame = ctk.CTkScrollableFrame(self)
         self.gallery_scrollable_frame.pack(fill=ctk.BOTH, expand=True, padx=0, pady=0)
         scroll(self.gallery_scrollable_frame)
 
@@ -122,7 +125,7 @@ class Gallery:
                         text=None,
                         fg_color="transparent",
                         hover=None,
-                        command=lambda img_path=img_path: self.logic.open_image(img_path),
+                        command=lambda img_path=img_path: self.open_image(img_path),
                         cursor="hand1",
                     )
                     image_button.grid(row=0, column=0)

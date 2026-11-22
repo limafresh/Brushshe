@@ -14,6 +14,7 @@ from utils.common import resource
 from utils.translator import _
 
 from gui.addon_manager import AddonManager
+from gui.gallery import Gallery
 
 
 class MenuBar:
@@ -117,7 +118,7 @@ class MenuBar:
         tools_dropdown.add_option(option=_("Remove white background"), command=self.logic.remove_white_background)
 
         """My gallery menu"""
-        menu.add_cascade(_("My Gallery"), command=self.show_gallery)
+        menu.add_cascade(_("My Gallery"), command=lambda: Gallery(self.iconpath, self.logic.open_image))
 
         """Add-ons menu"""
         addons_menu = menu.add_cascade(_("Add-ons"))
