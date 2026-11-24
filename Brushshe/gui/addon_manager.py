@@ -10,6 +10,7 @@ from tkinter import filedialog
 
 import customtkinter as ctk
 from constants import Constants
+from PIL import ImageTk
 from ui.tooltip import Tooltip
 from utils.common import resource
 from utils.translator import _
@@ -20,11 +21,11 @@ class AddonManagerItem(ctk.CTkFrame):
         self,
         master,
         title: str,
-        author=None,
-        version=None,
-        description=None,
-        delete_button_command=None,
-        run_button_command=None,
+        author: str | None = None,
+        version: str | None = None,
+        description: str | None = None,
+        delete_button_command: Callable | None = None,
+        run_button_command: Callable | None = None,
         **kwargs,
     ):
         super().__init__(master, **kwargs)
@@ -64,35 +65,36 @@ class AddonManagerItem(ctk.CTkFrame):
 
 
 class AddonManager(ctk.CTkToplevel):
-    def __init__(self, icon, run_addon: Callable):
+    def __init__(self, icon: ImageTk.PhotoImage, run_addon: Callable):
         super().__init__()
+
         self.title(_("Add-on Manager"))
         self.geometry("600x400")
         self.wm_iconbitmap()
         self.after(300, lambda: self.iconphoto(False, icon))
 
-        self.run_addon = run_addon
+        self._run_addon = run_addon
 
-        ctk.CTkButton(self, text=_("Install add-on from file"), command=self.install_addon).pack(
+        ctk.CTkButton(self, text=_("Install add-on from file"), command=self._install_addon).pack(
             padx=10, pady=10, fill="x"
         )
 
-        self.installed_addons_frame = ctk.CTkScrollableFrame(self)
-        self.installed_addons_frame.pack(padx=10, pady=10, fill="both", expand=True)
+        self._addons_frame = ctk.CTkScrollableFrame(self)
+        self._addons_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
-        self.load_installed_addons()
+        self._load_addons()
 
-    def load_installed_addons(self):
-        for widget in self.installed_addons_frame.winfo_children():
+    def _load_addons(self):
+        for widget in self._addons_frame.winfo_children():
             widget.destroy()
 
-        addons_number = self.load_addons_from_folder(resource("addons")) + self.load_addons_from_folder(
+        addons_number = self._load_addons_from_folder(resource("addons")) + self._load_addons_from_folder(
             Constants.ADDONS_FOLDER
         )
 
-        self.installed_addons_frame.configure(label_text=f"{_('Installed add-ons')} ({addons_number})")
+        self._addons_frame.configure(label_text=f"{_('Installed add-ons')} ({addons_number})")
 
-    def load_addons_from_folder(self, folder) -> int:
+    def _load_addons_from_folder(self, folder: str) -> int:
         files = os.listdir(folder)
         addons_number = 0
 
@@ -100,19 +102,22 @@ class AddonManager(ctk.CTkToplevel):
             if f.endswith(".py"):
                 addons_number += 1
                 full_path = os.path.join(folder, f)
-                metadata = self.get_addon_metadata(full_path)
+                metadata = self._get_addon_metadata(full_path)
                 AddonManagerItem(
-                    self.installed_addons_frame,
+                    self._addons_frame,
                     title=metadata.get("name", f),
                     author=metadata.get("author"),
                     version=metadata.get("version"),
                     description=metadata.get("description"),
-                    run_button_command=lambda fp=full_path: self.run_addon(fp),
+                    delete_button_command=(lambda fp=full_path: self._uninstall_addon(fp))
+                    if folder == Constants.ADDONS_FOLDER
+                    else None,
+                    run_button_command=lambda fp=full_path: self._run_addon(fp),
                 )
 
         return addons_number
 
-    def get_addon_metadata(self, path: str) -> dict:
+    def _get_addon_metadata(self, path: str) -> dict:
         try:
             with open(path, "r", encoding="utf-8") as f:
                 tree = ast.parse(f.read())
@@ -134,15 +139,16 @@ class AddonManager(ctk.CTkToplevel):
                             return metadata
         except Exception as e:
             print(e)
+
         return {}
 
-    def install_addon(self):
+    def _install_addon(self):
         addon_path = filedialog.askopenfilename(title=_("Open add-on"), filetypes=([("PY", "*.py")]))
         if addon_path:
             shutil.copy(addon_path, Constants.ADDONS_FOLDER)
 
-        self.load_installed_addons()
+        self._load_addons()
 
-    def uninstall_addon(self, path: str):
+    def _uninstall_addon(self, path: str):
         os.remove(path)
-        self.load_installed_addons()
+        self._load_addons()
