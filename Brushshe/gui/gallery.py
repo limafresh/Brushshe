@@ -8,7 +8,7 @@ from pathlib import Path
 
 import customtkinter as ctk
 from constants import Constants
-from PIL import Image
+from PIL import Image, ImageTk
 from ui import messagebox
 from ui.CTkMenuBar import CTkMenuBar, CustomDropdownMenu
 from ui.scroll import scroll
@@ -19,50 +19,48 @@ from utils.translator import _
 
 
 class Gallery(ctk.CTkToplevel):
-    def __init__(self, icon, open_image: Callable):
+    def __init__(self, icon: ImageTk.PhotoImage, open_image: Callable):
         super().__init__()
+
         self.title(_("Brushshe Gallery"))
         self.geometry("650x580")
         self.wm_iconbitmap()
         self.after(300, lambda: self.iconphoto(False, icon))
 
-        self.open_image = open_image
+        self._open_image = open_image
 
         menu = CTkMenuBar(self)
         gallery_menu = menu.add_cascade(_("My Gallery"))
-        g_dropdown = CustomDropdownMenu(widget=gallery_menu)
-        g_dropdown.add_option(option=_("Refresh"), command=self.load_gallery_buttons)
-        g_dropdown.add_option(option=_("Clear cache"), command=cache.clear_gallery_thumbs_cache)
+        gallery_dropdown = CustomDropdownMenu(widget=gallery_menu)
+        gallery_dropdown.add_option(option=_("Refresh"), command=self._load_buttons)
+        gallery_dropdown.add_option(option=_("Clear cache"), command=cache.clear_gallery_thumbs_cache)
 
-        self.gallery_progressbar = ctk.CTkProgressBar(self, mode="intermediate")
-        self.gallery_progressbar.pack(padx=10, pady=10, fill="x")
+        self._progressbar = ctk.CTkProgressBar(self, mode="intermediate")
+        self._progressbar.pack(padx=10, pady=10, fill="x")
 
-        self.gallery_scrollable_frame = ctk.CTkScrollableFrame(self)
-        self.gallery_scrollable_frame.pack(fill=ctk.BOTH, expand=True, padx=0, pady=0)
-        scroll(self.gallery_scrollable_frame)
+        self._scrollable_frame = ctk.CTkScrollableFrame(self)
+        self._scrollable_frame.pack(fill="both", expand=True, padx=0, pady=0)
+        scroll(self._scrollable_frame)
 
-        self.gallery_frame = ctk.CTkFrame(self.gallery_scrollable_frame)
-        self.gallery_frame.pack(padx=10, pady=10)
+        self._frame = ctk.CTkFrame(self._scrollable_frame)
+        self._frame.pack(padx=10, pady=10)
 
-        # Threads work bad with Tkinter event_loop.
-        # Cache must be enough for normal work after first open gallery.
-        # Thread(target=load_buttons, daemon=True).start()
+        self._load_buttons()
 
-        self.load_gallery_buttons()
-
-    def load_gallery_buttons(self):
+    def _load_buttons(self):
         preview_size = 160
         row = 0
         column = 0
         images_number = 0
 
-        self.gallery_progressbar.start()
+        self._progressbar.start()
 
-        self.gallery_scrollable_frame.configure(label_text=None)
-        for child in self.gallery_frame.winfo_children():
+        self._scrollable_frame.configure(label_text=None)
+
+        for child in self._frame.winfo_children():
             child.destroy()
 
-        cache_folder = cache.user_cache_dir("brushshe")
+        cache_folder: str = cache.user_cache_dir("brushshe")
         try:
             os.makedirs(cache_folder, exist_ok=True)
         except Exception:
@@ -70,9 +68,9 @@ class Gallery(ctk.CTkToplevel):
             cache_folder = None
 
         try:
-            gallery_file_list = sorted(Path(Constants.GALLERY_FOLDER).iterdir(), key=os.path.getmtime, reverse=True)
+            file_list = sorted(Path(Constants.GALLERY_FOLDER).iterdir(), key=os.path.getmtime, reverse=True)
 
-            for filename in gallery_file_list:
+            for filename in file_list:
                 if filename.suffix == ".png":
                     images_number += 1
 
@@ -80,7 +78,7 @@ class Gallery(ctk.CTkToplevel):
                     img_file_name = os.path.basename(img_path)
                     name_without_ext, ext = os.path.splitext(img_file_name)
 
-                    image_tmp_2 = self.get_image_from_cache(
+                    image_tmp_2 = self._get_image_from_cache(
                         cache_folder,
                         img_path,
                         os.path.getsize(img_path),
@@ -114,7 +112,7 @@ class Gallery(ctk.CTkToplevel):
                         w = image_tmp_2.width
                         h = image_tmp_2.height
 
-                    image_frame = ctk.CTkFrame(self.gallery_frame)
+                    image_frame = ctk.CTkFrame(self._frame)
                     image_frame.grid(row=row, column=column, padx=10, pady=10)
 
                     image_button = ctk.CTkButton(
@@ -125,7 +123,7 @@ class Gallery(ctk.CTkToplevel):
                         text=None,
                         fg_color="transparent",
                         hover=None,
-                        command=lambda img_path=img_path: self.open_image(img_path),
+                        command=lambda img_path=img_path: self._open_image(img_path),
                         cursor="hand1",
                     )
                     image_button.grid(row=0, column=0)
@@ -137,7 +135,7 @@ class Gallery(ctk.CTkToplevel):
                         hover_color="#cc0000",
                         text_color="white",
                         width=30,
-                        command=lambda img_path=img_path: self.delete_gallery_image(img_path),
+                        command=lambda img_path=img_path: self._delete_image(img_path),
                     )
                     delete_image_button.place(x=5, y=5)
                     Tooltip(delete_image_button, message=_("Delete"))
@@ -149,7 +147,7 @@ class Gallery(ctk.CTkToplevel):
                     filename_label.bind(
                         "<Button-1>",
                         lambda e, parent=image_frame, text=name_without_ext, img_path=img_path, extension=ext: (
-                            self.on_gallery_filename_label_click(e, parent, text, img_path, extension)
+                            self._on_filename_label_click(e, parent, text, img_path, extension)
                         ),
                     )
 
@@ -158,15 +156,14 @@ class Gallery(ctk.CTkToplevel):
                         column = 0
                         row += 1
 
-            self.gallery_progressbar.stop()
-            self.gallery_progressbar.pack_forget()
+            self._progressbar.stop()
+            self._progressbar.pack_forget()
 
-            self.gallery_scrollable_frame.configure(label_text=f"{_('My Gallery')} ({images_number})")
-
+            self._scrollable_frame.configure(label_text=f"{_('My Gallery')} ({images_number})")
         except Exception as e:
             print(e)
 
-    def on_gallery_filename_label_click(self, event, parent, text, img_path, extension):
+    def _on_filename_label_click(self, event, parent: ctk.CTkFrame, text: str, img_path: str, extension: str):
         event.widget.destroy()
 
         filename_entry = ctk.CTkEntry(parent)
@@ -174,11 +171,13 @@ class Gallery(ctk.CTkToplevel):
         filename_entry.insert(0, text)
 
         filename_entry.bind(
-            "<Return>", lambda event: self.on_gallery_entry_return(filename_entry, parent, text, img_path, extension)
+            "<Return>", lambda event: self._on_entry_return(filename_entry, parent, text, img_path, extension)
         )
         filename_entry.focus()
 
-    def on_gallery_entry_return(self, filename_entry, parent, text, img_path, extension):
+    def _on_entry_return(
+        self, filename_entry: ctk.CTkEntry, parent: ctk.CTkFrame, text: str, img_path: str, extension: str
+    ):
         new_text = filename_entry.get()
         new_path = os.path.join(os.path.dirname(img_path), new_text + extension)
 
@@ -189,7 +188,7 @@ class Gallery(ctk.CTkToplevel):
             msg = messagebox.overwrite_file()
             if msg.get() == _("Yes"):
                 os.replace(img_path, new_path)
-                self.load_gallery_buttons()
+                self._load_buttons()
                 return
             else:
                 label_text = text
@@ -202,16 +201,16 @@ class Gallery(ctk.CTkToplevel):
         new_filename_label.grid(row=1, column=0)
 
         new_filename_label.bind(
-            "<Button-1>", lambda e: self.on_gallery_filename_label_click(e, parent, label_text, new_path, extension)
+            "<Button-1>", lambda e: self._on_filename_label_click(e, parent, label_text, new_path, extension)
         )
 
-    def delete_gallery_image(self, img_path):
+    def _delete_image(self, img_path: str):
         msg = messagebox.confirm_delete()
         if msg.get() == _("Yes") and os.path.exists(str(img_path)):
             os.remove(str(img_path))
-            self.load_gallery_buttons()
+            self._load_buttons()
 
-    def get_image_from_cache(self, cache_folder, name, size, mtime, suffix):
+    def _get_image_from_cache(self, cache_folder: str, name: str, size: int, mtime: float, suffix: str):
         if cache_folder is None:
             return
         im_name = cache.get_cache_name(name, size, mtime)
