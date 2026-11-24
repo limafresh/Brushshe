@@ -357,27 +357,6 @@ class Common:
 
         return contrast_color
 
-    def sticker_from_file(self, parent):
-        file_path = filedialog.askopenfilename(title=_("Sticker from file"), filetypes=Constants.OPEN_IMG_FILETYPES)
-        if file_path:
-            try:
-                sticker_image = Image.open(file_path)
-                self.set_current_sticker(sticker_image)
-            except Exception as e:
-                messagebox.open_file_error(e)
-
-    def sticker_from_url(self):
-        dialog = ctk.CTkInputDialog(text=_("Enter URL:"), title=_("Open from URL"))
-        image_url = dialog.get_input()
-        if image_url is not None:
-            try:
-                with urlopen(image_url) as response:
-                    image_data = BytesIO(response.read())
-                    sticker_image = Image.open(image_data)
-                    self.set_current_sticker(sticker_image)
-            except Exception as e:
-                messagebox.open_file_error(e)
-
     def set_current_sticker(self, sticker_image=None):  # Choose a sticker
         if sticker_image:
             self.last_sticker_image = sticker_image

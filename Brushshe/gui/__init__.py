@@ -18,10 +18,9 @@ from .change_size import ChangeSize
 from .frames import Frames
 from .menubar import MenuBar
 from .settings import Settings
-from .stickers import Stickers
 
 
-class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Stickers, Frames):
+class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Frames):
     def __init__(self):
         super().__init__(className="Brushshe")
         self.logic = BrushsheLogic(self)

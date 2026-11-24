@@ -15,6 +15,7 @@ from utils.translator import _
 
 from gui.addon_manager import AddonManager
 from gui.gallery import Gallery
+from gui.stickers import Stickers
 
 
 class MenuBar:
@@ -111,7 +112,11 @@ class MenuBar:
         tools_dropdown.add_separator()
         tools_icon_size = (20, 20)
         smile_icon = ctk.CTkImage(Image.open(resource("assets/icons/smile.png")), size=tools_icon_size)
-        tools_dropdown.add_option(option=_("Stickers"), image=smile_icon, command=self.open_stickers_toplevel)
+        tools_dropdown.add_option(
+            option=_("Stickers"),
+            image=smile_icon,
+            command=lambda: Stickers(self.iconpath, self.logic.set_current_sticker),
+        )
         frame_icon = ctk.CTkImage(Image.open(resource("assets/icons/frame.png")), size=tools_icon_size)
         tools_dropdown.add_option(option=_("Frames"), image=frame_icon, command=self.open_frames_toplevel)
         tools_dropdown.add_separator()
