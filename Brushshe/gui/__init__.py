@@ -146,7 +146,7 @@ class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Frames):
         )
         self.palette_widget.pack(side="left", fill="x", padx=2, pady=2)
 
-        if config.get("Brushshe", "palette") in Constants.STANDART_PALETTES:
+        if config.get("Brushshe", "palette") in Constants.STANDARD_PALETTES:
             self.logic.import_palette(resource(f"assets/palettes/{config.get('Brushshe', 'palette')}_palette.hex"))
         else:
             self.logic.import_palette(resource(config.get("Brushshe", "palette")))

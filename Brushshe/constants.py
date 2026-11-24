@@ -15,7 +15,7 @@ class Constants:
     CODENAME = "Bucharest"
     VERSION = f'{VERSION_MAJOR}.{VERSION_MINOR}.{VERSION_PATCH} "{CODENAME}"'
 
-    STANDART_PALETTES = ["default", "4bit", "vintage", "seven"]
+    STANDARD_PALETTES = ["default", "4bit", "vintage", "seven"]
 
     IMG_EXTENSIONS = [
         ".png",

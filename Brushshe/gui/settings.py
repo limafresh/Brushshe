@@ -198,7 +198,7 @@ class Settings:
         ctk.CTkLabel(palette_frame, text=_("Palette")).pack(padx=10, pady=10)
 
         palette_var = ctk.StringVar(value=config.get("Brushshe", "palette"))
-        for palette_name in Constants.STANDART_PALETTES:
+        for palette_name in Constants.STANDARD_PALETTES:
             ctk.CTkRadioButton(
                 palette_frame,
                 text=_(palette_name.capitalize()),
