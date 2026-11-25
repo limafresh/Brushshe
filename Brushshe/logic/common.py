@@ -114,6 +114,11 @@ class Common:
 
         self.record_action()
 
+    def scale_picture(self, new_width, new_height):
+        scaled_image = self.image.resize((new_width, new_height), Image.NEAREST)
+        self.image = scaled_image
+        self.picture_postconfigure()
+
     def eyedropper(self, event):
         # Get the coordinates of the click event
         x, y = self.canvas_to_pict_xy(event.x, event.y)

@@ -14,13 +14,13 @@ from utils.common import generate_inverted_icon, resource
 from utils.config_loader import config
 from utils.translator import _
 
-from .change_size import ChangeSize
+from .change_size import ChangeSizeDialog
 from .frames import Frames
 from .menubar import MenuBar
 from .settings import Settings
 
 
-class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Frames):
+class BrushsheGui(ctk.CTk, MenuBar, Settings, Frames):
     def __init__(self):
         super().__init__(className="Brushshe")
         self.logic = BrushsheLogic(self)
@@ -151,7 +151,13 @@ class BrushsheGui(ctk.CTk, MenuBar, ChangeSize, Settings, Frames):
         else:
             self.logic.import_palette(resource(config.get("Brushshe", "palette")))
 
-        self.size_button = ctk.CTkButton(self.bottom_docker, text="640x480", command=self.open_change_size_toplevel)
+        self.size_button = ctk.CTkButton(
+            self.bottom_docker,
+            text="640x480",
+            command=lambda: ChangeSizeDialog(
+                self, self.iconpath, self.logic.image, self.logic.crop_picture, self.logic.scale_picture
+            ),
+        )
         self.size_button.pack(side="right", padx=1)
 
         """Initialization"""

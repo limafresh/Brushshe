@@ -14,6 +14,7 @@ from utils.common import resource
 from utils.translator import _
 
 from gui.addon_manager import AddonManager
+from gui.change_size import ChangeSizeDialog
 from gui.gallery import Gallery
 from gui.stickers import Stickers
 
@@ -56,7 +57,12 @@ class MenuBar:
         image_dropdown.add_option(option=_("Rotate right"), command=lambda: self.logic.rotate(-90))
         image_dropdown.add_option(option=_("Rotate left"), command=lambda: self.logic.rotate(90))
         image_dropdown.add_separator()
-        image_dropdown.add_option(option=_("Change size"), command=self.open_change_size_toplevel)
+        image_dropdown.add_option(
+            option=_("Change size"),
+            command=lambda: ChangeSizeDialog(
+                self, self.iconpath, self.logic.image, self.logic.crop_picture, self.logic.scale_picture
+            ),
+        )
         image_dropdown.add_separator()
         image_dropdown.add_option(option=_("Create screenshot"), command=self.logic.create_screenshot)
         image_dropdown.add_option(option=_("Paste image from clipboard"), command=self.logic.paste_image_from_clipboard)
