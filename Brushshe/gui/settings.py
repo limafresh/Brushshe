@@ -12,7 +12,7 @@ from constants import Constants
 from ui.scroll import scroll
 from ui.spinbox import IntSpinbox
 from utils.common import resource
-from utils.config_loader import config, write_config
+from utils.config_loader import config, save_config
 from utils.translator import _
 
 
@@ -21,81 +21,66 @@ class Settings:
         def change_theme(value):
             mode = {_("Light"): "light", _("Dark"): "dark"}.get(value, "system")
             ctk.set_appearance_mode(mode)
-            config.set("Brushshe", "theme", mode)
-            write_config()
+            save_config("theme", mode)
 
         def change_undo_levels():
             self.logic.undo_stack = deque(self.logic.undo_stack, maxlen=undo_levels_spinbox.get())
             self.logic.redo_stack = deque(self.logic.redo_stack, maxlen=undo_levels_spinbox.get())
-            config.set("Brushshe", "undo_levels", str(undo_levels_spinbox.get()))
-            write_config()
+            save_config("undo_levels", str(undo_levels_spinbox.get()))
 
         def change_grid_step():
             self.logic.grid_step = grid_step_spinbox.get()
             self.logic.update_canvas()
-            config.set("Brushshe", "grid_step", str(grid_step_spinbox.get()))
-            write_config()
+            save_config("grid_step", str(grid_step_spinbox.get()))
 
         def smooth_switch_event():
             self.logic.is_brush_smoothing = smooth_var.get()
-            config.set("Brushshe", "smoothing", str(self.logic.is_brush_smoothing))
-            write_config()
+            save_config("smoothing", str(self.logic.is_brush_smoothing))
 
         def bsq_event(value):
             self.logic.brush_smoothing_quality = int(value)
-            config.set("Brushshe", "brush_smoothing_quality", str(self.logic.brush_smoothing_quality))
-            write_config()
+            save_config("brush_smoothing_quality", str(self.logic.brush_smoothing_quality))
 
         def bsf_event(value):
             self.logic.brush_smoothing_factor = int(value)
-            config.set("Brushshe", "brush_smoothing_factor", str(self.logic.brush_smoothing_factor))
-            write_config()
+            save_config("brush_smoothing_factor", str(self.logic.brush_smoothing_factor))
 
         def mask_radiobutton_callback():
             self.logic.set_mask_type(mask_var.get())
-            config.set("Brushshe", "mask", str(mask_var.get()))
-            write_config()
+            save_config("mask", str(mask_var.get()))
 
         def palette_radiobutton_callback():
             self.logic.import_palette(resource(f"assets/palettes/{palette_var.get()}_palette.hex"))
-            config.set("Brushshe", "palette", palette_var.get())
-            write_config()
+            save_config("palette", palette_var.get())
 
         def autosave_switch_event():
-            config.set("Brushshe", "autosave", str(self.logic.autosave_var.get()))
-            write_config()
+            save_config("autosave", str(self.logic.autosave_var.get()))
 
         def ct_optionmenu_callback(choice):
-            config.set("Brushshe", "color_theme", choice)
-            write_config()
+            save_config("color_theme", choice)
 
         def set_theme_from_file():
             file_path = filedialog.askopenfilename(
                 title=_("Set custom theme from file"), filetypes=([("JSON", "*.json")])
             )
             if file_path:
-                config.set("Brushshe", "color_theme", file_path)
-                write_config()
+                save_config("color_theme", file_path)
 
         def language_optionmenu_callback(value):
-            config.set("Brushshe", "language", Constants.LANGUAGES.get(value))
-            write_config()
+            save_config("language", Constants.LANGUAGES.get(value))
 
         def set_language_from_file():
             file_path = filedialog.askopenfilename(
                 title=_("Set custom language from file"), filetypes=([("JSON", "*.json")])
             )
             if file_path:
-                config.set("Brushshe", "language", file_path)
-                write_config()
+                save_config("language", file_path)
 
         def title_menu_event():
-            config.set("Brushshe", "use_title_menu", str(self.logic.use_title_menu.get()))
-            write_config()
+            save_config("use_title_menu", str(self.logic.use_title_menu.get()))
 
         def left_toolbar_event():
-            config.set("Brushshe", "hide_left_toolbar", str(self.logic.hide_left_toolbar.get()))
-            write_config()
+            save_config("hide_left_toolbar", str(self.logic.hide_left_toolbar.get()))
             if self.logic.hide_left_toolbar.get():
                 self.tools_frame.pack_forget()
                 hide_left_toolbar_restart_label.destroy()
@@ -103,8 +88,7 @@ class Settings:
                 hide_left_toolbar_restart_label.pack(padx=10, pady=10)
 
         def reset_left_toolbar_config():
-            config.set("Brushshe", "left_toolbar_config", "default")
-            write_config()
+            save_config("left_toolbar_config", "default")
             self.logic.set_left_toolbar(False)
 
         settings = ctk.CTkToplevel(self)

@@ -42,6 +42,11 @@ def load_config():
     write_config()
 
 
+def save_config(option: str, value: str):
+    config.set("Brushshe", option, value)
+    write_config()
+
+
 if platform.system() == "Linux":
     config_dir = Path.home() / ".config" / "brushshe"
     config_dir.mkdir(parents=True, exist_ok=True)
