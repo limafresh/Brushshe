@@ -15,12 +15,11 @@ from utils.config_loader import config
 from utils.translator import _
 
 from .change_size import ChangeSizeDialog
-from .frames import Frames
 from .menubar import MenuBar
 from .settings import Settings
 
 
-class BrushsheGui(ctk.CTk, MenuBar, Settings, Frames):
+class BrushsheGui(ctk.CTk, MenuBar, Settings):
     def __init__(self):
         super().__init__(className="Brushshe")
         self.logic = BrushsheLogic(self)

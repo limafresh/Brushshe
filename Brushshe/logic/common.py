@@ -373,6 +373,12 @@ class Common:
             self.set_tool("real size sticker", _("Stickers"), 100, 1, 500, "cross")
             self.insert_simple(self.last_sticker_image)
 
+    def apply_frame(self, frame):
+        resized_frame = frame.resize((self.image.width, self.image.height))
+        self.image.paste(resized_frame, (0, 0), resized_frame)
+        self.update_canvas()
+        self.record_action()
+
     def effects(self):
         self.set_tool("effects", _("Effects"), 10, 1, 20, "circle")
 
