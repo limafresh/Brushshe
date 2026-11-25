@@ -65,21 +65,14 @@ class BrushsheLogic(
         self.bg_color = "white"
         self.brush_shape = "circle"
 
-        self.brush_size = 2
-        self.eraser_size = 4
-        self.spray_size = 10
-        self.shape_size = 2
-        self.sticker_size = 100
-        self.font_size = 24
-
         self.tool_size_dict = {
-            "brush": self.brush_size,
-            "r-brush": self.brush_size,
-            "eraser": self.eraser_size,
-            "spray": self.spray_size,
-            "shape": self.shape_size,
-            "sticker": self.sticker_size,
-            "text": self.font_size,
+            "brush": Constants().BRUSH_SIZE,
+            "r-brush": Constants().BRUSH_SIZE,
+            "eraser": Constants().ERASER_SIZE,
+            "spray": Constants().SPRAY_SIZE,
+            "shape": Constants().SHAPE_SIZE,
+            "sticker": Constants().STICKER_SIZE,
+            "text": Constants().FONT_SIZE,
         }
 
         self.composer = BhComposer(0, 0)  # Empty init.

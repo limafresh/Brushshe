@@ -103,3 +103,11 @@ class Constants:
         else Path(os.environ.get("XDG_PICTURES_DIR", str(Path.home())))
     ) / "Brushshe Images"
     ADDONS_FOLDER = Path.home() / ".brushshe" / "addons"
+
+    # Default sizes
+    BRUSH_SIZE = 2
+    ERASER_SIZE = 4
+    SPRAY_SIZE = 10
+    SHAPE_SIZE = 2
+    STICKER_SIZE = 100
+    FONT_SIZE = 24

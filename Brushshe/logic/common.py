@@ -367,7 +367,7 @@ class Common:
             self.last_sticker_image = sticker_image
 
         if not self.is_sticker_use_real_size.get():
-            self.set_tool("sticker", _("Stickers"), self.sticker_size, 10, 250, "cross")
+            self.set_tool("sticker", _("Stickers"), Constants().STICKER_SIZE, 10, 250, "cross")
             self.insert_simple(self.last_sticker_image)
         else:
             self.set_tool("real size sticker", _("Stickers"), 100, 1, 500, "cross")

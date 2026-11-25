@@ -5,6 +5,7 @@
 import math
 import random
 
+from constants import Constants
 from core.bhbrush import bh_draw_recoloring_line
 from core.bhhistory import BhHistory, BhPoint
 from PIL import Image, ImageChops, ImageColor, ImageDraw, ImageFont
@@ -21,12 +22,12 @@ class PaintTools:
         self.point_history = None
 
         if type == "brush":
-            self.set_tool("brush", _("Brush"), self.brush_size, 1, 50, "pencil")
+            self.set_tool("brush", _("Brush"), Constants().BRUSH_SIZE, 1, 50, "pencil")
         elif type == "eraser":
-            self.set_tool("eraser", _("Eraser"), self.eraser_size, 1, 50, "target")
+            self.set_tool("eraser", _("Eraser"), Constants().ERASER_SIZE, 1, 50, "target")
         else:
             print("Warning: Incorrect brush type. Set default as.")
-            self.set_tool("brush", _("Brush"), self.brush_size, 1, 50, "pencil")
+            self.set_tool("brush", _("Brush"), Constants().BRUSH_SIZE, 1, 50, "pencil")
 
         self.ui.canvas.bind("<Button-1>", self.paint)
         self.ui.canvas.bind("<B1-Motion>", self.paint)
@@ -209,7 +210,7 @@ class PaintTools:
     """Recoloring brush"""
 
     def recoloring_brush(self):
-        self.set_tool("r-brush", _("R. Brush"), self.brush_size, 1, 50, "pencil")
+        self.set_tool("r-brush", _("R. Brush"), Constants().BRUSH_SIZE, 1, 50, "pencil")
 
         self.prev_x = None
         self.prev_y = None
@@ -284,7 +285,7 @@ class PaintTools:
     """Spray"""
 
     def spray(self):
-        self.set_tool("spray", _("Spray"), self.spray_size, 5, 30, "spraycan")
+        self.set_tool("spray", _("Spray"), Constants().SPRAY_SIZE, 5, 30, "spraycan")
 
         self.spraying = False
         self.spray_job = None
@@ -338,7 +339,7 @@ class PaintTools:
     """Text"""
 
     def text_tool(self):
-        self.set_tool("text", _("Text"), self.font_size, 11, 96, "cross")
+        self.set_tool("text", _("Text"), Constants().FONT_SIZE, 11, 96, "cross")
         self.ui.canvas.bind("<Button-1>", self.add_text)
         self.ui.canvas.bind("<Motion>", self.draw_text_halo)
         self.ui.canvas.bind("<Leave>", lambda e: self.ui.canvas.delete("tools"))
