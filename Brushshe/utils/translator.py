@@ -12,7 +12,7 @@ is_english = True
 translations = {}
 
 
-def load_language(file_path, language_code: str | None):
+def load_language(file_path: str, language_code: str | None):
     global translations, is_english
     if language_code == "en":
         pass
@@ -34,7 +34,7 @@ def load_language(file_path, language_code: str | None):
             print("Localization file is corrupted. Brushshe will be in English.")
 
 
-def _(key):
+def _(key: str) -> str:
     if not is_english and key in translations:
         return translations[key]
     else:
