@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-
 import customtkinter as ctk
 from PIL import Image
 from ui import messagebox
@@ -55,36 +54,42 @@ class ChangeSize:
 
     def crop(self):
         try:
-            if self.aspect_ratio_var.get():
-                new_height = int(self.logic.image.height * self.width_spinbox.get() / self.logic.image.width)
-            else:
-                new_height = int(self.height_spinbox.get())
+            new_width = int(self.width_spinbox.get())
+            new_height = self.get_new_height()
 
-            if int(self.width_spinbox.get()) > 2000 or new_height > 2000:
-                msg = messagebox.continue_big_size()
-                if msg.get() == _("Yes"):
-                    self.logic.crop_picture(0, 0, int(self.width_spinbox.get()), new_height)
-            else:
-                self.logic.crop_picture(0, 0, int(self.width_spinbox.get()), new_height)
+            if not self.continue_if_big_size(new_width, new_height):
+                return
+
+            self.logic.crop_picture(0, 0, new_width, new_height)
         except Exception as e:
             print(e)
 
     def scale(self):
         try:
-            if self.aspect_ratio_var.get():
-                new_height = int(self.logic.image.height * self.width_spinbox.get() / self.logic.image.width)
-            else:
-                new_height = int(self.height_spinbox.get())
+            new_width = int(self.width_spinbox.get())
+            new_height = self.get_new_height()
 
-            if int(self.width_spinbox.get()) > 2000 or new_height > 2000:
-                msg = messagebox.continue_big_size()
-                if msg.get() == _("Yes"):
-                    scaled_image = self.logic.image.resize((int(self.width_spinbox.get()), new_height), Image.NEAREST)
-                    self.logic.image = scaled_image
-                    self.logic.picture_postconfigure()
-            else:
-                scaled_image = self.logic.image.resize((int(self.width_spinbox.get()), new_height), Image.NEAREST)
-                self.logic.image = scaled_image
-                self.logic.picture_postconfigure()
+            if not self.continue_if_big_size(new_width, new_height):
+                return
+
+            scaled_image = self.logic.image.resize((new_width, new_height), Image.NEAREST)
+            self.logic.image = scaled_image
+            self.logic.picture_postconfigure()
         except Exception as e:
             print(e)
+
+    def get_new_height(self) -> int:
+        if self.aspect_ratio_var.get():
+            new_height = int(self.logic.image.height * self.width_spinbox.get() / self.logic.image.width)
+        else:
+            new_height = int(self.height_spinbox.get())
+
+        return new_height
+
+    def continue_if_big_size(self, new_width: int, new_height: int) -> bool:
+        if new_width > 2000 or new_height > 2000:
+            msg = messagebox.continue_big_size()
+            if msg.get() != _("Yes"):
+                return False
+
+        return True
