@@ -3,7 +3,9 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import math
+from collections.abc import Callable
 
+from customtkinter import CTkCanvas
 from PIL import Image, ImageChops, ImageDraw, ImageTk
 from utils.translator import _
 
@@ -11,16 +13,27 @@ from . import state
 
 
 class EditTools:
+    def __init__(
+        self,
+        canvas: CTkCanvas,
+        set_tool: Callable,
+        canvas_to_pict_xy: Callable,
+        update_canvas: Callable,
+        record_action: Callable,
+        crop_picture: Callable,
+    ):
+        self.canvas = canvas
+        self.set_tool = set_tool
+        self.canvas_to_pict_xy = canvas_to_pict_xy
+        self.update_canvas = update_canvas
+        self.record_action = record_action
+        self.crop_picture = crop_picture
+
+        self.is_insert_smoothing = False
+
     """Common"""
 
-    def edit_selecting(self, event, screenshot=False):
-        if screenshot:
-            image = self.screenshot
-            draw_tool = self.screenshot_draw_tool
-        else:
-            image = state.image
-            draw_tool = self.edit_draw_tool
-
+    def _edit_selecting(self, event):
         x, y = self.canvas_to_pict_xy(event.x, event.y)
 
         if self.x_begin is None or self.y_begin is None:
@@ -30,8 +43,8 @@ class EditTools:
         self.x_end = x
         self.y_end = y
 
-        x_max = image.width - 1
-        y_max = image.height - 1
+        x_max = state.image.width - 1
+        y_max = state.image.height - 1
 
         self.x_begin = max(self.x_begin, 0)
         self.x_begin = min(self.x_begin, x_max)
@@ -47,12 +60,14 @@ class EditTools:
         y1 = min(self.y_begin, self.y_end)
         y2 = max(self.y_begin, self.y_end)
 
-        draw_tool(x1, y1, x2, y2)
+        self._edit_draw_tool(x1, y1, x2, y2)
 
-    def edit_draw_tool(self, x1, y1, x2, y2):
-        self.ui.canvas.delete("tools")
+    def _edit_draw_tool(self, x1: float, y1: float, x2: float, y2: float):
+        self.canvas.delete("tools")
+        self._draw_dashed_rect(x1, y1, x2, y2)
 
-        self.ui.canvas.create_rectangle(
+    def _draw_dashed_rect(self, x1: float, y1: float, x2: float, y2: float):
+        self.canvas.create_rectangle(
             int(x1 * state.zoom),
             int(y1 * state.zoom),
             int((x2 + 1) * state.zoom - 1),
@@ -61,7 +76,7 @@ class EditTools:
             width=1,
             tag="tools",
         )
-        self.ui.canvas.create_rectangle(
+        self.canvas.create_rectangle(
             int(x1 * state.zoom),
             int(y1 * state.zoom),
             int((x2 + 1) * state.zoom - 1),
@@ -72,7 +87,7 @@ class EditTools:
             dash=(5, 5),
         )
 
-    def edit_end(self, screenshot=False):
+    def _edit_end(self) -> tuple | None:
         if self.x_begin is None or self.y_begin is None:
             return
 
@@ -81,8 +96,7 @@ class EditTools:
         y1 = min(self.y_begin, self.y_end)
         y2 = max(self.y_begin, self.y_end)
 
-        if not screenshot:
-            self.ui.canvas.delete("tools")
+        self.canvas.delete("tools")
 
         self.x_begin = None
         self.y_begin = None
@@ -91,15 +105,15 @@ class EditTools:
 
         return x1, y1, x2, y2
 
-    """Copy and cut"""
+    """Copy/cut"""
 
-    def copy_tool(self, deleted=False):
+    def copy(self, deleted: bool = False):
         if state.selected_mask_img is None:
-            self.copy_simple(deleted)
+            self._copy_simple(deleted)
         else:
-            self.copy_selected(deleted)
+            self._copy_selected(deleted)
 
-    def copy_selected(self, deleted=False):
+    def _copy_selected(self, deleted: bool = False):
         if state.selected_mask_img is None:
             return
 
@@ -122,7 +136,7 @@ class EditTools:
         del tmp_img
 
         if deleted:
-            bg_color = self.bg_color
+            bg_color = state.bg_color
             if state.image.mode == "RGBA":
                 bg_color = (0, 0, 0, 0)
             tmp_img = Image.new(state.image.mode, (state.image.width, state.image.height), bg_color)
@@ -132,7 +146,7 @@ class EditTools:
 
         self.update_canvas()
 
-    def copy_simple(self, deleted=False):
+    def _copy_simple(self, deleted: bool = False):
         if deleted is False:
             self.set_tool("copy", _("Copy"), None, None, None, "cross")
         else:
@@ -143,12 +157,12 @@ class EditTools:
         self.x_end = None
         self.y_end = None
 
-        self.ui.canvas.bind("<Button-1>", self.edit_selecting)
-        self.ui.canvas.bind("<B1-Motion>", self.edit_selecting)
-        self.ui.canvas.bind("<ButtonRelease-1>", lambda event: self.copy_select_end(deleted))
+        self.canvas.bind("<Button-1>", self._edit_selecting)
+        self.canvas.bind("<B1-Motion>", self._edit_selecting)
+        self.canvas.bind("<ButtonRelease-1>", lambda event: self._copy_select_end(deleted))
 
-    def copy_select_end(self, deleted):
-        result = self.edit_end()
+    def _copy_select_end(self, deleted: bool):
+        result = self._edit_end()
         if result is None:
             return
         x1, y1, x2, y2 = result
@@ -157,12 +171,12 @@ class EditTools:
         #       One first pixel look like (0, 0, 1, 1).
         self.buffer_local = state.image.crop((x1, y1, x2 + 1, y2 + 1))
 
-        if deleted is not False:
+        if deleted:
             if state.image.mode != "RGBA":
                 ImageDraw.Draw(state.image).rectangle(
                     (x1, y1, x2, y2),
-                    fill=self.bg_color,
-                    outline=self.bg_color,
+                    fill=state.bg_color,
+                    outline=state.bg_color,
                 )
             else:
                 ImageDraw.Draw(state.image).rectangle(
@@ -170,30 +184,31 @@ class EditTools:
                     fill="#00000000",
                     outline="#00000000",
                 )
-            self.record_action()  # Need only for cut.
+            self.record_action()
 
         self.update_canvas()
 
     """Insert"""
 
-    def start_insert(self):
+    def insert(self):
         if hasattr(self, "buffer_local") is False or self.buffer_local is None:
             return
+
         self.set_tool("insert", _("Insert"), 100, 1, 500, "cross")
         self.insert_simple(self.buffer_local)
 
-    def insert_simple(self, insert_image=None):
+    def insert_simple(self, insert_image: Image.Image | None = None):
         self.image_tmp = insert_image
         self.current_zoom = None
         self.image_tmp_view = None
         self.image_tk = None
         self.x1, self.y1 = None, None
 
-        self.ui.canvas.bind("<ButtonRelease-1>", self.insert_end)
-        self.ui.canvas.bind("<Motion>", lambda e: self.insert_move(e, insert_image))
-        self.ui.canvas.bind("<Leave>", lambda e: self.ui.canvas.delete("tools"))
+        self.canvas.bind("<ButtonRelease-1>", self._insert_end)
+        self.canvas.bind("<Motion>", lambda e: self._insert_move(e, insert_image))
+        self.canvas.bind("<Leave>", lambda e: self.canvas.delete("tools"))
 
-    def insert_move(self, event, insert_image):
+    def _insert_move(self, event, insert_image: Image.Image):
         if state.current_tool == "sticker":
             it_width = state.tool_size
             it_height = int(insert_image.height * state.tool_size / insert_image.width)
@@ -203,12 +218,12 @@ class EditTools:
             it_height = int(insert_image.height / 100 * state.tool_size)
             if it_width <= 1 or it_height <= 1:
                 it_width, it_height = (1, 1)
-            if self.is_insert_smoothing.get():
+            if self.is_insert_smoothing:
                 resampling = Image.NEAREST
             else:
                 resampling = Image.BICUBIC
-        self.image_tmp = insert_image.resize((it_width, it_height), resampling)
 
+        self.image_tmp = insert_image.resize((it_width, it_height), resampling)
         x, y = self.canvas_to_pict_xy(event.x, event.y)
 
         self.x1 = int(x - (it_width - 1) / 2)
@@ -222,9 +237,9 @@ class EditTools:
         self.image_tk = ImageTk.PhotoImage(self.image_tmp_view)
         self.current_zoom = state.zoom
 
-        self.insert_draw_tool(self.x1, self.y1, x2, y2)
+        self._insert_draw_tool(self.x1, self.y1, x2, y2)
 
-    def insert_end(self, event):
+    def _insert_end(self, event):
         if self.x1 is None or self.y1 is None:
             return
 
@@ -236,10 +251,10 @@ class EditTools:
         self.update_canvas()
         self.record_action()
 
-    def insert_draw_tool(self, x1, y1, x2, y2):
-        self.ui.canvas.delete("tools")
+    def _insert_draw_tool(self, x1: float, y1: float, x2: float, y2: float):
+        self.canvas.delete("tools")
 
-        self.ui.canvas.create_image(
+        self.canvas.create_image(
             int(x1 * state.zoom),
             int(y1 * state.zoom),
             image=self.image_tk,
@@ -247,25 +262,7 @@ class EditTools:
             anchor="nw",
         )
 
-        self.ui.canvas.create_rectangle(
-            int(x1 * state.zoom),
-            int(y1 * state.zoom),
-            int((x2 + 1) * state.zoom - 1),
-            int((y2 + 1) * state.zoom - 1),
-            outline="white",
-            width=1,
-            tag="tools",
-        )
-        self.ui.canvas.create_rectangle(
-            int(x1 * state.zoom),
-            int(y1 * state.zoom),
-            int((x2 + 1) * state.zoom - 1),
-            int((y2 + 1) * state.zoom - 1),
-            outline="black",
-            width=1,
-            tag="tools",
-            dash=(5, 5),
-        )
+        self._draw_dashed_rect(x1, y1, x2, y2)
 
     """Crop"""
 
@@ -277,12 +274,12 @@ class EditTools:
         self.x_end = None
         self.y_end = None
 
-        self.ui.canvas.bind("<Button-1>", self.edit_selecting)
-        self.ui.canvas.bind("<B1-Motion>", self.edit_selecting)
-        self.ui.canvas.bind("<ButtonRelease-1>", self.crop_end)
+        self.canvas.bind("<Button-1>", self._edit_selecting)
+        self.canvas.bind("<B1-Motion>", self._edit_selecting)
+        self.canvas.bind("<ButtonRelease-1>", self._crop_end)
 
-    def crop_end(self, event):
-        result = self.edit_end()
+    def _crop_end(self, event):
+        result = self._edit_end()
         if result is None:
             return
         x1, y1, x2, y2 = result

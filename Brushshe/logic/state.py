@@ -7,3 +7,4 @@ brush_shape = "circle"
 selected_mask_img = None  # Can be gray_image or None
 brush_color = "black"
 second_brush_color = "white"
+bg_color = "white"

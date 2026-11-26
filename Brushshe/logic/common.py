@@ -20,6 +20,7 @@ from utils import common
 from utils.config_loader import config_file_path
 from utils.translator import _
 
+from logic.edit_tools import EditTools
 from logic.paint_tools import PaintTools
 from logic.shapes import Shapes
 
@@ -45,6 +46,14 @@ class Common:
             self.update_canvas,
             self.record_action,
         )
+        self.edit_tools = EditTools(
+            self.ui.canvas,
+            self.set_tool,
+            self.canvas_to_pict_xy,
+            self.update_canvas,
+            self.record_action,
+            self.crop_picture,
+        )
 
     def brush(self):
         self.paint_tools.brush()
@@ -69,6 +78,18 @@ class Common:
 
     def bezier_shape(self):
         self.shapes.bezier()
+
+    def copy_tool(self, deleted=False):
+        self.edit_tools.copy(deleted)
+
+    def start_insert(self):
+        self.edit_tools.insert()
+
+    def insert_simple(self, insert_image=None):
+        self.edit_tools.insert_simple(insert_image)
+
+    def crop_simple(self):
+        self.edit_tools.crop_simple()
 
     # Keybinding without locale.
     def key_handler(self, event):
@@ -115,7 +136,7 @@ class Common:
 
     def get_tool_main_color(self):
         if state.current_tool == "eraser":
-            color = self.bg_color
+            color = state.bg_color
             if state.image.mode == "RGBA":
                 color = "#00000000"
         else:
@@ -150,7 +171,7 @@ class Common:
             new_image = Image.new("RGBA", (new_width, new_height), "#00000000")
             new_image.paste(state.image, (-x1, -y1), state.image)
         else:
-            new_image = Image.new("RGB", (new_width, new_height), self.bg_color)
+            new_image = Image.new("RGB", (new_width, new_height), state.bg_color)
             new_image.paste(state.image, (-x1, -y1))
         state.image = new_image
         state.draw = ImageDraw.Draw(state.image)
@@ -229,7 +250,7 @@ class Common:
 
     def new_picture(self, color="#FFFFFF", mode="RGB", first_time=False):
         self.ui.canvas.delete("tools")
-        self.bg_color = color
+        state.bg_color = color
 
         state.image = Image.new(mode, (640, 480), color)
         self.saved_copy = state.image.copy()
@@ -329,7 +350,7 @@ class Common:
 
     def open_image(self, openimage):
         try:
-            self.bg_color = "white"
+            state.bg_color = "white"
             state.image = Image.open(openimage)
             self.saved_copy = state.image.copy()
             self.picture_postconfigure()
@@ -387,7 +408,7 @@ class Common:
     def paste_image_from_clipboard(self):
         try:
             pasted_img = ImageGrab.grabclipboard()
-            self.bg_color = "white"
+            state.bg_color = "white"
             state.image = pasted_img
             self.picture_postconfigure()
         except Exception as e:

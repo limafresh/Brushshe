@@ -14,7 +14,6 @@ from utils.config_loader import config
 from .addons import Addons
 from .canvas import CanvasOperations
 from .common import Common
-from .edit_tools import EditTools
 from .panels import Panels
 from .screenshot import Screenshot
 from .selection import Selection
@@ -24,7 +23,6 @@ from .tool_operations import ToolOperations
 class BrushsheLogic(
     Common,
     CanvasOperations,
-    EditTools,
     Selection,
     Screenshot,
     Panels,
@@ -52,8 +50,6 @@ class BrushsheLogic(
         self.canvas_tail_size = 128
         # If None - no crop, if set - need check out of crop.
         self.canvas_tails_area = None
-
-        self.bg_color = "white"
 
         self.tool_size_dict = {
             "brush": Constants().BRUSH_SIZE,

@@ -139,9 +139,12 @@ class ToolOperations:
                 side=ctk.LEFT, padx=1
             )
         elif state.current_tool == "insert":
-            ctk.CTkCheckBox(self.ui.tool_config_docker, text=_("Smoothing"), variable=self.is_insert_smoothing).pack(
-                side=ctk.LEFT, padx=5
-            )
+            ctk.CTkCheckBox(
+                self.ui.tool_config_docker,
+                text=_("Smoothing"),
+                variable=self.is_insert_smoothing,
+                command=self.insert_smoothing_event,
+            ).pack(side=ctk.LEFT, padx=5)
 
         self.ui.focus_set()
 
@@ -163,3 +166,6 @@ class ToolOperations:
     def font_optionmenu_callback(self, value):
         self.current_font = value
         self.paint_tools.font_path = resource(Constants.FONTS_DICT.get(value))
+
+    def insert_smoothing_event(self, choice):
+        self.edit_tools_is_insert_smoothing = choice

@@ -6,7 +6,7 @@ import sys
 
 import customtkinter as ctk
 from constants import Constants
-from logic import BrushsheLogic
+from logic import BrushsheLogic, state
 from PIL import Image, ImageTk
 from ui.brush_palette import BrushPalette
 from ui.tooltip import Tooltip
@@ -161,7 +161,7 @@ class BrushsheGui(ctk.CTk, MenuBar, Settings):
 
         """Initialization"""
         self.logic.set_left_toolbar(False)
-        self.logic.new_picture(self.logic.bg_color, first_time=True)
+        self.logic.new_picture(state.bg_color, first_time=True)
         self.logic.init_tools()
         self.logic.paint_tools.brush()
         self.update()  # Update interface before recalculate canvas.

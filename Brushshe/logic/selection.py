@@ -331,7 +331,7 @@ class Selection:
         if state.selected_mask_img is None:
             return
 
-        bg_color = self.bg_color
+        bg_color = state.bg_color
         if state.image.mode == "RGBA":
             bg_color = (0, 0, 0, 0)
         tmp_img = Image.new(state.image.mode, (state.image.width, state.image.height), bg_color)
