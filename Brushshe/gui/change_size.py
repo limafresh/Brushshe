@@ -16,7 +16,7 @@ class ChangeSizeDialog(ctk.CTkToplevel):
     MAX_IMAGE_HEIGHT = 2000
 
     def __init__(
-        self, master, icon: ImageTk.PhotoImage, image: Image, crop_function: Callable, scale_function: Callable
+        self, master, icon: ImageTk.PhotoImage, image: Image.Image, crop_function: Callable, scale_function: Callable
     ):
         super().__init__(master)
 
