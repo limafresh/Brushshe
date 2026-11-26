@@ -7,6 +7,8 @@ import math
 from PIL import Image, ImageChops, ImageDraw, ImageTk
 from utils.translator import _
 
+from . import state
+
 
 class EditTools:
     """Common"""
@@ -16,7 +18,7 @@ class EditTools:
             image = self.screenshot
             draw_tool = self.screenshot_draw_tool
         else:
-            image = self.image
+            image = state.image
             draw_tool = self.edit_draw_tool
 
         x, y = self.canvas_to_pict_xy(event.x, event.y)
@@ -51,19 +53,19 @@ class EditTools:
         self.ui.canvas.delete("tools")
 
         self.ui.canvas.create_rectangle(
-            int(x1 * self.zoom),
-            int(y1 * self.zoom),
-            int((x2 + 1) * self.zoom - 1),
-            int((y2 + 1) * self.zoom - 1),
+            int(x1 * state.zoom),
+            int(y1 * state.zoom),
+            int((x2 + 1) * state.zoom - 1),
+            int((y2 + 1) * state.zoom - 1),
             outline="white",
             width=1,
             tag="tools",
         )
         self.ui.canvas.create_rectangle(
-            int(x1 * self.zoom),
-            int(y1 * self.zoom),
-            int((x2 + 1) * self.zoom - 1),
-            int((y2 + 1) * self.zoom - 1),
+            int(x1 * state.zoom),
+            int(y1 * state.zoom),
+            int((x2 + 1) * state.zoom - 1),
+            int((y2 + 1) * state.zoom - 1),
             outline="black",
             width=1,
             tag="tools",
@@ -92,19 +94,19 @@ class EditTools:
     """Copy and cut"""
 
     def copy_tool(self, deleted=False):
-        if self.selected_mask_img is None:
+        if state.selected_mask_img is None:
             self.copy_simple(deleted)
         else:
             self.copy_selected(deleted)
 
     def copy_selected(self, deleted=False):
-        if self.selected_mask_img is None:
+        if state.selected_mask_img is None:
             return
 
         tmp_bg_color = (0, 0, 0, 0)
-        tmp_img_mask = self.selected_mask_img
-        tmp_img = Image.new("RGBA", (self.image.width, self.image.height), tmp_bg_color)
-        tmp_img.paste(self.image, (0, 0), tmp_img_mask)
+        tmp_img_mask = state.selected_mask_img
+        tmp_img = Image.new("RGBA", (state.image.width, state.image.height), tmp_bg_color)
+        tmp_img.paste(state.image, (0, 0), tmp_img_mask)
 
         # Trim image.
         bg = Image.new(tmp_img.mode, tmp_img.size, tmp_bg_color)
@@ -121,10 +123,10 @@ class EditTools:
 
         if deleted:
             bg_color = self.bg_color
-            if self.image.mode == "RGBA":
+            if state.image.mode == "RGBA":
                 bg_color = (0, 0, 0, 0)
-            tmp_img = Image.new(self.image.mode, (self.image.width, self.image.height), bg_color)
-            self.image.paste(tmp_img, (0, 0), tmp_img_mask)
+            tmp_img = Image.new(state.image.mode, (state.image.width, state.image.height), bg_color)
+            state.image.paste(tmp_img, (0, 0), tmp_img_mask)
             del tmp_img
             self.record_action()
 
@@ -153,17 +155,17 @@ class EditTools:
 
         # INFO: Float. From begin first pixel to end last pixel (begin last+1 pixel).
         #       One first pixel look like (0, 0, 1, 1).
-        self.buffer_local = self.image.crop((x1, y1, x2 + 1, y2 + 1))
+        self.buffer_local = state.image.crop((x1, y1, x2 + 1, y2 + 1))
 
         if deleted is not False:
-            if self.image.mode != "RGBA":
-                ImageDraw.Draw(self.image).rectangle(
+            if state.image.mode != "RGBA":
+                ImageDraw.Draw(state.image).rectangle(
                     (x1, y1, x2, y2),
                     fill=self.bg_color,
                     outline=self.bg_color,
                 )
             else:
-                ImageDraw.Draw(self.image).rectangle(
+                ImageDraw.Draw(state.image).rectangle(
                     (x1, y1, x2, y2),
                     fill="#00000000",
                     outline="#00000000",
@@ -193,12 +195,12 @@ class EditTools:
 
     def insert_move(self, event, insert_image):
         if self.current_tool == "sticker":
-            it_width = self.tool_size
-            it_height = int(insert_image.height * self.tool_size / insert_image.width)
+            it_width = state.tool_size
+            it_height = int(insert_image.height * state.tool_size / insert_image.width)
             resampling = Image.BICUBIC
         else:
-            it_width = int(insert_image.width / 100 * self.tool_size)
-            it_height = int(insert_image.height / 100 * self.tool_size)
+            it_width = int(insert_image.width / 100 * state.tool_size)
+            it_height = int(insert_image.height / 100 * state.tool_size)
             if it_width <= 1 or it_height <= 1:
                 it_width, it_height = (1, 1)
             if self.is_insert_smoothing.get():
@@ -214,9 +216,11 @@ class EditTools:
         x2 = int(self.x1 + it_width - 1)
         y2 = int(self.y1 + it_height - 1)
 
-        self.image_tmp_view = self.image_tmp.resize((int(it_width * self.zoom), int(it_height * self.zoom)), Image.BOX)
+        self.image_tmp_view = self.image_tmp.resize(
+            (int(it_width * state.zoom), int(it_height * state.zoom)), Image.BOX
+        )
         self.image_tk = ImageTk.PhotoImage(self.image_tmp_view)
-        self.current_zoom = self.zoom
+        self.current_zoom = state.zoom
 
         self.insert_draw_tool(self.x1, self.y1, x2, y2)
 
@@ -225,9 +229,9 @@ class EditTools:
             return
 
         if self.image_tmp.mode == "RGBA":
-            self.image.paste(self.image_tmp, (self.x1, self.y1), self.image_tmp)
+            state.image.paste(self.image_tmp, (self.x1, self.y1), self.image_tmp)
         else:
-            self.image.paste(self.image_tmp, (self.x1, self.y1))
+            state.image.paste(self.image_tmp, (self.x1, self.y1))
 
         self.update_canvas()
         self.record_action()
@@ -236,27 +240,27 @@ class EditTools:
         self.ui.canvas.delete("tools")
 
         self.ui.canvas.create_image(
-            int(x1 * self.zoom),
-            int(y1 * self.zoom),
+            int(x1 * state.zoom),
+            int(y1 * state.zoom),
             image=self.image_tk,
             tag="tools",
             anchor="nw",
         )
 
         self.ui.canvas.create_rectangle(
-            int(x1 * self.zoom),
-            int(y1 * self.zoom),
-            int((x2 + 1) * self.zoom - 1),
-            int((y2 + 1) * self.zoom - 1),
+            int(x1 * state.zoom),
+            int(y1 * state.zoom),
+            int((x2 + 1) * state.zoom - 1),
+            int((y2 + 1) * state.zoom - 1),
             outline="white",
             width=1,
             tag="tools",
         )
         self.ui.canvas.create_rectangle(
-            int(x1 * self.zoom),
-            int(y1 * self.zoom),
-            int((x2 + 1) * self.zoom - 1),
-            int((y2 + 1) * self.zoom - 1),
+            int(x1 * state.zoom),
+            int(y1 * state.zoom),
+            int((x2 + 1) * state.zoom - 1),
+            int((y2 + 1) * state.zoom - 1),
             outline="black",
             width=1,
             tag="tools",
@@ -287,6 +291,6 @@ class EditTools:
 
         # Remove mask if exist.
         # TODO: Continue...
-        self.selected_mask_img = None
+        state.selected_mask_img = None
 
         self.update_canvas()

@@ -20,8 +20,42 @@ from utils import common
 from utils.config_loader import config_file_path
 from utils.translator import _
 
+from logic.paint_tools import PaintTools
+
+from . import state
+
 
 class Common:
+    def init_tools(self):
+        self.paint_tools = PaintTools(
+            self.ui.canvas,
+            self.set_tool,
+            self.canvas_to_pict_xy,
+            self.draw_line,
+            self.update_canvas,
+            self.record_action,
+            state.image,
+            state.draw,
+        )
+
+    def brush(self):
+        self.paint_tools.brush()
+
+    def eraser(self):
+        self.paint_tools.brush(type="eraser")
+
+    def start_fill(self):
+        self.paint_tools.fill()
+
+    def recoloring_brush(self):
+        self.paint_tools.recoloring_brush()
+
+    def spray(self):
+        self.paint_tools.spray()
+
+    def text_tool(self):
+        self.paint_tools.text()
+
     # Keybinding without locale.
     def key_handler(self, event):
         if self.current_tool != "text":
@@ -48,9 +82,9 @@ class Common:
 
     def when_closing(self):
         if (
-            self.saved_copy.mode != self.image.mode
-            or self.saved_copy.size != self.image.size
-            or ImageChops.difference(self.saved_copy, self.image).getbbox()
+            self.saved_copy.mode != state.image.mode
+            or self.saved_copy.size != state.image.size
+            or ImageChops.difference(self.saved_copy, state.image).getbbox()
         ):
             msg = messagebox.leave_brushshe(self.ui)
             if msg.get() == _("Save"):
@@ -68,46 +102,46 @@ class Common:
     def get_tool_main_color(self):
         if self.current_tool == "eraser":
             color = self.bg_color
-            if self.image.mode == "RGBA":
+            if state.image.mode == "RGBA":
                 color = "#00000000"
         else:
             # For shape, etc.
-            color = self.brush_color
-            if self.image.mode == "RGBA":
+            color = state.brush_color
+            if state.image.mode == "RGBA":
                 color = common.rgb_tuple_to_rgba_tuple(self.rgb_color_to_tuple(color), 255)
         return color
 
     def record_action(self):
-        self.undo_stack.append(self.image.copy())
+        self.undo_stack.append(state.image.copy())
         if self.autosave_var.get() and self.current_file is not None:
             self.save_current(autosave=True)
 
     def draw_line(self, x1, y1, x2, y2):
         color = self.get_tool_main_color()
 
-        if self.selected_mask_img is None:
-            bh_draw_line(self.draw, x1, y1, x2, y2, color, self.tool_size, self.brush_shape, self.current_tool)
+        if state.selected_mask_img is None:
+            bh_draw_line(state.draw, x1, y1, x2, y2, color, state.tool_size, state.brush_shape, self.current_tool)
         else:
-            tmp_image = self.image.copy()
+            tmp_image = state.image.copy()
             tmp_draw = ImageDraw.Draw(tmp_image)
-            bh_draw_line(tmp_draw, x1, y1, x2, y2, color, self.tool_size, self.brush_shape, self.current_tool)
-            self.image.paste(tmp_image, (0, 0), self.selected_mask_img)
+            bh_draw_line(tmp_draw, x1, y1, x2, y2, color, state.tool_size, state.brush_shape, self.current_tool)
+            state.image.paste(tmp_image, (0, 0), state.selected_mask_img)
             del tmp_image
 
     def crop_picture(self, x1, y1, x2, y2, event=None):
         new_width = x2 - x1
         new_height = y2 - y1
 
-        if self.image.mode == "RGBA":
+        if state.image.mode == "RGBA":
             new_image = Image.new("RGBA", (new_width, new_height), "#00000000")
-            new_image.paste(self.image, (-x1, -y1), self.image)
+            new_image.paste(state.image, (-x1, -y1), state.image)
         else:
             new_image = Image.new("RGB", (new_width, new_height), self.bg_color)
-            new_image.paste(self.image, (-x1, -y1))
-        self.image = new_image
-        self.draw = ImageDraw.Draw(self.image)
+            new_image.paste(state.image, (-x1, -y1))
+        state.image = new_image
+        state.draw = ImageDraw.Draw(state.image)
 
-        self.selected_mask_img = None
+        state.selected_mask_img = None
 
         self.force_resize_canvas()
         self.update_canvas()
@@ -115,20 +149,20 @@ class Common:
         self.record_action()
 
     def scale_picture(self, new_width, new_height):
-        scaled_image = self.image.resize((new_width, new_height), Image.NEAREST)
-        self.image = scaled_image
+        scaled_image = state.image.resize((new_width, new_height), Image.NEAREST)
+        state.image = scaled_image
         self.picture_postconfigure()
 
     def eyedropper(self, event):
         # Get the coordinates of the click event
         x, y = self.canvas_to_pict_xy(event.x, event.y)
 
-        color = self.image.getpixel((x, y))
+        color = state.image.getpixel((x, y))
         if isinstance(color, tuple):
             color = color[:3]
         self.obtained_color = "#{:02x}{:02x}{:02x}".format(*color)
 
-        self.brush_color = self.obtained_color
+        state.brush_color = self.obtained_color
         self.ui.brush_palette.main_color = self.obtained_color
 
     def open_from_file(self):
@@ -150,8 +184,8 @@ class Common:
     def save_current(self, autosave=False):
         if self.current_file is not None:
             try:
-                self.image.save(self.current_file)
-                self.saved_copy = self.image.copy()
+                state.image.save(self.current_file)
+                self.saved_copy = state.image.copy()
                 if not autosave:
                     messagebox.save_current()
             except Exception as e:
@@ -165,8 +199,8 @@ class Common:
         )
         if file_path:
             try:
-                self.image.save(file_path)
-                self.saved_copy = self.image.copy()
+                state.image.save(file_path)
+                self.saved_copy = state.image.copy()
                 messagebox.save_as(Path(file_path).suffix)
                 self.current_file = file_path
                 self.ui.title(os.path.basename(self.current_file) + " - " + _("Brushshe"))
@@ -183,19 +217,19 @@ class Common:
         self.ui.canvas.delete("tools")
         self.bg_color = color
 
-        self.image = Image.new(mode, (640, 480), color)
-        self.saved_copy = self.image.copy()
-        self.draw = ImageDraw.Draw(self.image)
+        state.image = Image.new(mode, (640, 480), color)
+        self.saved_copy = state.image.copy()
+        state.draw = ImageDraw.Draw(state.image)
         self.ui.canvas.xview_moveto(0)
         self.ui.canvas.yview_moveto(0)
 
         if first_time:
-            self.img_tk = ImageTk.PhotoImage(self.image)
+            self.img_tk = ImageTk.PhotoImage(state.image)
             self.canvas_image = self.ui.canvas.create_image(0, 0, anchor=ctk.NW, image=self.img_tk)
         else:
             pass
 
-        self.selected_mask_img = None
+        state.selected_mask_img = None
 
         self.force_resize_canvas()
         self.update_canvas()
@@ -210,10 +244,10 @@ class Common:
         if len(self.undo_stack) > 1:
             tmp_image = self.undo_stack.pop()
             self.redo_stack.append(tmp_image)
-            self.image = self.undo_stack[-1].copy()
-            self.draw = ImageDraw.Draw(self.image)
-            if self.image.width != tmp_image.width or self.image.height != tmp_image.height:
-                self.selected_mask_img = None
+            state.image = self.undo_stack[-1].copy()
+            state.draw = ImageDraw.Draw(state.image)
+            if state.image.width != tmp_image.width or state.image.height != tmp_image.height:
+                state.selected_mask_img = None
                 self.force_resize_canvas()
             self.update_canvas()
 
@@ -221,13 +255,13 @@ class Common:
         if len(self.redo_stack) > 0:
             tmp_image = self.redo_stack.pop().copy()
             is_resize = False
-            if self.image.width != tmp_image.width or self.image.height != tmp_image.height:
+            if state.image.width != tmp_image.width or state.image.height != tmp_image.height:
                 is_resize = True
-            self.image = tmp_image
+            state.image = tmp_image
             self.record_action()
-            self.draw = ImageDraw.Draw(self.image)
+            state.draw = ImageDraw.Draw(state.image)
             if is_resize:
-                self.selected_mask_img = None
+                state.selected_mask_img = None
                 self.force_resize_canvas()
             self.update_canvas()
 
@@ -235,8 +269,8 @@ class Common:
         file_path = Constants.GALLERY_FOLDER / f"{uuid4()}.png"
         while file_path.exists():
             file_path = Constants.GALLERY_FOLDER / f"{uuid4()}.png"
-        self.image.save(file_path)
-        self.saved_copy = self.image.copy()
+        state.image.save(file_path)
+        self.saved_copy = state.image.copy()
 
         self.current_file = str(file_path)
         self.ui.title(os.path.basename(self.current_file) + " - " + _("Brushshe"))
@@ -244,20 +278,20 @@ class Common:
         messagebox.save_to_gallery()
 
     def change_color(self, new_color):
-        self.brush_color = new_color
-        self.ui.brush_palette.main_color = self.brush_color
+        state.brush_color = new_color
+        self.ui.brush_palette.main_color = state.brush_color
 
     def main_color_choice(self):
-        askcolor = AskColor(title=_("Color select"), initial_color=self.brush_color)
+        askcolor = AskColor(title=_("Color select"), initial_color=state.brush_color)
         self.obtained_color = askcolor.get()
         if self.obtained_color:
             self.change_color(self.obtained_color)
 
     def second_color_choice(self):
-        askcolor = AskColor(title=_("Color select"), initial_color=self.second_brush_color)
+        askcolor = AskColor(title=_("Color select"), initial_color=state.second_brush_color)
         self.obtained_color = askcolor.get()
         if self.obtained_color:
-            self.second_brush_color = self.obtained_color
+            state.second_brush_color = self.obtained_color
             self.ui.brush_palette.second_color = self.obtained_color
 
     def color_choice_btn(self, event, btn, index):
@@ -273,20 +307,20 @@ class Common:
             self.palette[index] = self.obtained_color
 
     def flip_brush_colors(self):
-        self.brush_color = self.ui.brush_palette.second_color
-        self.second_brush_color = self.ui.brush_palette.main_color
+        state.brush_color = self.ui.brush_palette.second_color
+        state.second_brush_color = self.ui.brush_palette.main_color
 
-        self.ui.brush_palette.main_color = self.brush_color
-        self.ui.brush_palette.second_color = self.second_brush_color
+        self.ui.brush_palette.main_color = state.brush_color
+        self.ui.brush_palette.second_color = state.second_brush_color
 
     def open_image(self, openimage):
         try:
             self.bg_color = "white"
-            self.image = Image.open(openimage)
-            self.saved_copy = self.image.copy()
+            state.image = Image.open(openimage)
+            self.saved_copy = state.image.copy()
             self.picture_postconfigure()
 
-            self.selected_mask_img = None
+            state.selected_mask_img = None
 
             if not isinstance(openimage, BytesIO):
                 self.current_file = openimage
@@ -298,12 +332,12 @@ class Common:
             messagebox.open_file_error(e)
 
     def rotate(self, degree):
-        rotated_image = self.image.rotate(degree, expand=True)
-        self.image = rotated_image
+        rotated_image = state.image.rotate(degree, expand=True)
+        state.image = rotated_image
         self.picture_postconfigure()
 
     def remove_white_background(self):
-        transparent_bg_img = self.image.convert("RGBA")
+        transparent_bg_img = state.image.convert("RGBA")
         datas = transparent_bg_img.getdata()
 
         new_data = []
@@ -314,13 +348,13 @@ class Common:
                 new_data.append(item)
 
         transparent_bg_img.putdata(new_data)
-        self.image = transparent_bg_img
+        state.image = transparent_bg_img
         self.picture_postconfigure()
 
     def picture_postconfigure(self):
         self.ui.canvas.delete("tools")
 
-        self.draw = ImageDraw.Draw(self.image)
+        state.draw = ImageDraw.Draw(state.image)
 
         self.ui.canvas.xview_moveto(0)
         self.ui.canvas.yview_moveto(0)
@@ -332,15 +366,15 @@ class Common:
 
     def brush_shape_btn_callback(self, value):
         if value == "●":
-            self.brush_shape = "circle"
+            state.brush_shape = "circle"
         elif value == "■":
-            self.brush_shape = "square"
+            state.brush_shape = "square"
 
     def paste_image_from_clipboard(self):
         try:
             pasted_img = ImageGrab.grabclipboard()
             self.bg_color = "white"
-            self.image = pasted_img
+            state.image = pasted_img
             self.picture_postconfigure()
         except Exception as e:
             messagebox.paste_error(e)
@@ -356,7 +390,7 @@ class Common:
         return (r, g, b)
 
     def get_contrast_color(self) -> str:
-        stat = ImageStat.Stat(self.image)
+        stat = ImageStat.Stat(state.image)
         r, g, b = stat.mean[:3]
         contrast_color = "#232323" if (r + g + b) / 3 > 127 else "#e8e8e8"
 
@@ -374,8 +408,8 @@ class Common:
             self.insert_simple(self.last_sticker_image)
 
     def apply_frame(self, frame):
-        resized_frame = frame.resize((self.image.width, self.image.height))
-        self.image.paste(resized_frame, (0, 0), resized_frame)
+        resized_frame = frame.resize((state.image.width, state.image.height))
+        state.image.paste(resized_frame, (0, 0), resized_frame)
         self.update_canvas()
         self.record_action()
 
@@ -386,32 +420,32 @@ class Common:
         effect_value = self.effects_optionmenu.get()
 
         if effect_value == _("Blur"):
-            result = self.image.copy().filter(ImageFilter.GaussianBlur(radius=self.tool_size))
+            result = state.image.copy().filter(ImageFilter.GaussianBlur(radius=state.tool_size))
         elif effect_value == _("Detail"):
-            result = ImageEnhance.Sharpness(self.image.copy()).enhance(self.tool_size)
+            result = ImageEnhance.Sharpness(state.image.copy()).enhance(state.tool_size)
         elif effect_value == _("Contour"):
-            result = self.image.copy().filter(ImageFilter.CONTOUR)
+            result = state.image.copy().filter(ImageFilter.CONTOUR)
         elif effect_value == _("Grayscale"):
-            result = ImageOps.grayscale(self.image.copy())
+            result = ImageOps.grayscale(state.image.copy())
         elif effect_value == _("Mirror"):
-            result = ImageOps.mirror(self.image.copy())
+            result = ImageOps.mirror(state.image.copy())
         elif effect_value == _("Metal"):
-            result = self.image.copy().filter(ImageFilter.EMBOSS)
+            result = state.image.copy().filter(ImageFilter.EMBOSS)
         elif effect_value == _("Inversion"):
-            result = ImageOps.invert(self.image.copy())
+            result = ImageOps.invert(state.image.copy())
         elif effect_value == _("Brightness"):
-            result = ImageEnhance.Brightness(self.image.copy()).enhance(self.tool_size / 10)
+            result = ImageEnhance.Brightness(state.image.copy()).enhance(state.tool_size / 10)
         elif effect_value == _("Contrast"):
-            result = ImageEnhance.Contrast(self.image.copy()).enhance(self.tool_size / 10)
+            result = ImageEnhance.Contrast(state.image.copy()).enhance(state.tool_size / 10)
 
         self.effects_post_actions(result)
 
     def effects_post_actions(self, result):
-        if self.selected_mask_img is None:
-            self.image = result
-            self.draw = ImageDraw.Draw(self.image)
+        if state.selected_mask_img is None:
+            state.image = result
+            state.draw = ImageDraw.Draw(state.image)
         else:
-            self.image.paste(result, (0, 0), self.selected_mask_img)
+            state.image.paste(result, (0, 0), state.selected_mask_img)
 
         self.update_canvas()
         self.record_action()

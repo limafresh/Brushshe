@@ -8,6 +8,8 @@ from core.bhbrush import bh_draw_line
 from PIL import ImageDraw
 from utils.translator import _
 
+from . import state
+
 
 class Shapes:
     def create_shape(self, shape):
@@ -63,18 +65,18 @@ class Shapes:
         else:
             y0, y1 = y_end, self.y_begin
 
-        if self.selected_mask_img is None:
-            tmp_draw = ImageDraw.Draw(self.image)
+        if state.selected_mask_img is None:
+            tmp_draw = ImageDraw.Draw(state.image)
         else:
-            tmp_image = self.image.copy()
+            tmp_image = state.image.copy()
             tmp_draw = ImageDraw.Draw(tmp_image)
 
         color = self.get_tool_main_color()
 
         if self.shape == "Rectangle":
-            tmp_draw.rectangle([x0, y0, x1, y1], outline=self.brush_color, width=self.tool_size)
+            tmp_draw.rectangle([x0, y0, x1, y1], outline=state.brush_color, width=state.tool_size)
         elif self.shape == "Oval":
-            tmp_draw.ellipse([x0, y0, x1, y1], outline=self.brush_color, width=self.tool_size)
+            tmp_draw.ellipse([x0, y0, x1, y1], outline=state.brush_color, width=state.tool_size)
         elif self.shape == "Line":
             # self.draw_line(x_begin, y_begin, x_end, y_end)
             bh_draw_line(
@@ -84,21 +86,21 @@ class Shapes:
                 x_end,
                 y_end,
                 color,
-                self.tool_size,
-                self.brush_shape,
+                state.tool_size,
+                state.brush_shape,
                 self.current_tool,
             )
         elif self.shape == "Fill rectangle":
-            tmp_draw.rectangle([x0, y0, x1, y1], fill=self.brush_color)
+            tmp_draw.rectangle([x0, y0, x1, y1], fill=state.brush_color)
         elif self.shape == "Fill oval":
-            tmp_draw.ellipse([x0, y0, x1, y1], fill=self.brush_color)
+            tmp_draw.ellipse([x0, y0, x1, y1], fill=state.brush_color)
         else:
             print("Warning: Incorrect shape.")
 
-        if self.selected_mask_img is None:
+        if state.selected_mask_img is None:
             pass
         else:
-            self.image.paste(tmp_image, (0, 0), self.selected_mask_img)
+            state.image.paste(tmp_image, (0, 0), state.selected_mask_img)
             del tmp_image
 
         self.update_canvas()
@@ -207,11 +209,11 @@ class Shapes:
 
             color = self.get_tool_main_color()
 
-            if self.selected_mask_img is None:
-                tmp_image = self.image
+            if state.selected_mask_img is None:
+                tmp_image = state.image
                 tmp_draw = ImageDraw.Draw(tmp_image)
             else:
-                tmp_image = self.image.copy()
+                tmp_image = state.image.copy()
                 tmp_draw = ImageDraw.Draw(tmp_image)
 
             for it, tt in enumerate(points):
@@ -223,15 +225,15 @@ class Shapes:
                         int(points[it + 1][0]),
                         int(points[it + 1][1]),
                         color,
-                        self.tool_size,
-                        self.brush_shape,
+                        state.tool_size,
+                        state.brush_shape,
                         self.current_tool,
                     )
 
-            if self.selected_mask_img is None:
+            if state.selected_mask_img is None:
                 pass
             else:
-                self.image.paste(tmp_image, (0, 0), self.selected_mask_img)
+                state.image.paste(tmp_image, (0, 0), state.selected_mask_img)
                 del tmp_image
 
             self.ui.canvas.delete(self.bezier_id)

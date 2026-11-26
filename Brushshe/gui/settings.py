@@ -34,16 +34,16 @@ class Settings:
             save_config("grid_step", str(grid_step_spinbox.get()))
 
         def smooth_switch_event():
-            self.logic.is_brush_smoothing = smooth_var.get()
-            save_config("smoothing", str(self.logic.is_brush_smoothing))
+            self.logic.paint_tools.is_brush_smoothing = smooth_var.get()
+            save_config("smoothing", str(self.logic.paint_tools.is_brush_smoothing))
 
         def bsq_event(value):
-            self.logic.brush_smoothing_quality = int(value)
-            save_config("brush_smoothing_quality", str(self.logic.brush_smoothing_quality))
+            self.logic.paint_tools.brush_smoothing_quality = int(value)
+            save_config("brush_smoothing_quality", str(self.logic.paint_tools.brush_smoothing_quality))
 
         def bsf_event(value):
-            self.logic.brush_smoothing_factor = int(value)
-            save_config("brush_smoothing_factor", str(self.logic.brush_smoothing_factor))
+            self.logic.paint_tools.brush_smoothing_factor = int(value)
+            save_config("brush_smoothing_factor", str(self.logic.paint_tools.brush_smoothing_factor))
 
         def mask_radiobutton_callback():
             self.logic.set_mask_type(mask_var.get())
@@ -140,7 +140,7 @@ class Settings:
         smooth_frame = ctk.CTkFrame(scrollable_frame)
         smooth_frame.pack(padx=10, pady=10, fill="x")
 
-        smooth_var = ctk.BooleanVar(value=self.logic.is_brush_smoothing)
+        smooth_var = ctk.BooleanVar(value=self.logic.paint_tools.is_brush_smoothing)
         ctk.CTkSwitch(
             smooth_frame,
             text=_("Smoothing for brush/eraser"),
@@ -151,13 +151,13 @@ class Settings:
         ctk.CTkLabel(smooth_frame, text=_("Brush smoothing quality")).pack(padx=10, pady=10)
 
         bsq_slider = ctk.CTkSlider(smooth_frame, from_=1, to=64, command=bsq_event)
-        bsq_slider.set(self.logic.brush_smoothing_quality)
+        bsq_slider.set(self.logic.paint_tools.brush_smoothing_quality)
         bsq_slider.pack(padx=10, pady=10)
 
         ctk.CTkLabel(smooth_frame, text=_("Brush smoothing factor (weight)")).pack(padx=10, pady=1)
 
         bsf_slider = ctk.CTkSlider(smooth_frame, from_=3, to=64, command=bsf_event)
-        bsf_slider.set(self.logic.brush_smoothing_factor)
+        bsf_slider.set(self.logic.paint_tools.brush_smoothing_factor)
         bsf_slider.pack(padx=10, pady=10)
 
         mask_frame = ctk.CTkFrame(scrollable_frame)

@@ -4,10 +4,12 @@
 
 import customtkinter as ctk
 from constants import Constants
-from PIL import ImageFont
+from core.gradient_fill import directions
 from ui.tooltip import Tooltip
 from utils.common import resource
 from utils.translator import _
+
+from . import state
 
 
 class ToolOperations:
@@ -30,19 +32,19 @@ class ToolOperations:
         self.ui.tool_size_slider.set(int(new_size))
 
     def change_tool_size(self, value):
-        self.tool_size = int(value)
-        self.ui.tool_size_tooltip.configure(message=self.tool_size)
+        state.tool_size = int(value)
+        self.ui.tool_size_tooltip.configure(message=state.tool_size)
 
         if self.tool_size_dict.get(self.current_tool):
             self.tool_size_dict[self.current_tool] = int(value)
 
         if self.current_tool in ["insert", "real size sticker"]:
-            self.ui.tool_size_label.configure(text=f"{self.tool_size} %")
+            self.ui.tool_size_label.configure(text=f"{state.tool_size} %")
         else:
-            self.ui.tool_size_label.configure(text=self.tool_size)
+            self.ui.tool_size_label.configure(text=state.tool_size)
 
     def get_tool_size(self):
-        return self.tool_size_dict.get(self.current_tool) or self.tool_size
+        return self.tool_size_dict.get(self.current_tool) or state.tool_size
 
     def set_tool(self, tool, tool_name, tool_size, from_, to, cursor):
         self.current_tool = tool
@@ -76,38 +78,42 @@ class ToolOperations:
             self.ui.tool_size_label.pack_forget()
         else:
             self.ui.tool_label.configure(text=tool_name + ":")
-            self.tool_size = tool_size
+            state.tool_size = tool_size
             self.ui.tool_size_slider.configure(from_=from_, to=to)
-            self.ui.tool_size_slider.set(self.tool_size)
+            self.ui.tool_size_slider.set(state.tool_size)
             self.ui.tool_size_slider.pack(side=ctk.LEFT, padx=1)
             if self.current_tool in ["insert", "real size sticker"]:
-                self.ui.tool_size_label.configure(text=f"{self.tool_size} %")
+                self.ui.tool_size_label.configure(text=f"{state.tool_size} %")
             else:
-                self.ui.tool_size_label.configure(text=self.tool_size)
+                self.ui.tool_size_label.configure(text=state.tool_size)
             self.ui.tool_size_label.pack(side=ctk.LEFT, padx=5)
-            self.ui.tool_size_tooltip.configure(message=self.tool_size)
+            self.ui.tool_size_tooltip.configure(message=state.tool_size)
 
         if self.current_tool in ["brush", "eraser"]:
             brush_shape_btn = ctk.CTkSegmentedButton(
                 self.ui.tool_config_docker, values=["●", "■"], command=self.brush_shape_btn_callback
             )
-            brush_shape_btn.set({"circle": "●", "square": "■"}[self.brush_shape])
+            brush_shape_btn.set({"circle": "●", "square": "■"}[state.brush_shape])
             brush_shape_btn.pack(side=ctk.LEFT, padx=5)
         elif self.current_tool == "fill":
             ctk.CTkCheckBox(
                 self.ui.tool_config_docker,
                 text=_("Gradient"),
                 variable=self.is_gradient_fill,
+                command=self.gradient_fill_checkbox_event,
             ).pack(side=ctk.LEFT, padx=5)
+            self.direction_by_label = {_(direction): direction for direction in directions}
             self.gradient_mode_optionmenu = ctk.CTkOptionMenu(
                 self.ui.tool_config_docker,
-                values=[_("Vertically"), _("Horizontally"), _("Diagonally"), _("Radially"), _("Rings"), _("Noise")],
+                values=list(self.direction_by_label.keys()),
+                command=self.gradient_optionmenu_callback,
             )
             self.gradient_mode_optionmenu.set(_("Vertically"))
             self.gradient_mode_optionmenu.pack(side=ctk.LEFT, padx=1)
         elif self.current_tool == "text":
             self.tx_entry = ctk.CTkEntry(self.ui.tool_config_docker, placeholder_text=_("Enter text..."))
             self.tx_entry.pack(side=ctk.LEFT, padx=5)
+            self.tx_entry.bind("<KeyRelease>", self.update_text_content)
 
             font_optionmenu = ctk.CTkOptionMenu(
                 self.ui.tool_config_docker,
@@ -143,9 +149,17 @@ class ToolOperations:
         self.ui.canvas.delete("tools")
 
     def brush_shape_btn_callback(self, value):
-        self.brush_shape = {"●": "circle", "■": "square"}[value]
+        state.brush_shape = {"●": "circle", "■": "square"}[value]
+
+    def gradient_fill_checkbox_event(self):
+        self.paint_tools.is_gradient_fill = self.is_gradient_fill.get()
+
+    def gradient_optionmenu_callback(self, choice):
+        self.paint_tools.gradient_fill_direction = self.direction_by_label[choice]
+
+    def update_text_content(self, event):
+        self.paint_tools.text_content = self.tx_entry.get()
 
     def font_optionmenu_callback(self, value):
         self.current_font = value
-        self.font_path = resource(Constants.FONTS_DICT.get(value))
-        self.imagefont = ImageFont.truetype(self.font_path, self.tool_size)
+        self.paint_tools.font_path = resource(Constants.FONTS_DICT.get(value))

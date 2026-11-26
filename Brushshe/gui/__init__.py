@@ -162,7 +162,8 @@ class BrushsheGui(ctk.CTk, MenuBar, Settings):
         """Initialization"""
         self.logic.set_left_toolbar(False)
         self.logic.new_picture(self.logic.bg_color, first_time=True)
-        self.logic.brush()
+        self.logic.init_tools()
+        self.logic.paint_tools.brush()
         self.update()  # Update interface before recalculate canvas.
         self.logic.force_resize_canvas()
         self.logic.update_canvas()

@@ -7,6 +7,8 @@ import time
 
 from PIL import Image, ImageTk
 
+from . import state
+
 
 class CanvasOperations:
     def v_scrollbar_command(self, a, b, c=None):
@@ -21,7 +23,7 @@ class CanvasOperations:
 
     def on_window_resize(self, event):
         # Update canvas after any resize window.
-        if self.zoom >= 1 and hasattr(self.ui, "canvas"):
+        if state.zoom >= 1 and hasattr(self.ui, "canvas"):
             self.update_canvas()
 
     def scroll_on_canvasy(self, event):
@@ -53,12 +55,12 @@ class CanvasOperations:
     def zoom_in(self, event=None):
         self.ui.canvas.delete("tools")
 
-        if 1 < self.zoom < 2:  # Need if zoom not integer but more 1 and less 2
-            self.zoom = 1
-        if 1 <= self.zoom < 12:
-            self.zoom += 1
-        elif self.zoom < 1:
-            self.zoom *= 2
+        if 1 < state.zoom < 2:  # Need if zoom not integer but more 1 and less 2
+            state.zoom = 1
+        if 1 <= state.zoom < 12:
+            state.zoom += 1
+        elif state.zoom < 1:
+            state.zoom *= 2
 
         self.force_resize_canvas_with_correct()
         self.update_canvas()
@@ -66,10 +68,10 @@ class CanvasOperations:
     def zoom_out(self, event=None):
         self.ui.canvas.delete("tools")
 
-        if 1 < self.zoom:
-            self.zoom -= 1
-        elif 0.05 < self.zoom <= 1:  # Zooming limited down by 0.05.
-            self.zoom /= 2
+        if 1 < state.zoom:
+            state.zoom -= 1
+        elif 0.05 < state.zoom <= 1:  # Zooming limited down by 0.05.
+            state.zoom /= 2
 
         self.force_resize_canvas_with_correct()
         self.update_canvas()
@@ -77,16 +79,15 @@ class CanvasOperations:
     def reset_zoom(self, event=None):
         self.ui.canvas.delete("tools")
 
-        self.zoom = 1
+        state.zoom = 1
 
         self.force_resize_canvas_with_correct()
         self.update_canvas()
 
-    def canvas_to_pict_xy(self, x, y):
-        return self.ui.canvas.canvasx(x) // self.zoom, self.ui.canvas.canvasy(y) // self.zoom
-
-    def canvas_to_pict_xy_f(self, x, y):
-        return self.ui.canvas.canvasx(x) / self.zoom, self.ui.canvas.canvasy(y) / self.zoom
+    def canvas_to_pict_xy(self, x, y, f=False):
+        if f:
+            return self.ui.canvas.canvasx(x) / state.zoom, self.ui.canvas.canvasy(y) / state.zoom
+        return self.ui.canvas.canvasx(x) // state.zoom, self.ui.canvas.canvasy(y) // state.zoom
 
     def update_canvas(self):
         # Debug
@@ -103,18 +104,18 @@ class CanvasOperations:
         self.timer_mask_last_update = int(time.time() * 1000)  # Set current time in ms
 
     def _tailing_update_canvas(self):
-        if self.zoom < 1:
+        if state.zoom < 1:
             # https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-filters
-            canvas_image = self.image.resize(
-                (math.ceil(self.image.width * self.zoom), math.ceil(self.image.height * self.zoom)), Image.BOX
+            canvas_image = state.image.resize(
+                (math.ceil(state.image.width * state.zoom), math.ceil(state.image.height * state.zoom)), Image.BOX
             )
-            if self.selected_mask_img is None:
+            if state.selected_mask_img is None:
                 mask_image = None
             else:
-                mask_image = self.selected_mask_img.resize(
+                mask_image = state.selected_mask_img.resize(
                     (
-                        math.ceil(self.selected_mask_img.width * self.zoom),
-                        math.ceil(self.selected_mask_img.height * self.zoom),
+                        math.ceil(state.selected_mask_img.width * state.zoom),
+                        math.ceil(state.selected_mask_img.height * state.zoom),
                     ),
                     Image.NEAREST,
                 )
@@ -136,8 +137,8 @@ class CanvasOperations:
         else:  # data.zoom > 1 or data.zoom = 1:
             # It work incorrect at this implementation for zoom < 1.
 
-            cw_full = math.ceil(self.image.width * self.zoom)
-            ch_full = math.ceil(self.image.height * self.zoom)
+            cw_full = math.ceil(state.image.width * state.zoom)
+            ch_full = math.ceil(state.image.height * state.zoom)
 
             (x1, y1, x2, y2) = self.get_canvas_tails_area()
 
@@ -147,19 +148,19 @@ class CanvasOperations:
                 y1_correct = 0
                 dx = 0
                 dy = 0
-                tmp_canvas_image = self.image
-                tmp_mask_image = self.selected_mask_img
+                tmp_canvas_image = state.image
+                tmp_mask_image = state.selected_mask_img
             else:
                 tiles_xy_on_image = (
-                    math.floor(x1 / self.zoom),
-                    math.floor(y1 / self.zoom),
-                    math.floor(x2 / self.zoom) + 1,
-                    math.floor(y2 / self.zoom) + 1,
+                    math.floor(x1 / state.zoom),
+                    math.floor(y1 / state.zoom),
+                    math.floor(x2 / state.zoom) + 1,
+                    math.floor(y2 / state.zoom) + 1,
                 )
 
                 # Subpixel correct.
-                x1_correct = tiles_xy_on_image[0] * self.zoom
-                y1_correct = tiles_xy_on_image[1] * self.zoom
+                x1_correct = tiles_xy_on_image[0] * state.zoom
+                y1_correct = tiles_xy_on_image[1] * state.zoom
 
                 dx = math.floor(x1 - x1_correct)
                 dy = math.floor(y1 - y1_correct)
@@ -167,14 +168,14 @@ class CanvasOperations:
                 # # Debug
                 # print((x1, y1, x2, y2), tiles_xy_on_image, (x1_correct, y1_correct), (dx, dy))
 
-                tmp_canvas_image = self.image.crop(tiles_xy_on_image)
-                if self.selected_mask_img is None:
+                tmp_canvas_image = state.image.crop(tiles_xy_on_image)
+                if state.selected_mask_img is None:
                     tmp_mask_image = None
                 else:
-                    tmp_mask_image = self.selected_mask_img.crop(tiles_xy_on_image)
+                    tmp_mask_image = state.selected_mask_img.crop(tiles_xy_on_image)
 
-            r_w = math.floor(tmp_canvas_image.width * self.zoom)
-            r_h = math.floor(tmp_canvas_image.height * self.zoom)
+            r_w = math.floor(tmp_canvas_image.width * state.zoom)
+            r_h = math.floor(tmp_canvas_image.height * state.zoom)
             r_w = max(r_w, 1)
             r_h = max(r_h, 1)
 
@@ -200,12 +201,12 @@ class CanvasOperations:
 
     def draw_grid(self):
         self.ui.canvas.delete("grid")
-        if not getattr(self, "is_grid_visible", False) or self.image is None:
+        if not getattr(self, "is_grid_visible", False) or state.image is None:
             return
 
-        step = max(4, int(self.grid_step * self.zoom))
-        cw_full = math.ceil(self.image.width * self.zoom)
-        ch_full = math.ceil(self.image.height * self.zoom)
+        step = max(4, int(self.grid_step * state.zoom))
+        cw_full = math.ceil(state.image.width * state.zoom)
+        ch_full = math.ceil(state.image.height * state.zoom)
         dash_pattern = (2, 2)
 
         for x in range(0, cw_full, step):
@@ -220,13 +221,13 @@ class CanvasOperations:
         self.update_canvas()
 
     def get_canvas_tails_area(self):
-        cw_full = int(self.image.width * self.zoom)
-        ch_full = int(self.image.height * self.zoom)
+        cw_full = int(state.image.width * state.zoom)
+        ch_full = int(state.image.height * state.zoom)
 
         # Set param canvas with real image size. Not use bbox in this place.
         self.ui.canvas.config(scrollregion=(0, 0, cw_full, ch_full), width=cw_full, height=ch_full)
 
-        _iw, _ih = self.image.size
+        _iw, _ih = state.image.size
         cx_frame_1, cx_frame_2 = self.ui.canvas.xview()
         cy_frame_1, cy_frame_2 = self.ui.canvas.yview()
 
@@ -241,8 +242,8 @@ class CanvasOperations:
         return (x1, y1, x2, y2)
 
     def force_resize_canvas(self):
-        cw_full = int(self.image.width * self.zoom)
-        ch_full = int(self.image.height * self.zoom)
+        cw_full = int(state.image.width * state.zoom)
+        ch_full = int(state.image.height * state.zoom)
 
         # Scrollregion begin from the left part of first pixel and tail on the end part of last pixel.
         self.ui.canvas.config(
@@ -251,7 +252,7 @@ class CanvasOperations:
             height=ch_full,
         )
 
-        self.ui.size_button.configure(text=f"{self.image.width}x{self.image.height}")
+        self.ui.size_button.configure(text=f"{state.image.width}x{state.image.height}")
 
     def force_resize_canvas_with_correct(self):
         wd_x_1 = self.ui.canvas.winfo_x()
@@ -268,8 +269,8 @@ class CanvasOperations:
         cy_frame_1, cy_frame_2 = self.ui.canvas.yview()
         dx_2 = (cx_frame_2 + cx_frame_1) / 2
         dy_2 = (cy_frame_2 + cy_frame_1) / 2
-        cw_full = int(self.image.width * self.zoom)
-        ch_full = int(self.image.height * self.zoom)
+        cw_full = int(state.image.width * state.zoom)
+        ch_full = int(state.image.height * state.zoom)
 
         self.ui.canvas.scan_mark(int(dx_1 * cw_full - wd_x_1), int(dy_1 * ch_full - wd_y_1))
         self.ui.canvas.scan_dragto(int(dx_2 * cw_full), int(dy_2 * ch_full), gain=1)

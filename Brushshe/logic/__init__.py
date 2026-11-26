@@ -11,11 +11,11 @@ from core.bhcomposer import BhComposer
 from utils.common import resource
 from utils.config_loader import config
 
+from . import state as state
 from .addons import Addons
 from .canvas import CanvasOperations
 from .common import Common
 from .edit_tools import EditTools
-from .paint_tools import PaintTools
 from .panels import Panels
 from .screenshot import Screenshot
 from .selection import Selection
@@ -26,7 +26,6 @@ from .tool_operations import ToolOperations
 class BrushsheLogic(
     Common,
     CanvasOperations,
-    PaintTools,
     Shapes,
     EditTools,
     Selection,
@@ -42,9 +41,6 @@ class BrushsheLogic(
         self.undo_stack = deque(maxlen=config.getint("Brushshe", "undo_levels"))
         self.redo_stack = deque(maxlen=config.getint("Brushshe", "undo_levels"))
         self.grid_step = config.getint("Brushshe", "grid_step")
-        self.is_brush_smoothing = config.getboolean("Brushshe", "smoothing")
-        self.brush_smoothing_factor = config.getint("Brushshe", "brush_smoothing_factor")  # Between: 3..64
-        self.brush_smoothing_quality = config.getint("Brushshe", "brush_smoothing_quality")  # Between: 1..64
         self.autosave_var = ctk.BooleanVar(value=config.getboolean("Brushshe", "autosave"))
         self.use_title_menu = ctk.BooleanVar(value=config.getboolean("Brushshe", "use_title_menu"))
         self.hide_left_toolbar = ctk.BooleanVar(value=config.getboolean("Brushshe", "hide_left_toolbar"))
@@ -60,10 +56,7 @@ class BrushsheLogic(
         # If None - no crop, if set - need check out of crop.
         self.canvas_tails_area = None
 
-        self.brush_color = "black"
-        self.second_brush_color = "white"
         self.bg_color = "white"
-        self.brush_shape = "circle"
 
         self.tool_size_dict = {
             "brush": Constants().BRUSH_SIZE,
@@ -78,12 +71,9 @@ class BrushsheLogic(
         self.composer = BhComposer(0, 0)  # Empty init.
         self.composer.mask_type = 0  # Type: 0 - fill, 1 - ants
 
-        self.zoom = 1
-        self.selected_mask_img = None  # Can be gray_image or None
         self.current_file = None
         self.prev_x, self.prev_y = None, None
         self.current_font = "Open Sans"
-        self.font_path = resource("assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
         self.is_grid_visible = False
 
         self.timer_mask_time_for_update = 200  # ms

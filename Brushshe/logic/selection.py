@@ -8,6 +8,8 @@ from PIL import Image, ImageDraw, ImageOps
 from utils import common
 from utils.translator import _
 
+from . import state
+
 
 class Selection:
     def select_by_shape(self, shape="rectangle"):
@@ -38,10 +40,10 @@ class Selection:
             return
         x1, y1, x2, y2 = result
 
-        x_max = self.image.width - 1
-        y_max = self.image.height - 1
+        x_max = state.image.width - 1
+        y_max = state.image.height - 1
 
-        draw = ImageDraw.Draw(self.selected_mask_img)
+        draw = ImageDraw.Draw(state.selected_mask_img)
 
         if self._mode == "replace":
             draw.rectangle([0, 0, x_max, y_max], fill="black")
@@ -82,8 +84,8 @@ class Selection:
         x = int(x)
         y = int(y)
 
-        x_max = self.image.width - 1
-        y_max = self.image.height - 1
+        x_max = state.image.width - 1
+        y_max = state.image.height - 1
 
         x = max(x, 0)
         x = min(x, x_max)
@@ -116,10 +118,10 @@ class Selection:
 
         self.ui.canvas.delete("tools")
 
-        x_max = self.image.width - 1
-        y_max = self.image.height - 1
+        x_max = state.image.width - 1
+        y_max = state.image.height - 1
 
-        draw = ImageDraw.Draw(self.selected_mask_img)
+        draw = ImageDraw.Draw(state.selected_mask_img)
 
         if self._mode == "replace":
             draw.rectangle([0, 0, x_max, y_max], fill="black")
@@ -164,34 +166,34 @@ class Selection:
             x_begin = self.xy_list[0]
             y_begin = self.xy_list[1]
             self.ui.canvas.create_line(
-                int(self.xy_list[xy_len - 2] * self.zoom),
-                int(self.xy_list[xy_len - 1] * self.zoom),
-                int(x * self.zoom),
-                int(y * self.zoom),
+                int(self.xy_list[xy_len - 2] * state.zoom),
+                int(self.xy_list[xy_len - 1] * state.zoom),
+                int(x * state.zoom),
+                int(y * state.zoom),
                 fill="black",
                 width=1,
                 tag="tools",
             )
             self.ui.canvas.create_line(
-                int(self.xy_list[xy_len - 2] * self.zoom),
-                int(self.xy_list[xy_len - 1] * self.zoom),
-                int(x * self.zoom),
-                int(y * self.zoom),
+                int(self.xy_list[xy_len - 2] * state.zoom),
+                int(self.xy_list[xy_len - 1] * state.zoom),
+                int(x * state.zoom),
+                int(y * state.zoom),
                 fill="white",
                 width=1,
                 tag="tools",
                 dash=(5, 5),
             )
             if xy_len >= 4:
-                tmp_xy_list = [int(x * self.zoom) for x in self.xy_list]
+                tmp_xy_list = [int(x * state.zoom) for x in self.xy_list]
                 self.ui.canvas.create_line(tmp_xy_list, fill="black", width=1, tag="tools")
                 self.ui.canvas.create_line(tmp_xy_list, fill="white", width=1, tag="tools", dash=(5, 5))
 
         self.ui.canvas.create_rectangle(
-            int(x_begin * self.zoom + self.delta),
-            int(y_begin * self.zoom + self.delta),
-            int(x_begin * self.zoom - self.delta),
-            int(y_begin * self.zoom - self.delta),
+            int(x_begin * state.zoom + self.delta),
+            int(y_begin * state.zoom + self.delta),
+            int(x_begin * state.zoom - self.delta),
+            int(y_begin * state.zoom - self.delta),
             outline="black",
             fill="white",
             width=1,
@@ -220,15 +222,15 @@ class Selection:
         x = int(x)
         y = int(y)
 
-        x_max = self.image.width - 1
-        y_max = self.image.height - 1
+        x_max = state.image.width - 1
+        y_max = state.image.height - 1
 
         x = max(x, 0)
         x = min(x, x_max)
         y = max(y, 0)
         y = min(y, y_max)
 
-        draw = ImageDraw.Draw(self.selected_mask_img)
+        draw = ImageDraw.Draw(state.selected_mask_img)
 
         if self._mode == "replace":
             draw.rectangle([0, 0, x_max, y_max], fill=0)
@@ -239,8 +241,8 @@ class Selection:
             fill_color = 255
 
         if not fill_limit:
-            pixels_mask = self.selected_mask_img.load()
-            pixels_image = self.image.load()
+            pixels_mask = state.selected_mask_img.load()
+            pixels_image = state.image.load()
 
             assert pixels_image is not None
 
@@ -258,7 +260,7 @@ class Selection:
                     except (ValueError, IndexError):
                         pass
         else:
-            self._floodfill_mask(self.image, self.selected_mask_img, (x, y), fill_color)
+            self._floodfill_mask(state.image, state.selected_mask_img, (x, y), fill_color)
 
         self.composer.set_force_update_mask()
         self.update_canvas()
@@ -266,8 +268,8 @@ class Selection:
     def invert_mask(self):
         self.select_init_mask()
 
-        tmp_mask_img = ImageOps.invert(self.selected_mask_img)
-        self.selected_mask_img = tmp_mask_img
+        tmp_mask_img = ImageOps.invert(state.selected_mask_img)
+        state.selected_mask_img = tmp_mask_img
         del tmp_mask_img
 
         self.composer.set_force_update_mask()
@@ -276,9 +278,9 @@ class Selection:
     def select_all_mask(self):
         self.select_init_mask()
 
-        x_max = self.image.width - 1
-        y_max = self.image.height - 1
-        draw = ImageDraw.Draw(self.selected_mask_img)
+        x_max = state.image.width - 1
+        y_max = state.image.height - 1
+        draw = ImageDraw.Draw(state.selected_mask_img)
         draw.rectangle([0, 0, x_max, y_max], fill=255)
 
         self.composer.set_force_update_mask()
@@ -288,13 +290,13 @@ class Selection:
         if self.composer is None:
             return
 
-        if self.selected_mask_img is None:
-            self.selected_mask_img = Image.new("L", (self.image.width, self.image.height), "white")
-        if self.selected_mask_img.width != self.image.width or self.selected_mask_img.height != self.image.height:
-            self.selected_mask_img = Image.new("L", (self.image.width, self.image.height), "white")
+        if state.selected_mask_img is None:
+            state.selected_mask_img = Image.new("L", (state.image.width, state.image.height), "white")
+        if state.selected_mask_img.width != state.image.width or state.selected_mask_img.height != state.image.height:
+            state.selected_mask_img = Image.new("L", (state.image.width, state.image.height), "white")
 
     def remove_mask(self):
-        self.selected_mask_img = None
+        state.selected_mask_img = None
         self.composer.mask_img = None
 
         self.composer.set_force_update_mask()
@@ -306,7 +308,7 @@ class Selection:
 
         if (
             self.composer.mask_type != 0
-            and self.selected_mask_img is not None
+            and state.selected_mask_img is not None
             and self.timer_mask_last_update + 500 < mm_time
         ):
             # self.timer_mask_last_update = mm_time
@@ -326,14 +328,14 @@ class Selection:
         self.update_canvas()
 
     def delete_selected(self):
-        if self.selected_mask_img is None:
+        if state.selected_mask_img is None:
             return
 
         bg_color = self.bg_color
-        if self.image.mode == "RGBA":
+        if state.image.mode == "RGBA":
             bg_color = (0, 0, 0, 0)
-        tmp_img = Image.new(self.image.mode, (self.image.width, self.image.height), bg_color)
-        self.image.paste(tmp_img, (0, 0), self.selected_mask_img)
+        tmp_img = Image.new(state.image.mode, (state.image.width, state.image.height), bg_color)
+        state.image.paste(tmp_img, (0, 0), state.selected_mask_img)
         del tmp_img
         self.record_action()
         self.update_canvas()

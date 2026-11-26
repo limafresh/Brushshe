@@ -6,6 +6,8 @@ import customtkinter as ctk
 from PIL import Image, ImageGrab, ImageTk
 from utils.translator import _
 
+from . import state
+
 
 class Screenshot:
     def screenshot_crop(self, screenshot_canvas, screenshot):
@@ -90,7 +92,7 @@ class Screenshot:
         self.screenshot_crop(self.screenshot_canvas, self.screenshot)
 
     def ready_screenshot(self, screenshot_img):
-        self.image = screenshot_img.copy()
+        state.image = screenshot_img.copy()
         self.picture_postconfigure()
         self.screenshot_window.destroy()
         self.ui.deiconify()
