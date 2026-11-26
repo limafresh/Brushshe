@@ -15,7 +15,6 @@ from .addons import Addons
 from .canvas import CanvasOperations
 from .common import Common
 from .panels import Panels
-from .screenshot import Screenshot
 from .selection import Selection
 from .tool_operations import ToolOperations
 
@@ -24,7 +23,6 @@ class BrushsheLogic(
     Common,
     CanvasOperations,
     Selection,
-    Screenshot,
     Panels,
     ToolOperations,
     Addons,

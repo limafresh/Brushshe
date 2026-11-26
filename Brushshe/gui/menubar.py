@@ -17,6 +17,7 @@ from gui.addon_manager import AddonManager
 from gui.change_size import ChangeSizeDialog
 from gui.frames import Frames
 from gui.gallery import Gallery
+from gui.screenshot import Screenshot
 from gui.stickers import Stickers
 
 
@@ -65,7 +66,9 @@ class MenuBar:
             ),
         )
         image_dropdown.add_separator()
-        image_dropdown.add_option(option=_("Create screenshot"), command=self.logic.create_screenshot)
+        image_dropdown.add_option(
+            option=_("Create screenshot"), command=lambda: Screenshot(self, self.logic.replace_picture)
+        )
         image_dropdown.add_option(option=_("Paste image from clipboard"), command=self.logic.paste_image_from_clipboard)
 
         """View menu"""

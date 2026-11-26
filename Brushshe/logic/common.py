@@ -386,6 +386,10 @@ class Common:
         state.image = transparent_bg_img
         self.picture_postconfigure()
 
+    def replace_picture(self, image):
+        state.image = image
+        self.picture_postconfigure()
+
     def picture_postconfigure(self):
         self.ui.canvas.delete("tools")
 
