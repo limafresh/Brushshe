@@ -21,6 +21,7 @@ from utils.config_loader import config_file_path
 from utils.translator import _
 
 from logic.paint_tools import PaintTools
+from logic.shapes import Shapes
 
 from . import state
 
@@ -32,6 +33,15 @@ class Common:
             self.set_tool,
             self.canvas_to_pict_xy,
             self.draw_line,
+            self.update_canvas,
+            self.record_action,
+        )
+        self.shapes = Shapes(
+            self.ui.canvas,
+            self.set_tool,
+            self.canvas_to_pict_xy,
+            self.get_contrast_color,
+            self.get_tool_main_color,
             self.update_canvas,
             self.record_action,
         )
@@ -54,9 +64,15 @@ class Common:
     def text_tool(self):
         self.paint_tools.text()
 
+    def create_shape(self, shape):
+        self.shapes.create_shape(shape)
+
+    def bezier_shape(self):
+        self.shapes.bezier()
+
     # Keybinding without locale.
     def key_handler(self, event):
-        if self.current_tool != "text":
+        if state.current_tool != "text":
             # Do not use with origin .bind() for equivalent key binds. Only or that, or this.
 
             # Debug
@@ -98,7 +114,7 @@ class Common:
         self.ui.destroy()
 
     def get_tool_main_color(self):
-        if self.current_tool == "eraser":
+        if state.current_tool == "eraser":
             color = self.bg_color
             if state.image.mode == "RGBA":
                 color = "#00000000"
@@ -118,11 +134,11 @@ class Common:
         color = self.get_tool_main_color()
 
         if state.selected_mask_img is None:
-            bh_draw_line(state.draw, x1, y1, x2, y2, color, state.tool_size, state.brush_shape, self.current_tool)
+            bh_draw_line(state.draw, x1, y1, x2, y2, color, state.tool_size, state.brush_shape, state.current_tool)
         else:
             tmp_image = state.image.copy()
             tmp_draw = ImageDraw.Draw(tmp_image)
-            bh_draw_line(tmp_draw, x1, y1, x2, y2, color, state.tool_size, state.brush_shape, self.current_tool)
+            bh_draw_line(tmp_draw, x1, y1, x2, y2, color, state.tool_size, state.brush_shape, state.current_tool)
             state.image.paste(tmp_image, (0, 0), state.selected_mask_img)
             del tmp_image
 

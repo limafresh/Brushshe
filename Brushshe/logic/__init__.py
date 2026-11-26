@@ -18,14 +18,12 @@ from .edit_tools import EditTools
 from .panels import Panels
 from .screenshot import Screenshot
 from .selection import Selection
-from .shapes import Shapes
 from .tool_operations import ToolOperations
 
 
 class BrushsheLogic(
     Common,
     CanvasOperations,
-    Shapes,
     EditTools,
     Selection,
     Screenshot,

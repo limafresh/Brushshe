@@ -194,7 +194,7 @@ class EditTools:
         self.ui.canvas.bind("<Leave>", lambda e: self.ui.canvas.delete("tools"))
 
     def insert_move(self, event, insert_image):
-        if self.current_tool == "sticker":
+        if state.current_tool == "sticker":
             it_width = state.tool_size
             it_height = int(insert_image.height * state.tool_size / insert_image.width)
             resampling = Image.BICUBIC

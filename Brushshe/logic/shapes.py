@@ -2,9 +2,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+from collections.abc import Callable
+
 from constants import Constants
 from core.bezier import make_bezier
 from core.bhbrush import bh_draw_line
+from customtkinter import CTkCanvas
 from PIL import ImageDraw
 from utils.translator import _
 
@@ -12,7 +15,25 @@ from . import state
 
 
 class Shapes:
-    def create_shape(self, shape):
+    def __init__(
+        self,
+        canvas: CTkCanvas,
+        set_tool: Callable,
+        canvas_to_pict_xy: Callable,
+        get_contrast_color: Callable,
+        get_tool_main_color: Callable,
+        update_canvas: Callable,
+        record_action: Callable,
+    ):
+        self.canvas = canvas
+        self.set_tool = set_tool
+        self.canvas_to_pict_xy = canvas_to_pict_xy
+        self.get_contrast_color = get_contrast_color
+        self.get_tool_main_color = get_tool_main_color
+        self.update_canvas = update_canvas
+        self.record_action = record_action
+
+    def create_shape(self, shape: str):
         self.x_begin, self.y_begin = None, None
         self.shape = shape
 
@@ -21,20 +42,20 @@ class Shapes:
         else:
             self.set_tool("shape", _(shape), Constants().SHAPE_SIZE, 1, 50, "cross")
 
-        self.ui.canvas.bind("<ButtonPress-1>", self.start_shape)
-        self.ui.canvas.bind("<B1-Motion>", self.draw_shape)
-        self.ui.canvas.bind("<ButtonRelease-1>", self.end_shape)
+        self.canvas.bind("<ButtonPress-1>", self._start_shape)
+        self.canvas.bind("<B1-Motion>", self._draw_shape)
+        self.canvas.bind("<ButtonRelease-1>", self._end_shape)
 
-    def start_shape(self, event):
-        self.shape_x, self.shape_y = self.ui.canvas.canvasx(event.x), self.ui.canvas.canvasy(event.y)
+    def _start_shape(self, event):
+        self.shape_x, self.shape_y = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
         self.x_begin, self.y_begin = self.canvas_to_pict_xy(event.x, event.y)
 
         shape_methods = {
-            "Rectangle": self.ui.canvas.create_rectangle,
-            "Oval": self.ui.canvas.create_oval,
-            "Line": self.ui.canvas.create_line,
-            "Fill rectangle": self.ui.canvas.create_rectangle,
-            "Fill oval": self.ui.canvas.create_oval,
+            "Rectangle": self.canvas.create_rectangle,
+            "Oval": self.canvas.create_oval,
+            "Line": self.canvas.create_line,
+            "Fill rectangle": self.canvas.create_rectangle,
+            "Fill oval": self.canvas.create_oval,
         }
 
         create_method = shape_methods.get(self.shape)
@@ -44,13 +65,14 @@ class Shapes:
                 self.shape_x, self.shape_y, self.shape_x, self.shape_y, **{param: self.get_contrast_color()}
             )
 
-    def draw_shape(self, event):
+    def _draw_shape(self, event):
         if not hasattr(self, "shape_x"):
             return
-        x, y = self.ui.canvas.canvasx(event.x), self.ui.canvas.canvasy(event.y)
-        self.ui.canvas.coords(self.shape_id, self.shape_x, self.shape_y, x, y)
 
-    def end_shape(self, event):
+        x, y = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
+        self.canvas.coords(self.shape_id, self.shape_x, self.shape_y, x, y)
+
+    def _end_shape(self, event):
         if not hasattr(self, "shape_x"):
             return
 
@@ -88,7 +110,7 @@ class Shapes:
                 color,
                 state.tool_size,
                 state.brush_shape,
-                self.current_tool,
+                state.current_tool,
             )
         elif self.shape == "Fill rectangle":
             tmp_draw.rectangle([x0, y0, x1, y1], fill=state.brush_color)
@@ -109,9 +131,9 @@ class Shapes:
         # Removing unnecessary variables for normal selection of the next shape in the menu
         #   and disabling other side effects.
         del self.shape_x, self.shape_y
-        self.ui.canvas.delete(self.shape_id)
+        self.canvas.delete(self.shape_id)
 
-    def bezier_shape(self):
+    def bezier(self):
         # Simple 4th point (cubic) Bezier curve.
 
         self.canvas_points = []
@@ -123,27 +145,27 @@ class Shapes:
 
         self.set_tool("shape", _("Bezier"), Constants().SHAPE_SIZE, 1, 50, "cross")
 
-        self.ui.canvas.bind("<ButtonPress-1>", self.start_bezier)
-        self.ui.canvas.bind("<B1-Motion>", self.draw_bezier)
-        self.ui.canvas.bind("<ButtonRelease-1>", self.end_bezier)
-        self.ui.canvas.bind("<Motion>", self.draw_bezier)
+        self.canvas.bind("<ButtonPress-1>", self._start_bezier)
+        self.canvas.bind("<B1-Motion>", self._draw_bezier)
+        self.canvas.bind("<ButtonRelease-1>", self._end_bezier)
+        self.canvas.bind("<Motion>", self._draw_bezier)
 
-    def start_bezier(self, event):
+    def _start_bezier(self, event):
         if len(self.canvas_points) == 0:
-            cx, cy = self.ui.canvas.canvasx(event.x), self.ui.canvas.canvasy(event.y)
+            cx, cy = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
 
             self.canvas_points.append((cx, cy))
             self.image_points.append(self.canvas_to_pict_xy(event.x, event.y))
 
-            self.bezier_id = self.ui.canvas.create_line(
+            self.bezier_id = self.canvas.create_line(
                 cx, cy, cx, cy, fill=self.get_contrast_color(), tag="tools"
             )  # smooth="bezier"
 
-    def draw_bezier(self, event):
+    def _draw_bezier(self, event):
         if self.bezier_id is None or len(self.canvas_points) == 0:
             return
 
-        cx, cy = self.ui.canvas.canvasx(event.x), self.ui.canvas.canvasy(event.y)
+        cx, cy = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
         len_p = len(self.canvas_points)
         canvas_points_tmp = self.canvas_points.copy()
 
@@ -160,13 +182,13 @@ class Shapes:
         # Do 2d array flat for canvas.coords
         points_flat = [j for sub in points for j in sub]
 
-        self.ui.canvas.coords(self.bezier_id, *points_flat)
+        self.canvas.coords(self.bezier_id, *points_flat)
 
-    def end_bezier(self, event):
+    def _end_bezier(self, event):
         if self.bezier_id is None or len(self.canvas_points) == 0:
             return
 
-        cx, cy = self.ui.canvas.canvasx(event.x), self.ui.canvas.canvasy(event.y)
+        cx, cy = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
         px, py = self.canvas_to_pict_xy(event.x, event.y)
         len_p = len(self.canvas_points)
         stop = False
@@ -227,7 +249,7 @@ class Shapes:
                         color,
                         state.tool_size,
                         state.brush_shape,
-                        self.current_tool,
+                        state.current_tool,
                     )
 
             if state.selected_mask_img is None:
@@ -236,7 +258,7 @@ class Shapes:
                 state.image.paste(tmp_image, (0, 0), state.selected_mask_img)
                 del tmp_image
 
-            self.ui.canvas.delete(self.bezier_id)
+            self.canvas.delete(self.bezier_id)
             self.update_canvas()
             self.record_action()
 

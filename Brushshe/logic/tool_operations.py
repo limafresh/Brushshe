@@ -27,7 +27,7 @@ class ToolOperations:
             "real size sticker": 500,
         }
         new_size = max(new_size, 1)
-        new_size = min(new_size, max_sizes[self.current_tool])
+        new_size = min(new_size, max_sizes[state.current_tool])
         self.change_tool_size(new_size)
         self.ui.tool_size_slider.set(int(new_size))
 
@@ -35,19 +35,19 @@ class ToolOperations:
         state.tool_size = int(value)
         self.ui.tool_size_tooltip.configure(message=state.tool_size)
 
-        if self.tool_size_dict.get(self.current_tool):
-            self.tool_size_dict[self.current_tool] = int(value)
+        if self.tool_size_dict.get(state.current_tool):
+            self.tool_size_dict[state.current_tool] = int(value)
 
-        if self.current_tool in ["insert", "real size sticker"]:
+        if state.current_tool in ["insert", "real size sticker"]:
             self.ui.tool_size_label.configure(text=f"{state.tool_size} %")
         else:
             self.ui.tool_size_label.configure(text=state.tool_size)
 
     def get_tool_size(self):
-        return self.tool_size_dict.get(self.current_tool) or state.tool_size
+        return self.tool_size_dict.get(state.current_tool) or state.tool_size
 
     def set_tool(self, tool, tool_name, tool_size, from_, to, cursor):
-        self.current_tool = tool
+        state.current_tool = tool
 
         self.ui.canvas.unbind("<Button-1>")
         self.ui.canvas.unbind("<Shift-Button-1>")
@@ -82,20 +82,20 @@ class ToolOperations:
             self.ui.tool_size_slider.configure(from_=from_, to=to)
             self.ui.tool_size_slider.set(state.tool_size)
             self.ui.tool_size_slider.pack(side=ctk.LEFT, padx=1)
-            if self.current_tool in ["insert", "real size sticker"]:
+            if state.current_tool in ["insert", "real size sticker"]:
                 self.ui.tool_size_label.configure(text=f"{state.tool_size} %")
             else:
                 self.ui.tool_size_label.configure(text=state.tool_size)
             self.ui.tool_size_label.pack(side=ctk.LEFT, padx=5)
             self.ui.tool_size_tooltip.configure(message=state.tool_size)
 
-        if self.current_tool in ["brush", "eraser"]:
+        if state.current_tool in ["brush", "eraser"]:
             brush_shape_btn = ctk.CTkSegmentedButton(
                 self.ui.tool_config_docker, values=["●", "■"], command=self.brush_shape_btn_callback
             )
             brush_shape_btn.set({"circle": "●", "square": "■"}[state.brush_shape])
             brush_shape_btn.pack(side=ctk.LEFT, padx=5)
-        elif self.current_tool == "fill":
+        elif state.current_tool == "fill":
             ctk.CTkCheckBox(
                 self.ui.tool_config_docker,
                 text=_("Gradient"),
@@ -110,7 +110,7 @@ class ToolOperations:
             )
             self.gradient_mode_optionmenu.set(_("Vertically"))
             self.gradient_mode_optionmenu.pack(side=ctk.LEFT, padx=1)
-        elif self.current_tool == "text":
+        elif state.current_tool == "text":
             self.tx_entry = ctk.CTkEntry(self.ui.tool_config_docker, placeholder_text=_("Enter text..."))
             self.tx_entry.pack(side=ctk.LEFT, padx=5)
             self.tx_entry.bind("<KeyRelease>", self.update_text_content)
@@ -123,14 +123,14 @@ class ToolOperations:
             )
             font_optionmenu.set(self.current_font)
             font_optionmenu.pack(side=ctk.LEFT, padx=1)
-        elif self.current_tool == "sticker" or self.current_tool == "real size sticker":
+        elif state.current_tool == "sticker" or state.current_tool == "real size sticker":
             ctk.CTkCheckBox(
                 self.ui.tool_config_docker,
                 text=_("Use real size"),
                 variable=self.is_sticker_use_real_size,
                 command=self.set_current_sticker,
             ).pack(side=ctk.LEFT, padx=5)
-        elif self.current_tool == "effects":
+        elif state.current_tool == "effects":
             self.effects_optionmenu = ctk.CTkOptionMenu(
                 self.ui.tool_config_docker, values=[_(value) for value in Constants.EFFECTS_VALUES]
             )
@@ -138,7 +138,7 @@ class ToolOperations:
             ctk.CTkButton(self.ui.tool_config_docker, text="OK", width=35, command=self.apply_effect).pack(
                 side=ctk.LEFT, padx=1
             )
-        elif self.current_tool == "insert":
+        elif state.current_tool == "insert":
             ctk.CTkCheckBox(self.ui.tool_config_docker, text=_("Smoothing"), variable=self.is_insert_smoothing).pack(
                 side=ctk.LEFT, padx=5
             )
