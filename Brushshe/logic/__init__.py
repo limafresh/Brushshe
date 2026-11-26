@@ -11,7 +11,6 @@ from core.bhcomposer import BhComposer
 from utils.common import resource
 from utils.config_loader import config
 
-from . import state as state
 from .addons import Addons
 from .canvas import CanvasOperations
 from .common import Common

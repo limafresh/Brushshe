@@ -10,7 +10,7 @@ from core.bhbrush import bh_draw_recoloring_line
 from core.bhhistory import BhHistory, BhPoint
 from core.gradient_fill import gradient_fill
 from customtkinter import CTkCanvas
-from PIL import Image, ImageColor, ImageDraw, ImageFont
+from PIL import ImageColor, ImageDraw, ImageFont
 from utils import common
 from utils.config_loader import config
 from utils.translator import _
@@ -27,8 +27,6 @@ class PaintTools:
         draw_line: Callable,
         update_canvas: Callable,
         record_action: Callable,
-        image: Image.Image,
-        draw: ImageDraw.Draw,
     ):
         self.canvas = canvas
         self.set_tool = set_tool
@@ -36,8 +34,6 @@ class PaintTools:
         self.draw_line = draw_line
         self.update_canvas = update_canvas
         self.record_action = record_action
-        state.image = image
-        state.draw = draw
 
         self.is_brush_smoothing = config.getboolean("Brushshe", "smoothing")
         self.brush_smoothing_factor = config.getint("Brushshe", "brush_smoothing_factor")  # Between: 3..64

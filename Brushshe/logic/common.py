@@ -34,8 +34,6 @@ class Common:
             self.draw_line,
             self.update_canvas,
             self.record_action,
-            state.image,
-            state.draw,
         )
 
     def brush(self):
