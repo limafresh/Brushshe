@@ -3,39 +3,60 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import time
+from collections.abc import Callable
 
+from core.bhcomposer import BhComposer
+from customtkinter import CTkCanvas
 from PIL import Image, ImageDraw, ImageOps
 from utils import common
 from utils.translator import _
 
 from . import state
+from .rect_selector import RectSelector
 
 
 class Selection:
-    def select_by_shape(self, shape="rectangle"):
+    def __init__(
+        self,
+        canvas: CTkCanvas,
+        set_tool: Callable,
+        canvas_to_pict_xy: Callable,
+        update_canvas: Callable,
+        composer: BhComposer,
+    ):
+        self.canvas = canvas
+        self.set_tool = set_tool
+        self.canvas_to_pict_xy = canvas_to_pict_xy
+        self.update_canvas = update_canvas
+        self.composer = composer
+
+        self.timer_mask_time_for_update = 200  # ms
+        self.timer_mask_last_update = 0
+        self.timer_mask_update = self.canvas.after(self.timer_mask_time_for_update, self._mask_update)
+
+        self.selector = RectSelector(self.canvas, self.canvas_to_pict_xy, "tools")
+
+    def select_by_shape(self, shape: str = "rectangle"):
         self.set_tool("select", _("Select"), None, None, None, "cross")
 
-        self.x_begin = None
-        self.y_begin = None
-        self.x_end = None
-        self.y_end = None
+        self.selector.reset_positions()
         self._mode = "replace"
 
-        self.ui.canvas.bind("<Button-1>", lambda e: self.select_by_shape_selecting(e, "replace"))
-        self.ui.canvas.bind("<Shift-Button-1>", lambda e: self.select_by_shape_selecting(e, "add"))
-        self.ui.canvas.bind("<Control-Button-1>", lambda e: self.select_by_shape_selecting(e, "subtract"))
-        self.ui.canvas.bind("<B1-Motion>", lambda e: self.select_by_shape_selecting(e, None))
-        self.ui.canvas.bind("<ButtonRelease-1>", self.select_by_shape_select_end)
+        self.canvas.bind("<Button-1>", lambda e: self._select_by_shape_selecting(e, "replace"))
+        self.canvas.bind("<Shift-Button-1>", lambda e: self._select_by_shape_selecting(e, "add"))
+        self.canvas.bind("<Control-Button-1>", lambda e: self._select_by_shape_selecting(e, "subtract"))
+        self.canvas.bind("<B1-Motion>", lambda e: self._select_by_shape_selecting(e, None))
+        self.canvas.bind("<ButtonRelease-1>", self._select_by_shape_select_end)
 
-    def select_by_shape_selecting(self, event, mode):
+    def _select_by_shape_selecting(self, event, mode: str | None):
         if mode is not None:
             self._mode = mode
-        self.select_init_mask()
+        self._select_init_mask()
 
-        self.edit_selecting(event)
+        self.selector.update(event)
 
-    def select_by_shape_select_end(self, event):
-        result = self.edit_end()
+    def _select_by_shape_select_end(self, event):
+        result = self.selector.finnish()
         if result is None:
             return
         x1, y1, x2, y2 = result
@@ -63,22 +84,22 @@ class Selection:
         self._mode = "replace"
         self.delta = 5
 
-        self.ui.canvas.bind("<Button-1>", lambda e: self.select_by_polygon_selecting(e, "replace"))
-        self.ui.canvas.bind("<Shift-Button-1>", lambda e: self.select_by_polygon_selecting(e, "add"))
-        self.ui.canvas.bind("<Control-Button-1>", lambda e: self.select_by_polygon_selecting(e, "subtract"))
-        self.ui.canvas.bind("<B1-Motion>", lambda e: self.select_by_polygon_selecting(e, None, "moving"))
-        self.ui.canvas.bind("<Motion>", lambda e: self.select_by_polygon_selecting(e, None, "moving"))
-        self.ui.canvas.bind("<ButtonRelease-1>", lambda e: self.select_by_polygon_selecting(e, None, "unclick"))
-        self.ui.canvas.bind("<BackSpace>", self.select_by_polygon_key_backspace)
-        self.ui.canvas.bind("<Return>", self.select_by_polygon_key_enter)
+        self.canvas.bind("<Button-1>", lambda e: self._select_by_polygon_selecting(e, "replace"))
+        self.canvas.bind("<Shift-Button-1>", lambda e: self._select_by_polygon_selecting(e, "add"))
+        self.canvas.bind("<Control-Button-1>", lambda e: self._select_by_polygon_selecting(e, "subtract"))
+        self.canvas.bind("<B1-Motion>", lambda e: self._select_by_polygon_selecting(e, None, "moving"))
+        self.canvas.bind("<Motion>", lambda e: self._select_by_polygon_selecting(e, None, "moving"))
+        self.canvas.bind("<ButtonRelease-1>", lambda e: self._select_by_polygon_selecting(e, None, "unclick"))
+        self.canvas.bind("<BackSpace>", self._select_by_polygon_key_backspace)
+        self.canvas.bind("<Return>", self._select_by_polygon_key_enter)
 
-    def select_by_polygon_selecting(self, event, mode, type="click"):
-        self.ui.canvas.focus_set()  # For the key binding.
+    def _select_by_polygon_selecting(self, event, mode: str | None, type: str = "click"):
+        self.canvas.focus_set()  # For the key binding.
 
         if mode is not None:
             self._mode = mode
         if type == "click":
-            self.select_init_mask()
+            self._select_init_mask()
 
         x, y = self.canvas_to_pict_xy(event.x, event.y)
         x = int(x)
@@ -104,19 +125,19 @@ class Selection:
             ):
                 self.xy_list.append(self.xy_list[0])
                 self.xy_list.append(self.xy_list[1])
-                self.select_by_polygon_select_end(event)
+                self._select_by_polygon_select_end(event)
                 return
 
             self.xy_list.append(x)
             self.xy_list.append(y)
 
-        self.select_by_polygon_draw_tool(x, y)
+        self._select_by_polygon_draw_tool(x, y)
 
-    def select_by_polygon_select_end(self, event):
+    def _select_by_polygon_select_end(self, event):
         if self.xy_list is None:
             return
 
-        self.ui.canvas.delete("tools")
+        self.canvas.delete("tools")
 
         x_max = state.image.width - 1
         y_max = state.image.height - 1
@@ -136,7 +157,7 @@ class Selection:
         self.composer.set_force_update_mask()
         self.update_canvas()
 
-    def select_by_polygon_key_backspace(self, event):
+    def _select_by_polygon_key_backspace(self, event):
         if self.xy_list is None:
             return
 
@@ -146,17 +167,17 @@ class Selection:
             del self.xy_list[-1]
 
             xy_len = len(self.xy_list)
-            self.select_by_polygon_draw_tool(self.xy_list[xy_len - 2], self.xy_list[xy_len - 1])
+            self._select_by_polygon_draw_tool(self.xy_list[xy_len - 2], self.xy_list[xy_len - 1])
 
-    def select_by_polygon_key_enter(self, event):
+    def _select_by_polygon_key_enter(self, event):
         if self.xy_list is None:
             return
 
         if len(self.xy_list) >= 4:
-            self.select_by_polygon_select_end(event)
+            self._select_by_polygon_select_end(event)
 
-    def select_by_polygon_draw_tool(self, x, y):
-        self.ui.canvas.delete("tools")
+    def _select_by_polygon_draw_tool(self, x: float, y: float):
+        self.canvas.delete("tools")
 
         if self.xy_list is None or 0 == len(self.xy_list):
             x_begin = x
@@ -165,7 +186,7 @@ class Selection:
             xy_len = len(self.xy_list)
             x_begin = self.xy_list[0]
             y_begin = self.xy_list[1]
-            self.ui.canvas.create_line(
+            self.canvas.create_line(
                 int(self.xy_list[xy_len - 2] * state.zoom),
                 int(self.xy_list[xy_len - 1] * state.zoom),
                 int(x * state.zoom),
@@ -174,7 +195,7 @@ class Selection:
                 width=1,
                 tag="tools",
             )
-            self.ui.canvas.create_line(
+            self.canvas.create_line(
                 int(self.xy_list[xy_len - 2] * state.zoom),
                 int(self.xy_list[xy_len - 1] * state.zoom),
                 int(x * state.zoom),
@@ -186,10 +207,10 @@ class Selection:
             )
             if xy_len >= 4:
                 tmp_xy_list = [int(x * state.zoom) for x in self.xy_list]
-                self.ui.canvas.create_line(tmp_xy_list, fill="black", width=1, tag="tools")
-                self.ui.canvas.create_line(tmp_xy_list, fill="white", width=1, tag="tools", dash=(5, 5))
+                self.canvas.create_line(tmp_xy_list, fill="black", width=1, tag="tools")
+                self.canvas.create_line(tmp_xy_list, fill="white", width=1, tag="tools", dash=(5, 5))
 
-        self.ui.canvas.create_rectangle(
+        self.canvas.create_rectangle(
             int(x_begin * state.zoom + self.delta),
             int(y_begin * state.zoom + self.delta),
             int(x_begin * state.zoom - self.delta),
@@ -200,23 +221,23 @@ class Selection:
             tag="tools",
         )
 
-    def select_by_color(self, fill_limit=False):
+    def select_by_color(self, fill_limit: bool = False):
         self.set_tool("select_by_color", _("Select by color"), None, None, None, "dotbox")
 
         self._mode = "replace"
         self.thresh = 1
 
-        self.ui.canvas.bind("<Button-1>", lambda e: self.select_by_color_selecting(e, "replace", fill_limit))
-        self.ui.canvas.bind("<Shift-Button-1>", lambda e: self.select_by_color_selecting(e, "add", fill_limit))
-        self.ui.canvas.bind("<Control-Button-1>", lambda e: self.select_by_color_selecting(e, "subtract", fill_limit))
+        self.canvas.bind("<Button-1>", lambda e: self._select_by_color_selecting(e, "replace", fill_limit))
+        self.canvas.bind("<Shift-Button-1>", lambda e: self._select_by_color_selecting(e, "add", fill_limit))
+        self.canvas.bind("<Control-Button-1>", lambda e: self._select_by_color_selecting(e, "subtract", fill_limit))
 
-    def select_by_color_selecting(self, event, mode, fill_limit):
-        self.ui.canvas.focus_set()
+    def _select_by_color_selecting(self, event, mode: str, fill_limit: bool):
+        self.canvas.focus_set()
 
         if mode is not None:
             self._mode = mode
 
-        self.select_init_mask()
+        self._select_init_mask()
 
         x, y = self.canvas_to_pict_xy(event.x, event.y)
         x = int(x)
@@ -265,8 +286,8 @@ class Selection:
         self.composer.set_force_update_mask()
         self.update_canvas()
 
-    def invert_mask(self):
-        self.select_init_mask()
+    def _invert_mask(self):
+        self._select_init_mask()
 
         tmp_mask_img = ImageOps.invert(state.selected_mask_img)
         state.selected_mask_img = tmp_mask_img
@@ -275,8 +296,8 @@ class Selection:
         self.composer.set_force_update_mask()
         self.update_canvas()
 
-    def select_all_mask(self):
-        self.select_init_mask()
+    def select_all(self):
+        self._select_init_mask()
 
         x_max = state.image.width - 1
         y_max = state.image.height - 1
@@ -286,7 +307,7 @@ class Selection:
         self.composer.set_force_update_mask()
         self.update_canvas()
 
-    def select_init_mask(self):
+    def _select_init_mask(self):
         if self.composer is None:
             return
 
@@ -295,7 +316,7 @@ class Selection:
         if state.selected_mask_img.width != state.image.width or state.selected_mask_img.height != state.image.height:
             state.selected_mask_img = Image.new("L", (state.image.width, state.image.height), "white")
 
-    def remove_mask(self):
+    def deselect_all(self):
         state.selected_mask_img = None
         self.composer.mask_img = None
 
@@ -303,7 +324,7 @@ class Selection:
         self.update_canvas()
 
     # Timer for musk
-    def mask_update(self):
+    def _mask_update(self):
         mm_time = int(time.time() * 1000)
 
         if (
@@ -318,7 +339,7 @@ class Selection:
             # print("DEBUG: ants update: {}".format(mm_time))
 
         # Repeat timer
-        self.timer_mask_update = self.ui.after(self.timer_mask_time_for_update, self.mask_update)
+        self.timer_mask_update = self.canvas.after(self.timer_mask_time_for_update, self._mask_update)
 
     def set_mask_type(self, type: int = 0):
         self.composer.mask_type = type

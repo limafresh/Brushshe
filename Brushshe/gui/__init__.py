@@ -167,7 +167,7 @@ class BrushsheGui(ctk.CTk, MenuBar, Settings):
         self.update()  # Update interface before recalculate canvas.
         self.logic.force_resize_canvas()
         self.logic.update_canvas()
-        self.logic.set_mask_type(config.getint("Brushshe", "mask"))
+        self.logic.selection.set_mask_type(config.getint("Brushshe", "mask"))
 
         if len(sys.argv) > 1:
             self.logic.open_image(sys.argv[1])
@@ -185,7 +185,7 @@ class BrushsheGui(ctk.CTk, MenuBar, Settings):
         self.bind("<Control-x>", lambda e: self.logic.copy_tool(deleted=True))
         self.bind("<Control-c>", lambda e: self.logic.copy_tool())
         self.bind("<Control-v>", lambda e: self.logic.start_insert())
-        self.bind("<Delete>", lambda e: self.logic.delete_selected())
+        self.bind("<Delete>", lambda e: self.logic.selection.delete_selected())
 
         self.bind("<Control-f>", lambda e: self.logic.flip_brush_colors())
         self.bind("<Control-b>", lambda e: self.logic.brush())

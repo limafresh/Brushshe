@@ -22,6 +22,7 @@ from utils.translator import _
 
 from logic.edit_tools import EditTools
 from logic.paint_tools import PaintTools
+from logic.selection import Selection
 from logic.shapes import Shapes
 
 from . import state
@@ -53,6 +54,9 @@ class Common:
             self.update_canvas,
             self.record_action,
             self.crop_picture,
+        )
+        self.selection = Selection(
+            self.ui.canvas, self.set_tool, self.canvas_to_pict_xy, self.update_canvas, self.composer
         )
 
     def brush(self):
@@ -90,6 +94,21 @@ class Common:
 
     def crop_simple(self):
         self.edit_tools.crop_simple()
+
+    def select_by_shape(self, shape):
+        self.selection.select_by_shape(shape)
+
+    def select_by_polygon(self):
+        self.selection.select_by_polygon()
+
+    def select_by_color(self, fill_limit):
+        self.selection.select_by_color(fill_limit)
+
+    def select_all_mask(self):
+        self.selection.select_all()
+
+    def remove_mask(self):
+        self.selection.deselect_all()
 
     # Keybinding without locale.
     def key_handler(self, event):

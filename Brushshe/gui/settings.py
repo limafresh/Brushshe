@@ -46,7 +46,7 @@ class Settings:
             save_config("brush_smoothing_factor", str(self.logic.paint_tools.brush_smoothing_factor))
 
         def mask_radiobutton_callback():
-            self.logic.set_mask_type(mask_var.get())
+            self.logic.selection.set_mask_type(mask_var.get())
             save_config("mask", str(mask_var.get()))
 
         def palette_radiobutton_callback():

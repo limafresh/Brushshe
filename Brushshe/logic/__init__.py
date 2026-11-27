@@ -15,14 +15,12 @@ from .addons import Addons
 from .canvas import CanvasOperations
 from .common import Common
 from .panels import Panels
-from .selection import Selection
 from .tool_operations import ToolOperations
 
 
 class BrushsheLogic(
     Common,
     CanvasOperations,
-    Selection,
     Panels,
     ToolOperations,
     Addons,
@@ -66,10 +64,6 @@ class BrushsheLogic(
         self.prev_x, self.prev_y = None, None
         self.current_font = "Open Sans"
         self.is_grid_visible = False
-
-        self.timer_mask_time_for_update = 200  # ms
-        self.timer_mask_last_update = 0
-        self.timer_mask_update = self.ui.after(self.timer_mask_time_for_update, self.mask_update)
 
         """Color themes"""
         themes_folder = Path(resource("assets/themes"))
