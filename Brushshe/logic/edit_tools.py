@@ -88,7 +88,7 @@ class EditTools:
         self.canvas.bind("<ButtonRelease-1>", lambda event: self._copy_select_end(deleted))
 
     def _copy_select_end(self, deleted: bool):
-        result = self.selector.finnish()
+        result = self.selector.finish()
         if result is None:
             return
         x1, y1, x2, y2 = result
@@ -202,7 +202,7 @@ class EditTools:
         self.canvas.bind("<ButtonRelease-1>", self._crop_end)
 
     def _crop_end(self, event):
-        result = self.selector.finnish()
+        result = self.selector.finish()
         if result is None:
             return
         x1, y1, x2, y2 = result

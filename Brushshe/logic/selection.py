@@ -56,7 +56,7 @@ class Selection:
         self.selector.update(event)
 
     def _select_by_shape_select_end(self, event):
-        result = self.selector.finnish()
+        result = self.selector.finish()
         if result is None:
             return
         x1, y1, x2, y2 = result

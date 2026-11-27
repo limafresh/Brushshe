@@ -77,7 +77,7 @@ class RectSelector:
             dash=(5, 5),
         )
 
-    def finnish(self) -> tuple | None:
+    def finish(self) -> tuple | None:
         if self.x_begin is None or self.y_begin is None:
             return
 
