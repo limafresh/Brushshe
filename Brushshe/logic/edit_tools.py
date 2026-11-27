@@ -10,6 +10,7 @@ from PIL import Image, ImageChops, ImageDraw, ImageTk
 from utils.translator import _
 
 from . import state
+from .rect_selector import RectSelector
 
 
 class EditTools:
@@ -31,79 +32,7 @@ class EditTools:
 
         self.is_insert_smoothing = False
 
-    """Common"""
-
-    def _edit_selecting(self, event):
-        x, y = self.canvas_to_pict_xy(event.x, event.y)
-
-        if self.x_begin is None or self.y_begin is None:
-            self.x_begin = x
-            self.y_begin = y
-
-        self.x_end = x
-        self.y_end = y
-
-        x_max = state.image.width - 1
-        y_max = state.image.height - 1
-
-        self.x_begin = max(self.x_begin, 0)
-        self.x_begin = min(self.x_begin, x_max)
-        self.y_begin = max(self.y_begin, 0)
-        self.y_begin = min(self.y_begin, y_max)
-        self.x_end = max(self.x_end, 0)
-        self.x_end = min(self.x_end, x_max)
-        self.y_end = max(self.y_end, 0)
-        self.y_end = min(self.y_end, y_max)
-
-        x1 = min(self.x_begin, self.x_end)
-        x2 = max(self.x_begin, self.x_end)
-        y1 = min(self.y_begin, self.y_end)
-        y2 = max(self.y_begin, self.y_end)
-
-        self._edit_draw_tool(x1, y1, x2, y2)
-
-    def _edit_draw_tool(self, x1: float, y1: float, x2: float, y2: float):
-        self.canvas.delete("tools")
-        self._draw_dashed_rect(x1, y1, x2, y2)
-
-    def _draw_dashed_rect(self, x1: float, y1: float, x2: float, y2: float):
-        self.canvas.create_rectangle(
-            int(x1 * state.zoom),
-            int(y1 * state.zoom),
-            int((x2 + 1) * state.zoom - 1),
-            int((y2 + 1) * state.zoom - 1),
-            outline="white",
-            width=1,
-            tag="tools",
-        )
-        self.canvas.create_rectangle(
-            int(x1 * state.zoom),
-            int(y1 * state.zoom),
-            int((x2 + 1) * state.zoom - 1),
-            int((y2 + 1) * state.zoom - 1),
-            outline="black",
-            width=1,
-            tag="tools",
-            dash=(5, 5),
-        )
-
-    def _edit_end(self) -> tuple | None:
-        if self.x_begin is None or self.y_begin is None:
-            return
-
-        x1 = min(self.x_begin, self.x_end)
-        x2 = max(self.x_begin, self.x_end)
-        y1 = min(self.y_begin, self.y_end)
-        y2 = max(self.y_begin, self.y_end)
-
-        self.canvas.delete("tools")
-
-        self.x_begin = None
-        self.y_begin = None
-        self.x_end = None
-        self.y_end = None
-
-        return x1, y1, x2, y2
+        self.selector = RectSelector(self.canvas, self.canvas_to_pict_xy, "tools")
 
     """Copy/cut"""
 
@@ -152,17 +81,14 @@ class EditTools:
         else:
             self.set_tool("cut", _("Cut"), None, None, None, "cross")
 
-        self.x_begin = None
-        self.y_begin = None
-        self.x_end = None
-        self.y_end = None
+        self.selector.reset_positions()
 
-        self.canvas.bind("<Button-1>", self._edit_selecting)
-        self.canvas.bind("<B1-Motion>", self._edit_selecting)
+        self.canvas.bind("<Button-1>", self.selector.update)
+        self.canvas.bind("<B1-Motion>", self.selector.update)
         self.canvas.bind("<ButtonRelease-1>", lambda event: self._copy_select_end(deleted))
 
     def _copy_select_end(self, deleted: bool):
-        result = self._edit_end()
+        result = self.selector.finnish()
         if result is None:
             return
         x1, y1, x2, y2 = result
@@ -262,24 +188,21 @@ class EditTools:
             anchor="nw",
         )
 
-        self._draw_dashed_rect(x1, y1, x2, y2)
+        self.selector.draw_dashed_rect(x1, y1, x2, y2)
 
     """Crop"""
 
     def crop_simple(self):
         self.set_tool("crop", _("Crop"), None, None, None, "cross")
 
-        self.x_begin = None
-        self.y_begin = None
-        self.x_end = None
-        self.y_end = None
+        self.selector.reset_positions()
 
-        self.canvas.bind("<Button-1>", self._edit_selecting)
-        self.canvas.bind("<B1-Motion>", self._edit_selecting)
+        self.canvas.bind("<Button-1>", self.selector.update)
+        self.canvas.bind("<B1-Motion>", self.selector.update)
         self.canvas.bind("<ButtonRelease-1>", self._crop_end)
 
     def _crop_end(self, event):
-        result = self._edit_end()
+        result = self.selector.finnish()
         if result is None:
             return
         x1, y1, x2, y2 = result
