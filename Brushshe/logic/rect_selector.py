@@ -50,9 +50,6 @@ class RectSelector:
         y1 = min(self.y_begin, self.y_end)
         y2 = max(self.y_begin, self.y_end)
 
-        self._draw_tool(x1, y1, x2, y2)
-
-    def _draw_tool(self, x1: float, y1: float, x2: float, y2: float):
         self.canvas.delete(self.tag)
         self.draw_dashed_rect(x1, y1, x2, y2)
 
@@ -77,7 +74,7 @@ class RectSelector:
             dash=(5, 5),
         )
 
-    def finish(self) -> tuple | None:
+    def finish(self) -> tuple[float, float, float, float] | None:
         if self.x_begin is None or self.y_begin is None:
             return
 
