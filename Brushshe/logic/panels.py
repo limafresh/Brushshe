@@ -4,6 +4,7 @@
 
 import json
 import math
+from collections.abc import Callable
 from tkinter import filedialog
 
 import customtkinter as ctk
@@ -16,10 +17,20 @@ from utils.translator import _
 
 
 class Panels:
+    def __init__(
+        self, tools_frame: ctk.CTkFrame, palette_frame: ctk.CTkFrame, tools_dict: dict, change_color: Callable
+    ):
+        self.tools_frame = tools_frame
+        self.palette_frame = palette_frame
+        self.tools_dict = tools_dict
+        self.change_color = change_color
+
+        self.hide_left_toolbar = False
+
     """Left toolbar"""
 
-    def set_left_toolbar(self, need_choose_file=True):
-        if self.hide_left_toolbar.get():
+    def set_left_toolbar(self, need_choose_file: bool = True):
+        if self.hide_left_toolbar:
             return
 
         if need_choose_file:
@@ -39,18 +50,18 @@ class Panels:
             else:
                 json_path = config_entry
 
-        for widget in self.ui.tools_frame.winfo_children():
+        for widget in self.tools_frame.winfo_children():
             widget.destroy()
 
         try:
             with open(json_path, "r", encoding="utf-8") as f:
                 config_data = json.load(f)
-                self.make_left_toolbar(config_data)
+                self._make_left_toolbar(config_data)
         except (FileNotFoundError, json.JSONDecodeError):
             print("Warning: Left toolbar configuration file is invalid or missing.")
             return
 
-    def make_left_toolbar(self, config_data: dict):
+    def _make_left_toolbar(self, config_data: dict):
         columns = config_data.get("columns", 4)
         items_list = config_data.get("items", [])
 
@@ -70,7 +81,7 @@ class Panels:
                 column = 0
                 row += 1
                 s = ctk.CTkFrame(
-                    self.ui.tools_frame,
+                    self.tools_frame,
                     width=30,
                     height=4,
                 )
@@ -103,8 +114,8 @@ class Panels:
             try:
                 icon_path = f"assets/icons/toolbar/{item['item']}.png"
                 text_color = ctk.ThemeManager.theme["CTkButton"]["text_color"]
-                is_white_0 = sum(self.ui.winfo_rgb(text_color[0])) / 3 > 32767
-                is_white_1 = sum(self.ui.winfo_rgb(text_color[1])) / 3 > 32767
+                is_white_0 = sum(self.tools_frame.winfo_rgb(text_color[0])) / 3 > 32767
+                is_white_1 = sum(self.tools_frame.winfo_rgb(text_color[1])) / 3 > 32767
 
                 tool_icon = ctk.CTkImage(
                     light_image=Image.open(resource(icon_path))
@@ -131,7 +142,7 @@ class Panels:
                     )
 
             tool_button = ctk.CTkButton(
-                self.ui.tools_frame, text=None, width=30, height=30, image=tool_icon, command=tool_command
+                self.tools_frame, text=None, width=30, height=30, image=tool_icon, command=tool_command
             )
             tool_button.grid(column=column, row=row, pady=1, padx=1)
 
@@ -145,8 +156,8 @@ class Panels:
 
     """Palette"""
 
-    def import_palette(self, value=None):
-        if value is None:
+    def import_palette(self, palette_path: str | None = None):
+        if palette_path is None:
             file_path = filedialog.askopenfilename(title=_("Import palette"), filetypes=[("HEX", "*.hex")])
 
             if not file_path:
@@ -155,8 +166,6 @@ class Panels:
             palette_path = file_path
             config.set("Brushshe", "palette", palette_path)
             write_config()
-        else:
-            palette_path = value
 
         colors = []
 
@@ -171,7 +180,7 @@ class Panels:
                     if not color.startswith("#"):
                         color = "#" + color
                     try:
-                        self.ui.winfo_rgb(color)
+                        self.palette_frame.winfo_rgb(color)
                     except Exception:
                         print(f"Warning: String `{color}` is not correct color.")
                         continue
@@ -183,7 +192,7 @@ class Panels:
             return
 
         self.palette = colors
-        self.make_color_palette(colors)
+        self._make_color_palette(colors)
 
     def export_palette(self):
         path = filedialog.asksaveasfilename(
@@ -195,20 +204,20 @@ class Panels:
 
             messagebox.export_palette()
 
-    def make_color_palette(self, colors):
+    def _make_color_palette(self, colors):
         max_columns_in_row = 16
 
         if colors is None or len(colors) == 0:
             print("Wrong palette")
             return
 
-        for child in self.ui.palette_widget.winfo_children():
+        for child in self.palette_frame.winfo_children():
             child.destroy()
 
         ii = 0
         for color in colors:
             try:
-                rgb = self.ui.winfo_rgb(color)
+                rgb = self.palette_frame.winfo_rgb(color)
                 r = math.floor(rgb[0] / 256)
                 g = math.floor(rgb[1] / 256)
                 b = math.floor(rgb[2] / 256)
@@ -222,7 +231,7 @@ class Panels:
             color_checked = f"#{r:02x}{g:02x}{b:02x}"
 
             tmp_btn = ctk.CTkButton(
-                self.ui.palette_widget,
+                self.palette_frame,
                 fg_color=color_checked,
                 hover=False,
                 text=None,
@@ -232,7 +241,6 @@ class Panels:
                 corner_radius=1,
                 command=lambda c=color_checked: self.change_color(c),
             )
-            # tmp_btn.pack(side=ctk.LEFT, padx=1, pady=1)
             tmp_btn.grid(row=row, column=column, padx=1, pady=1)
             tmp_btn.bind("<Button-3>", lambda event, obj=tmp_btn, i=ii: self.color_choice_btn(event, obj, i))
             tmp_btn.bind("<Double-Button-1>", lambda event, obj=tmp_btn, i=ii: self.color_choice_btn(event, obj, i))

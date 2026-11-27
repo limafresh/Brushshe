@@ -110,6 +110,15 @@ class Common:
     def remove_mask(self):
         self.selection.deselect_all()
 
+    def set_left_toolbar(self, need_choose_file):
+        self.panels.set_left_toolbar(need_choose_file)
+
+    def import_palette(self, palette_path):
+        self.panels.import_palette(palette_path)
+
+    def export_palette(self):
+        self.panels.export_palette()
+
     # Keybinding without locale.
     def key_handler(self, event):
         if state.current_tool != "text":

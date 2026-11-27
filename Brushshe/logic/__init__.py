@@ -14,14 +14,12 @@ from utils.config_loader import config
 from .addons import Addons
 from .canvas import CanvasOperations
 from .common import Common
-from .panels import Panels
 from .tool_operations import ToolOperations
 
 
 class BrushsheLogic(
     Common,
     CanvasOperations,
-    Panels,
     ToolOperations,
     Addons,
 ):

@@ -7,6 +7,7 @@ import sys
 import customtkinter as ctk
 from constants import Constants
 from logic import BrushsheLogic, state
+from logic.panels import Panels
 from PIL import Image, ImageTk
 from ui.brush_palette import BrushPalette
 from ui.tooltip import Tooltip
@@ -144,6 +145,9 @@ class BrushsheGui(ctk.CTk, MenuBar, Settings):
             self.bottom_docker,
         )
         self.palette_widget.pack(side="left", fill="x", padx=2, pady=2)
+        self.logic.panels = Panels(
+            self.tools_frame, self.palette_widget, self.logic.tools_dict, self.logic.change_color
+        )
 
         if config.get("Brushshe", "palette") in Constants.STANDARD_PALETTES:
             self.logic.import_palette(resource(f"assets/palettes/{config.get('Brushshe', 'palette')}_palette.hex"))
