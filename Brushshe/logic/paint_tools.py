@@ -2,8 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-import random
 from collections.abc import Callable
+from random import randint
 
 from constants import Constants
 from core.bhbrush import bh_draw_recoloring_line
@@ -11,7 +11,7 @@ from core.bhhistory import BhHistory, BhPoint
 from core.gradient_fill import gradient_fill
 from customtkinter import CTkCanvas
 from PIL import ImageColor, ImageDraw, ImageFont
-from utils import common
+from utils.common import resource, rgb_tuple_to_rgba_tuple
 from utils.config_loader import config
 from utils.translator import _
 
@@ -42,7 +42,7 @@ class PaintTools:
         self.is_gradient_fill = False
         self.gradient_fill_direction = "Vertically"
 
-        self.font_path = common.resource("assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
+        self.font_path = resource("assets/fonts/Open_Sans/OpenSans-VariableFont_wdth,wght.ttf")
         self.text_content = ""
 
     def brush(self, type: str = "brush"):
@@ -51,12 +51,12 @@ class PaintTools:
         self.point_history = None
 
         if type == "brush":
-            self.set_tool("brush", _("Brush"), Constants().BRUSH_SIZE, 1, 50, "pencil")
+            self.set_tool("brush", _("Brush"), Constants.BRUSH_SIZE, 1, 50, "pencil")
         elif type == "eraser":
-            self.set_tool("eraser", _("Eraser"), Constants().ERASER_SIZE, 1, 50, "target")
+            self.set_tool("eraser", _("Eraser"), Constants.ERASER_SIZE, 1, 50, "target")
         else:
             print("Warning: Incorrect brush type. Set default as.")
-            self.set_tool("brush", _("Brush"), Constants().BRUSH_SIZE, 1, 50, "pencil")
+            self.set_tool("brush", _("Brush"), Constants.BRUSH_SIZE, 1, 50, "pencil")
 
         self.canvas.bind("<Button-1>", self._paint)
         self.canvas.bind("<B1-Motion>", self._paint)
@@ -153,7 +153,7 @@ class PaintTools:
         tmp_image = state.image if state.selected_mask_img is None else state.image.copy()
 
         if state.image.mode == "RGBA":
-            fill_color = common.rgb_tuple_to_rgba_tuple(ImageColor.getrgb(state.brush_color), 255)
+            fill_color = rgb_tuple_to_rgba_tuple(ImageColor.getrgb(state.brush_color), 255)
         else:
             fill_color = ImageColor.getrgb(state.brush_color)
 
@@ -161,10 +161,11 @@ class PaintTools:
             filled = gradient_fill(
                 x, y, state.image, state.brush_color, state.second_brush_color, self.gradient_fill_direction
             )
-            if filled is not None and state.selected_mask_img is None:
-                state.image.paste(filled)
-            else:
-                state.image.paste(filled, (0, 0), state.selected_mask_img)
+            if filled is not None:
+                if state.selected_mask_img is None:
+                    state.image.paste(filled)
+                else:
+                    state.image.paste(filled, (0, 0), state.selected_mask_img)
         else:
             ImageDraw.floodfill(tmp_image, (x, y), fill_color)
             if state.selected_mask_img is not None:
@@ -174,7 +175,7 @@ class PaintTools:
         self.record_action()
 
     def recoloring_brush(self):
-        self.set_tool("r-brush", _("R. Brush"), Constants().BRUSH_SIZE, 1, 50, "pencil")
+        self.set_tool("r-brush", _("R. Brush"), Constants.BRUSH_SIZE, 1, 50, "pencil")
 
         self.prev_x = None
         self.prev_y = None
@@ -191,8 +192,8 @@ class PaintTools:
         color_from = ImageColor.getrgb(state.second_brush_color)
 
         if state.image.mode == "RGBA":
-            color_from = common.rgb_tuple_to_rgba_tuple(color_from, 255)
-            color_to = common.rgb_tuple_to_rgba_tuple(color_to, 255)
+            color_from = rgb_tuple_to_rgba_tuple(color_from, 255)
+            color_to = rgb_tuple_to_rgba_tuple(color_to, 255)
 
         if state.selected_mask_img is None:
             bh_draw_recoloring_line(state.image, x1, y1, x2, y2, color_from, color_to, state.tool_size)
@@ -203,7 +204,7 @@ class PaintTools:
             del tmp_image
 
     def spray(self):
-        self.set_tool("spray", _("Spray"), Constants().SPRAY_SIZE, 5, 30, "spraycan")
+        self.set_tool("spray", _("Spray"), Constants.SPRAY_SIZE, 5, 30, "spraycan")
 
         self.spraying = False
         self.spray_job = None
@@ -228,8 +229,8 @@ class PaintTools:
             tmp_draw = ImageDraw.Draw(tmp_image)
 
         for i in range(state.tool_size * 2):
-            offset_x = random.randint(-state.tool_size, state.tool_size)
-            offset_y = random.randint(-state.tool_size, state.tool_size)
+            offset_x = randint(-state.tool_size, state.tool_size)
+            offset_y = randint(-state.tool_size, state.tool_size)
             if offset_x**2 + offset_y**2 <= state.tool_size**2:
                 tmp_draw.point((self.prev_x + offset_x, self.prev_y + offset_y), fill=state.brush_color)
 
@@ -255,7 +256,7 @@ class PaintTools:
         self.record_action()
 
     def text(self):
-        self.set_tool("text", _("Text"), Constants().FONT_SIZE, 11, 96, "cross")
+        self.set_tool("text", _("Text"), Constants.FONT_SIZE, 11, 96, "cross")
         self.canvas.bind("<Button-1>", self._add_text)
         self.canvas.bind("<Motion>", self._draw_text_halo)
         self.canvas.bind("<Leave>", lambda e: self.canvas.delete("tools"))
