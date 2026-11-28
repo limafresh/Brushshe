@@ -146,7 +146,11 @@ class BrushsheGui(ctk.CTk, MenuBar, Settings):
         )
         self.palette_widget.pack(side="left", fill="x", padx=2, pady=2)
         self.logic.panels = Panels(
-            self.tools_frame, self.palette_widget, self.logic.tools_dict, self.logic.change_color
+            self.tools_frame,
+            self.palette_widget,
+            self.logic.tools_dict,
+            self.logic.change_color,
+            self.logic.color_choice_btn,
         )
 
         if config.get("Brushshe", "palette") in Constants.STANDARD_PALETTES:

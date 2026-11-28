@@ -367,7 +367,7 @@ class Common:
                 command=lambda c=self.obtained_color: self.change_color(c),
             )
             self.change_color(self.obtained_color)
-            self.palette[index] = self.obtained_color
+            self.panels.palette[index] = self.obtained_color
 
     def flip_brush_colors(self):
         state.brush_color = self.ui.brush_palette.second_color

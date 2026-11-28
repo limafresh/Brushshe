@@ -3,7 +3,6 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import json
-import math
 from collections.abc import Callable
 from tkinter import filedialog
 
@@ -12,22 +11,29 @@ from PIL import Image
 from ui import messagebox
 from ui.tooltip import Tooltip
 from utils.common import generate_inverted_icon, resource
-from utils.config_loader import config, write_config
+from utils.config_loader import config, save_config
 from utils.translator import _
 
 
 class Panels:
     def __init__(
-        self, tools_frame: ctk.CTkFrame, palette_frame: ctk.CTkFrame, tools_dict: dict, change_color: Callable
+        self,
+        tools_frame: ctk.CTkFrame,
+        palette_frame: ctk.CTkFrame,
+        tools_dict: dict,
+        change_color: Callable,
+        change_palette_button_color: Callable,
     ):
         self.tools_frame = tools_frame
         self.palette_frame = palette_frame
         self.tools_dict = tools_dict
         self.change_color = change_color
+        self.change_palette_button_color = change_palette_button_color
 
+        self.palette: list[str] = []
         self.hide_left_toolbar = False
 
-    """Left toolbar"""
+    # --- Left toolbar ---
 
     def set_left_toolbar(self, need_choose_file: bool = True):
         if self.hide_left_toolbar:
@@ -39,8 +45,7 @@ class Panels:
             )
             if file_path:
                 json_path = file_path
-                config.set("Brushshe", "left_toolbar_config", json_path)
-                write_config()
+                save_config("left_toolbar_config", json_path)
             else:
                 return
         else:
@@ -80,12 +85,7 @@ class Panels:
             if item["item"] == "separator":
                 column = 0
                 row += 1
-                s = ctk.CTkFrame(
-                    self.tools_frame,
-                    width=30,
-                    height=4,
-                )
-                s.grid(column=column, row=row, pady=1, padx=1)
+                ctk.CTkFrame(self.tools_frame, width=30, height=4).grid(column=column, row=row, pady=1, padx=1)
                 row += 1
                 continue
 
@@ -154,7 +154,7 @@ class Panels:
                 column = 0
                 row += 1
 
-    """Palette"""
+    # --- Palette ---
 
     def import_palette(self, palette_path: str | None = None):
         if palette_path is None:
@@ -164,8 +164,7 @@ class Panels:
                 return
 
             palette_path = file_path
-            config.set("Brushshe", "palette", palette_path)
-            write_config()
+            save_config("palette", palette_path)
 
         colors = []
 
@@ -192,7 +191,7 @@ class Panels:
             return
 
         self.palette = colors
-        self._make_color_palette(colors)
+        self._make_color_palette()
 
     def export_palette(self):
         path = filedialog.asksaveasfilename(
@@ -204,45 +203,31 @@ class Panels:
 
             messagebox.export_palette()
 
-    def _make_color_palette(self, colors):
+    def _make_color_palette(self):
         max_columns_in_row = 16
-
-        if colors is None or len(colors) == 0:
-            print("Wrong palette")
-            return
 
         for child in self.palette_frame.winfo_children():
             child.destroy()
 
-        ii = 0
-        for color in colors:
-            try:
-                rgb = self.palette_frame.winfo_rgb(color)
-                r = math.floor(rgb[0] / 256)
-                g = math.floor(rgb[1] / 256)
-                b = math.floor(rgb[2] / 256)
-            except Exception:
-                print(f"Warning: String `{color}` is not correct color.")
-                continue
+        for index, color in enumerate(self.palette):
+            row = index // max_columns_in_row
+            column = index % max_columns_in_row
 
-            row = ii // max_columns_in_row
-            column = ii % max_columns_in_row
-
-            color_checked = f"#{r:02x}{g:02x}{b:02x}"
-
-            tmp_btn = ctk.CTkButton(
+            color_button = ctk.CTkButton(
                 self.palette_frame,
-                fg_color=color_checked,
+                fg_color=color,
                 hover=False,
                 text=None,
                 width=24,
                 height=24,
                 border_width=1,
                 corner_radius=1,
-                command=lambda c=color_checked: self.change_color(c),
+                command=lambda c=color: self.change_color(c),
             )
-            tmp_btn.grid(row=row, column=column, padx=1, pady=1)
-            tmp_btn.bind("<Button-3>", lambda event, obj=tmp_btn, i=ii: self.color_choice_btn(event, obj, i))
-            tmp_btn.bind("<Double-Button-1>", lambda event, obj=tmp_btn, i=ii: self.color_choice_btn(event, obj, i))
+            color_button.grid(row=row, column=column, padx=1, pady=1)
 
-            ii += 1
+            for event_name in ("<Button-3>", "<Double-Button-1>"):
+                color_button.bind(
+                    event_name,
+                    lambda event, button=color_button, i=index: self.change_palette_button_color(event, button, i),
+                )
