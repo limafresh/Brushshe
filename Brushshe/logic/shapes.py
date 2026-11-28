@@ -40,7 +40,7 @@ class Shapes:
         if shape == "Fill rectangle" or shape == "Fill oval":
             self.set_tool("shape", _(shape), None, None, None, "cross")
         else:
-            self.set_tool("shape", _(shape), Constants().SHAPE_SIZE, 1, 50, "cross")
+            self.set_tool("shape", _(shape), Constants.SHAPE_SIZE, 1, 50, "cross")
 
         self.canvas.bind("<ButtonPress-1>", self._start_shape)
         self.canvas.bind("<B1-Motion>", self._draw_shape)
@@ -100,7 +100,6 @@ class Shapes:
         elif self.shape == "Oval":
             tmp_draw.ellipse([x0, y0, x1, y1], outline=state.brush_color, width=state.tool_size)
         elif self.shape == "Line":
-            # self.draw_line(x_begin, y_begin, x_end, y_end)
             bh_draw_line(
                 tmp_draw,
                 self.x_begin,
@@ -134,16 +133,13 @@ class Shapes:
         self.canvas.delete(self.shape_id)
 
     def bezier(self):
-        # Simple 4th point (cubic) Bezier curve.
-
         self.canvas_points = []
         self.image_points = []
         self.bezier_id = None
 
-        # Clear canvas.
         self.update_canvas()
 
-        self.set_tool("shape", _("Bezier"), Constants().SHAPE_SIZE, 1, 50, "cross")
+        self.set_tool("shape", _("Bezier"), Constants.SHAPE_SIZE, 1, 50, "cross")
 
         self.canvas.bind("<ButtonPress-1>", self._start_bezier)
         self.canvas.bind("<B1-Motion>", self._draw_bezier)
@@ -157,9 +153,7 @@ class Shapes:
             self.canvas_points.append((cx, cy))
             self.image_points.append(self.canvas_to_pict_xy(event.x, event.y))
 
-            self.bezier_id = self.canvas.create_line(
-                cx, cy, cx, cy, fill=self.get_contrast_color(), tag="tools"
-            )  # smooth="bezier"
+            self.bezier_id = self.canvas.create_line(cx, cy, cx, cy, fill=self.get_contrast_color(), tag="tools")
 
     def _draw_bezier(self, event):
         if self.bezier_id is None or len(self.canvas_points) == 0:
@@ -262,7 +256,6 @@ class Shapes:
             self.update_canvas()
             self.record_action()
 
-            # Reset nonlocal variables.
             self.canvas_points = []
             self.image_points = []
             self.bezier_id = None
