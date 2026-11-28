@@ -93,7 +93,7 @@ class Common:
         self.edit_tools.insert_simple(insert_image)
 
     def crop_simple(self):
-        self.edit_tools.crop_simple()
+        self.edit_tools.crop()
 
     def select_by_shape(self, shape):
         self.selection.select_by_shape(shape)

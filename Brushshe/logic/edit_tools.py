@@ -34,46 +34,13 @@ class EditTools:
 
         self.selector = RectSelector(self.canvas, self.canvas_to_pict_xy, "tools")
 
-    """Copy/cut"""
+    # --- Copy/cut ---
 
     def copy(self, deleted: bool = False):
         if state.selected_mask_img is None:
             self._copy_simple(deleted)
         else:
             self._copy_selected(deleted)
-
-    def _copy_selected(self, deleted: bool = False):
-        if state.selected_mask_img is None:
-            return
-
-        tmp_bg_color = (0, 0, 0, 0)
-        tmp_img_mask = state.selected_mask_img
-        tmp_img = Image.new("RGBA", (state.image.width, state.image.height), tmp_bg_color)
-        tmp_img.paste(state.image, (0, 0), tmp_img_mask)
-
-        # Trim image.
-        bg = Image.new(tmp_img.mode, tmp_img.size, tmp_bg_color)
-        diff = ImageChops.difference(tmp_img, bg)
-        # diff = ImageChops.add(diff, diff, 2.0, -100)
-        bbox = diff.getbbox()
-
-        if bbox:
-            self.buffer_local = tmp_img.crop(bbox)
-        else:
-            self.buffer_local = tmp_img
-
-        del tmp_img
-
-        if deleted:
-            bg_color = state.bg_color
-            if state.image.mode == "RGBA":
-                bg_color = (0, 0, 0, 0)
-            tmp_img = Image.new(state.image.mode, (state.image.width, state.image.height), bg_color)
-            state.image.paste(tmp_img, (0, 0), tmp_img_mask)
-            del tmp_img
-            self.record_action()
-
-        self.update_canvas()
 
     def _copy_simple(self, deleted: bool = False):
         if deleted is False:
@@ -114,16 +81,45 @@ class EditTools:
 
         self.update_canvas()
 
-    """Insert"""
-
-    def insert(self):
-        if hasattr(self, "buffer_local") is False or self.buffer_local is None:
+    def _copy_selected(self, deleted: bool = False):
+        if state.selected_mask_img is None:
             return
 
-        self.set_tool("insert", _("Insert"), 100, 1, 500, "cross")
-        self.insert_simple(self.buffer_local)
+        tmp_bg_color = (0, 0, 0, 0)
+        tmp_img_mask = state.selected_mask_img
+        tmp_img = Image.new("RGBA", (state.image.width, state.image.height), tmp_bg_color)
+        tmp_img.paste(state.image, (0, 0), tmp_img_mask)
 
-    def insert_simple(self, insert_image: Image.Image | None = None):
+        bg = Image.new(tmp_img.mode, tmp_img.size, tmp_bg_color)
+        diff = ImageChops.difference(tmp_img, bg)
+        bbox = diff.getbbox()
+
+        if bbox:
+            self.buffer_local = tmp_img.crop(bbox)
+        else:
+            self.buffer_local = tmp_img
+
+        del tmp_img
+
+        if deleted:
+            bg_color = state.bg_color
+            if state.image.mode == "RGBA":
+                bg_color = (0, 0, 0, 0)
+            tmp_img = Image.new(state.image.mode, (state.image.width, state.image.height), bg_color)
+            state.image.paste(tmp_img, (0, 0), tmp_img_mask)
+            del tmp_img
+            self.record_action()
+
+        self.update_canvas()
+
+    # --- Insert ---
+
+    def insert(self):
+        if hasattr(self, "buffer_local"):
+            self.set_tool("insert", _("Insert"), 100, 1, 500, "cross")
+            self.insert_simple(self.buffer_local)
+
+    def insert_simple(self, insert_image: Image.Image):
         self.image_tmp = insert_image
         self.current_zoom = None
         self.image_tmp_view = None
@@ -190,9 +186,9 @@ class EditTools:
 
         self.selector.draw_dashed_rect(x1, y1, x2, y2)
 
-    """Crop"""
+    # --- Crop ---
 
-    def crop_simple(self):
+    def crop(self):
         self.set_tool("crop", _("Crop"), None, None, None, "cross")
 
         self.selector.reset_positions()
@@ -209,8 +205,6 @@ class EditTools:
 
         self.crop_picture(math.floor(x1), math.floor(y1), math.ceil(x2) + 1, math.ceil(y2) + 1)
 
-        # Remove mask if exist.
-        # TODO: Continue...
         state.selected_mask_img = None
 
         self.update_canvas()
